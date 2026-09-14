@@ -55,6 +55,7 @@ cd bldg-skills
 ./install.sh --link     # symlink instead of copy
 ./install.sh --list     # show curated skills in skills/
 ./install.sh --only project-level-up
+./install.sh --link --cursor   # also wire Cursor
 ```
 
 ### Library `library/`
@@ -79,6 +80,7 @@ Default destinations (created if missing):
 - `~/.grok/skills` — Grok / xAI
 - `/home/workdir/.grok/skills` — Grok cloud sessions
 - `~/.claude/skills` — Claude Code, if that folder exists or `--claude` is passed
+- `~/.cursor/skills` and `~/.agents/skills` — Cursor, if those folders exist or `--cursor` is passed
 - `~/.codex/skills` — Codex, if that folder exists
 
 Grok can also pull a single skill after the repo is public or you have a token:

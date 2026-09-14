@@ -11,6 +11,7 @@ LIST=0
 LIST_LIBRARY=0
 LIBRARY=0
 CLAUDE=0
+CURSOR=0
 ONLY=""
 FROM=""
 EXTRA_DEST=""
@@ -27,6 +28,7 @@ Usage: ./install.sh [options]
   --from PATH         Install one skill by path (e.g. library/CONSTRUCTION/ROM_Budget_Range)
   --library           Install all library/ leaf skills except library/_ARCHIVE/
   --claude            Also install into ~/.claude/skills even if the dir is missing
+  --cursor            Also install into ~/.cursor/skills (and ~/.agents/skills)
   (Codex: auto if ~/.codex/skills exists)
   --dest PATH         Extra destination
   -h, --help          Show this help
@@ -57,6 +59,7 @@ while [[ $# -gt 0 ]]; do
     --list-library) LIST_LIBRARY=1; shift ;;
     --library) LIBRARY=1; shift ;;
     --claude) CLAUDE=1; shift ;;
+    --cursor) CURSOR=1; shift ;;
     --dest)
       if [[ $# -lt 2 ]]; then echo "Missing value for --dest" >&2; exit 1; fi
       EXTRA_DEST="$2"; shift 2 ;;
@@ -130,6 +133,12 @@ if [ -n "${HOME:-}" ]; then
   fi
   if [ -d "$HOME/.codex/skills" ]; then
     add_dest "$HOME/.codex/skills"
+  fi
+  if [ "$CURSOR" -eq 1 ] || [ -d "$HOME/.cursor/skills" ]; then
+    add_dest "$HOME/.cursor/skills"
+  fi
+  if [ "$CURSOR" -eq 1 ] || [ -d "$HOME/.agents/skills" ]; then
+    add_dest "$HOME/.agents/skills"
   fi
 fi
 if [ -d /home/workdir/.grok ]; then
