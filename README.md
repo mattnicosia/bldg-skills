@@ -2,7 +2,7 @@
 
 Private-capable skill library for Grok, Claude Code, and any agent that loads [agentskills.io](https://agentskills.io) `SKILL.md` packages.
 
-This repo is the source of truth. Machines install from it. Do not treat `~/.grok/skills` or `~/.claude/skills` as the canonical copy.
+This repo is the source of truth. Machines install from it. Do not treat `~/.grok/skills`, `~/.claude/skills`, or `~/.codex/skills` as the canonical copy.
 
 ## Layout
 

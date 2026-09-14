@@ -20,6 +20,7 @@ Usage: ./install.sh [options]
   --only NAME         Install one skill
   --list              Print skills in this repo
   --claude            Also install into ~/.claude/skills even if the dir is missing
+  (Codex: auto if ~/.codex/skills exists)
   --dest PATH         Extra destination
   -h, --help          Show this help
 EOF
@@ -70,6 +71,9 @@ if [ -n "${HOME:-}" ]; then
   add_dest "$HOME/.grok/skills"
   if [ "$CLAUDE" -eq 1 ] || [ -d "$HOME/.claude/skills" ]; then
     add_dest "$HOME/.claude/skills"
+  fi
+  if [ -d "$HOME/.codex/skills" ]; then
+    add_dest "$HOME/.codex/skills"
   fi
 fi
 if [ -d /home/workdir/.grok ]; then
