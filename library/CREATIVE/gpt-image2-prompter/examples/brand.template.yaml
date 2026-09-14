@@ -1,0 +1,43 @@
+# gpt-image2-prompter brand profile
+# Copy this file to your workspace: cp examples/brand.template.yaml brands/<slug>.yaml
+# Only `name`, `slug`, and `brand_type` are REQUIRED. Everything else is optional
+# with sensible defaults. Missing fields just mean less-tailored prompts, not errors.
+
+# ── REQUIRED ────────────────────────────────────────────────────────────────
+name: "Your Brand Name"             # Display name, used in prompts
+slug: "your-brand"                  # Lowercase id; MUST match filename (your-brand.yaml)
+brand_type: "product"               # product | service | personal | media
+schema_version: 1                   # Don't change unless upgrading
+
+# ── VISUAL IDENTITY ─────────────────────────────────────────────────────────
+colors:
+  primary:   "#000000"              # hex; used for infographic backgrounds/accents
+  secondary: "#FFFFFF"              # hex
+  # accent:  "#D4A574"              # optional third color
+typography:
+  display: "Playfair Display"       # for infographic headlines; leave blank → "serif"
+  body:    "Inter"                  # for infographic body; leave blank → "sans-serif"
+logo:
+  path: ""                          # relative to this yaml, or absolute; "" to skip
+  usage: "bottom-right, small"      # natural-language placement rule
+
+# ── VOICE & POSITIONING (drives prompt tone) ────────────────────────────────
+tagline: ""                         # one-line positioning statement
+audience: ""                        # who the image is for
+vibe: []                            # 3-6 adjectives, e.g., ["calm", "premium", "warm-minimal"]
+
+# ── VISUAL DO / DON'T ───────────────────────────────────────────────────────
+do: []                              # explicit constraints (e.g., "natural daylight")
+dont: []                            # explicit exclusions (e.g., "no neon colors")
+
+# ── STANDING REFERENCE IMAGES (auto-attached when relevant) ─────────────────
+refs:
+  product_hero: ""                  # auto-attached on lifestyle mode
+  style_anchor: ""                  # auto-attached on infographic mode
+  # add more named refs; reference them by name when generating
+
+# ── PER-BRAND DEFAULTS (override skill defaults) ────────────────────────────
+defaults:
+  infographic_size: "1536x1024"
+  lifestyle_size:   "1024x1536"
+  quality:          "high"          # low | medium | high

@@ -1,0 +1,78 @@
+SUGGESTED EMAIL REPLY FROM <GC CONTACT> TO <ARCHITECT CONTACT>
+====================================================
+
+To: <Architect Name> <archEmail>
+Cc: <ondbuilders internal cc list>
+Subject: RE: <Original subject>
+
+Attachments:
+  - <NNNNNN>_<ShortName>_Budgetary_Estimate_v<N>.pdf
+  - <Comparable project budget separately, if requested>
+
+-----
+
+<First name>,
+
+Following up on my note from <day> with some real numbers behind it. Attached
+is our budgetary estimate for <address/project shortname> based on the sketch
+plans you sent. A few things to call out before you dig in:
+
+OVERALL RANGE: $<low>M to $<high>M
+
+We've broken it into two finish tiers since you mentioned "<paraphrase of scope
+language>" without defining how far that goes - a mid-tier <neighborhood>
+<program> comes in around $<tier A>M, a high-end signature fit-out lands closer
+to $<tier B>M. The HVAC question is the other big swing - I've shown a base
+scenario that reuses the existing equipment (with all new ductwork and
+controls) and an add-alternate for full equipment replacement. The replacement
+adds about $<HVAC alt low>-$<HVAC alt high>K to either tier. Easier to make
+that call after a mechanical site survey.
+
+For context, this is sized to <FOH SF> SF FOH on a <main level SF> SF main
+floor with a <cellar SF> SF cellar (total ~<gross SF rounded> SF gross).
+<Optional: Comparable to <ref project>'s footprint, so the divisional ratios
+should look familiar.>
+
+What's IN: full FOH gut, new bar in new location, new bathrooms ($<bath
+allowance>K/bath allowance), new finishes throughout FOH, sprinkler/FA mods to
+suit new ceilings, new electrical distribution, full takeoff in the package.
+
+What's OUT (so we're on the same page): <project-specific exclusions like
+"storefront and exterior stair (per your note - separate timeline)">, loose
+furniture, POS/AV/smallwares, kitchen equipment (existing stays per your note -
+we carried a hood recert and gas line check), sales tax, permit/expediter
+fees. We have NOT carried any structural work or any asbestos
+testing/abatement - the existing structure is assumed adequate and the owner
+will need to provide an ACM-clear letter before demo. If either becomes an
+issue, that's a change order.
+
+SCHEDULE: <N>-month build, standard daytime, no acceleration premium carried.
+<Target date> reopen is achievable but tight - you'd need DD and DOB filing
+moving in the next 60 days, long-leads (millwork, lighting, tile, custom
+metals) ordered shortly after, and ownership FF&E decisions locked by month
+<N-2>. Slip past <date> on the start and the <target date> target gets hard to
+hit without overtime.
+
+ACCURACY: This is sketch-level (Class 5 per AACE) - figure +/- 25-35%. Once
+you get to DD I can re-price with much tighter numbers.
+
+A few things I'd want to look at on a site walk before this firms up:
+  - Existing HVAC equipment age and capacity
+  - Kitchen hood / MAU age and code compliance
+  - Existing electrical service rating and panel space
+  - Existing structure at the proposed <scope-specific concern>
+  - Anything that might trigger abatement once demo starts
+
+Happy to set up a call once you've had a chance to review.
+
+Best,
+<First name>
+
+
+--
+<Full name>
+<Title>
+<GC Name>
+<GC Address>
+T: <Office phone> | C: <Cell>
+<email>

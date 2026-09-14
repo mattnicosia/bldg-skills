@@ -1,0 +1,215 @@
+{
+  "project_name": "45 Grand Street Newburgh — Adaptive Reuse Spa & Cafe",
+  "project_address": "45-47 Grand Street, Newburgh, NY 12550",
+  "date_prepared": "May 1, 2026",
+  "prepared_by": "Montana Contracting Corp",
+  "subdivisions": [
+    {
+      "code": "02 41 19",
+      "title": "Selective Demolition (Interior)",
+      "line_items": [
+        {"reference": "AD-101", "scope_item": "Remove Existing Partition Walls [Per Demolition Plan]"},
+        {"reference": "AD-101", "scope_item": "Remove Existing Suspended Ceiling System [Including Grid and Tiles]"},
+        {"reference": "AD-101, AD-102", "scope_item": "Remove Existing Floor Finishes [VCT, Carpet, and Adhesive]"},
+        {"reference": "AD-102", "scope_item": "Remove Existing AHU-1 [After HVAC Decommissioning]"},
+        {"reference": "AD-102", "scope_item": "Remove Existing Sprinkler Piping [After Sprinkler Decommissioning]"},
+        {"reference": "AD-102", "scope_item": "Remove Existing Electrical Devices [After Electrical Disconnect/Safe-Off]"},
+        {"reference": "[UNVERIFIED]", "scope_item": "Provide Cleanup of Own Work into Centralized Container Provided by GC"},
+        {"reference": "[UNVERIFIED]", "scope_item": "Provide All Required Permits and Inspections Per Local Code"}
+      ]
+    },
+    {
+      "code": "03 30 00",
+      "title": "Cast-in-Place Concrete",
+      "line_items": [
+        {"reference": "5/S-301", "scope_item": "F/I 4\" Concrete Slab on Grade [4000 PSI with #4 Rebar 12\" OC EW]"},
+        {"reference": "5/S-301", "scope_item": "F/I Vapor Barrier Under Slab [10 mil Polyethylene]"},
+        {"reference": "[UNVERIFIED]", "scope_item": "Provide All Testing Required Per Drawing Specifications, Local Code Requirements, and Industry Standards"},
+        {"reference": "[UNVERIFIED]", "scope_item": "Provide Cleanup of Own Work into Centralized Container Provided by GC"}
+      ]
+    },
+    {
+      "code": "06 10 00",
+      "title": "Rough Carpentry",
+      "line_items": [
+        {"reference": "1/A-501", "scope_item": "F/I Wood Blocking [As Required for Wall-Mounted Equipment and Accessories]"},
+        {"reference": "[UNVERIFIED]", "scope_item": "Provide Cleanup of Own Work into Centralized Container Provided by GC"}
+      ]
+    },
+    {
+      "code": "06 20 00",
+      "title": "Finish Carpentry",
+      "line_items": [
+        {"reference": "A-601", "scope_item": "I/O D-1 Door Installation [Including Frame and Hardware Furnished By Others]"},
+        {"reference": "A-601", "scope_item": "I/O D-2 Door Installation [Including Frame and Hardware Furnished By Others]"},
+        {"reference": "A-602", "scope_item": "I/O Bathroom Accessories Installation [All Accessories Furnished By Others]"},
+        {"reference": "[UNVERIFIED]", "scope_item": "Provide Cleanup of Own Work into Centralized Container Provided by GC"}
+      ]
+    },
+    {
+      "code": "06 41 00",
+      "title": "Architectural Wood Casework (Millwork)",
+      "line_items": [
+        {"reference": "3/A-701, 4/A-701", "scope_item": "F/I Custom Reception Counter [Stained White Oak Veneer per Architect]"},
+        {"reference": "5/A-702", "scope_item": "F/I Cafe Bar Millwork [Stained White Oak with Stainless Steel Top]"},
+        {"reference": "A-703", "scope_item": "F/I Spa Treatment Room Cabinetry [Painted MDF White]"},
+        {"reference": "[UNVERIFIED]", "scope_item": "Provide Shop Drawings [Custom Millwork and Casework]"},
+        {"reference": "[UNVERIFIED]", "scope_item": "Provide Cleanup of Own Work into Centralized Container Provided by GC"}
+      ]
+    },
+    {
+      "code": "08 11 13",
+      "title": "Hollow Metal Doors and Frames",
+      "line_items": [
+        {"reference": "A-601", "scope_item": "F/O D-1 Hollow Metal Frame [Steelcraft 16ga Painted]"},
+        {"reference": "A-601", "scope_item": "F/O D-2 Hollow Metal Frame [Steelcraft 16ga Painted]"}
+      ]
+    },
+    {
+      "code": "08 14 00",
+      "title": "Wood Doors",
+      "line_items": [
+        {"reference": "A-601", "scope_item": "F/O D-1 Solid Core Wood Door [Marshfield Cherry Veneer Stain Grade]"},
+        {"reference": "A-601", "scope_item": "F/O D-2 Solid Core Wood Door [Marshfield Cherry Veneer Stain Grade]"}
+      ]
+    },
+    {
+      "code": "08 71 00",
+      "title": "Door Hardware",
+      "line_items": [
+        {"reference": "A-601", "scope_item": "F/O D-1 Hardware Set [Schlage L Series Lever Set Satin Chrome]"},
+        {"reference": "A-601", "scope_item": "F/O D-2 Hardware Set [Schlage L Series Lever Set Satin Chrome]"}
+      ]
+    },
+    {
+      "code": "09 22 16",
+      "title": "Non-Structural Metal Framing",
+      "line_items": [
+        {"reference": "A-301, A-302", "scope_item": "F/I 3-5/8\" Metal Stud Framing [25ga at Non-Bearing Partitions]"},
+        {"reference": "A-301", "scope_item": "F/I 6\" Metal Stud Framing [20ga at Plumbing Wet Walls]"},
+        {"reference": "[UNVERIFIED]", "scope_item": "Provide Cleanup of Own Work into Centralized Container Provided by GC"}
+      ]
+    },
+    {
+      "code": "09 29 00",
+      "title": "Gypsum Board",
+      "line_items": [
+        {"reference": "A-301, A-302", "scope_item": "F/I 5/8\" Type X Gypsum Board [USG Sheetrock Brand at All Walls]"},
+        {"reference": "A-302", "scope_item": "F/I Moisture Resistant Gypsum Board [USG Sheetrock Mold Tough at Wet Areas]"},
+        {"reference": "[UNVERIFIED]", "scope_item": "Provide Cleanup of Own Work into Centralized Container Provided by GC"}
+      ]
+    },
+    {
+      "code": "09 30 13",
+      "title": "Ceramic Tiling",
+      "line_items": [
+        {"reference": "5/A-201", "scope_item": "F/I T-L-1 Floor Tile [Daltile Continental Slate Tuscan Brown 12x12]"},
+        {"reference": "5/A-201", "scope_item": "F/I T-W-1 Wall Tile [Daltile Rittenhouse Square White Subway 3x6]"},
+        {"reference": "[UNVERIFIED]", "scope_item": "Provide Cleanup of Own Work into Centralized Container Provided by GC"}
+      ]
+    },
+    {
+      "code": "09 91 23",
+      "title": "Interior Painting",
+      "line_items": [
+        {"reference": "A-401", "scope_item": "F/I Interior Wall Paint [Not Specified]"},
+        {"reference": "A-401", "scope_item": "F/I Interior Trim Paint [Not Specified]"},
+        {"reference": "[UNVERIFIED]", "scope_item": "Provide Cleanup of Own Work into Centralized Container Provided by GC"}
+      ]
+    },
+    {
+      "code": "10 28 13",
+      "title": "Toilet Accessories",
+      "line_items": [
+        {"reference": "A-602", "scope_item": "F/O Toilet Paper Holder [Bobrick B-685 Stainless Steel]"},
+        {"reference": "A-602", "scope_item": "F/O Grab Bar 36\" [Bobrick B-6806.99x36 Stainless Steel]"},
+        {"reference": "A-602", "scope_item": "F/O Soap Dispenser [Bobrick B-2111 Surface Mount]"}
+      ]
+    },
+    {
+      "code": "21 13 00",
+      "title": "Fire-Suppression Sprinkler Systems",
+      "line_items": [
+        {"reference": "FP-101", "scope_item": "Remove Sprinkler Drain Down [Existing System]"},
+        {"reference": "FP-101", "scope_item": "Remove Sprinkler Disconnect [Existing System]"},
+        {"reference": "FP-201", "scope_item": "F/I Wet Pipe Sprinkler System [Per NFPA 13 and Local AHJ]"},
+        {"reference": "[UNVERIFIED]", "scope_item": "Provide Shop Drawings [Sprinkler Layout per NFPA 13]"},
+        {"reference": "[UNVERIFIED]", "scope_item": "Provide Hydrostatic Testing"},
+        {"reference": "[UNVERIFIED]", "scope_item": "Provide Permits"},
+        {"reference": "[UNVERIFIED]", "scope_item": "Provide Inspections"},
+        {"reference": "[UNVERIFIED]", "scope_item": "Provide Signoff"}
+      ]
+    },
+    {
+      "code": "22 40 00",
+      "title": "Plumbing Fixtures",
+      "line_items": [
+        {"reference": "P-201", "scope_item": "F/O P-1 Lavatory [Kohler K-2210 White]"},
+        {"reference": "P-201", "scope_item": "F/O P-2 Water Closet [American Standard 215AA Champion 4 White]"},
+        {"reference": "P-201", "scope_item": "I/O P-1 Lavatory Rough-In [Per Plumbing Drawings]"},
+        {"reference": "P-201", "scope_item": "I/O P-2 Water Closet Rough-In [Per Plumbing Drawings]"},
+        {"reference": "[UNVERIFIED]", "scope_item": "Provide Cleanup of Own Work into Centralized Container Provided by GC"}
+      ]
+    },
+    {
+      "code": "23 05 00",
+      "title": "Common Work Results for HVAC",
+      "line_items": [
+        {"reference": "MD-101", "scope_item": "Remove HVAC Drain Down [Existing Unit AHU-1]"},
+        {"reference": "MD-101", "scope_item": "Remove HVAC Disconnect [Existing Unit AHU-1]"},
+        {"reference": "MD-101", "scope_item": "Remove HVAC Refrigerant Recovery [Existing Unit AHU-1]"},
+        {"reference": "M-201", "scope_item": "F/I New AHU-1 [Carrier 50TC-A12 12 Ton Rooftop]"},
+        {"reference": "[UNVERIFIED]", "scope_item": "Provide Shop Drawings [Ductwork Layout and Equipment]"},
+        {"reference": "[UNVERIFIED]", "scope_item": "Provide Cleanup of Own Work into Centralized Container Provided by GC"}
+      ]
+    },
+    {
+      "code": "26 05 00",
+      "title": "Common Work Results for Electrical",
+      "line_items": [
+        {"reference": "ED-101", "scope_item": "Provide Electrical Disconnects and Safe-Offs [All Existing Devices and Equipment Prior to Demolition]"},
+        {"reference": "[UNVERIFIED]", "scope_item": "Provide Temporary Power and Lighting [Per Project Requirements]"},
+        {"reference": "E-201", "scope_item": "F/I New Panelboard [Square D NQ225 Series 225A 42 Circuit]"},
+        {"reference": "[UNVERIFIED]", "scope_item": "Provide All Required Permits and Inspections Per Local Code"},
+        {"reference": "[UNVERIFIED]", "scope_item": "Provide Cleanup of Own Work into Centralized Container Provided by GC"}
+      ]
+    }
+  ],
+  "standard_clarifications": [
+    "All work assumes normal site access during standard working hours",
+    "Existing conditions per site visit; SOW based on drawing review only",
+    "Pricing and scope based on drawings dated April 15, 2026 only",
+    "Coordination with other trades required as applicable",
+    "Subcontractor responsible for cleanup of own work into centralized container provided by GC",
+    "Subcontractor responsible for protection of own work and adjacent finishes",
+    "All testing required per drawing specifications, local code requirements, and industry standards is included",
+    "All required permits and inspections per local code are included unless explicitly noted as excluded"
+  ],
+  "drawing_specific_clarifications": [
+    {"reference": "A-401", "text": "Paint colors shown as TBD on A-401 — RFI required prior to ordering"},
+    {"reference": "A-501", "text": "Detail 3 referenced on A-501 but not provided — RFI required for blocking layout"},
+    {"reference": "M-201", "text": "AHU-1 capacity noted VIF on M-201 — confirm in field prior to ordering"}
+  ],
+  "conflicts": [
+    {"reference": "A-201, A-301", "text": "Floor Tile T-L-1 | Daltile Continental Slate Tuscan Brown 12x12 on A-201 vs. Daltile Continental Slate Asian Black 12x12 on A-301"}
+  ],
+  "tbd_items": [
+    {"reference": "A-401", "text": "Interior Wall Paint Color | TBD | Awaiting Owner Selection"},
+    {"reference": "A-401", "text": "Interior Trim Paint Color | TBD | Awaiting Owner Selection"}
+  ],
+  "qa_report": {
+    "total_line_items": 78,
+    "subdivisions_used": 18,
+    "unverified_count": 22,
+    "not_specified_count": 2,
+    "trade_splits_applied": 8,
+    "auto_inserted_count": 18,
+    "notes": [
+      "All trade-specific scope splits applied: HVAC, Sprinkler, Electrical, Doors, Bathroom Accessories, Plumbing fixtures",
+      "Auto-inserted shop drawings line items for: Millwork, HVAC, Sprinkler",
+      "22 line items flagged [UNVERIFIED] — these are auto-inserted standard line items not directly tied to a specific drawing",
+      "Two paint color line items showing [Not Specified] — see TBD section",
+      "One conflict identified between A-201 and A-301 for floor tile color — see Conflicts section"
+    ]
+  }
+}

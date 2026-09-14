@@ -9,16 +9,34 @@ This repo is the source of truth. Machines install from it. Do not treat `~/.gro
 ```text
 bldg-skills/
   README.md
-  install.sh                 # copy or symlink skills onto this machine
+  install.sh                 # install curated flat skills from skills/
   scripts/validate-skill.sh
   .github/workflows/validate-skills.yml
-  skills/
+  skills/                    # curated, installable via ./install.sh
     project-level-up/        # full app audit on a model drop
     site-level-up/           # site/landing pass gated by model strengths
-    cloud-sync-auditor/      # sync / data-loss (if present)
+    cloud-sync-auditor/      # sync / data-loss
+  library/                   # full Dropbox SKILLS mirror by category
+    AGENT OPERATIONS/
+    CODING/
+    CONSTRUCTION/
+    CREATIVE/
+    DISTILLS/
+    DOCUMENTS/
+    MAKER SCHOOL/
+    MARKETING/
+    SEO/
+    SOCIAL/
+    STRATEGY/
+    WEBSITE DESIGN/
+    _ADMIN/
+    _ARCHIVE/
+    _INBOX/
+    _SHARED/
 ```
 
-Each folder under `skills/` is one skill. Directory name must match `name:` in `SKILL.md`.
+- `skills/` — curated flat skills. Each folder is one skill; directory name must match `name:` in `SKILL.md`. `./install.sh` only installs from here.
+- `library/` — faithful mirror of Dropbox `BLDG/SKILLS` by category (199 `SKILL.md` files across 16 top-level category folders). Not mass-linked by install.sh yet.
 
 ## Install on a machine
 

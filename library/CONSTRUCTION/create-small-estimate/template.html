@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Montana Contracting — Proposal — {{PROJECT_NAME}}</title>
+<style>
+  /* ============ MONTANA CONTRACTING PROPOSAL — BRAND DNA ============
+     Blue:      #0028cc  (montanacontracting.com theme color)
+     Ink:       #101418
+     Gray:      #6E7480  (secondary text)
+     Steel:     #9AA1AD  (lockup / tertiary)
+     Hairline:  #E4E6EA
+     Type:      TT Commons Pro (site typeface), embedded below
+     Language:  numbered editorial sections (01/, 02/), tracked caps labels,
+                "Since 1984 · NY + NJ"
+     Type floor: 14px minimum everywhere — nothing on the page prints smaller
+     than the "{{PROJECT_LOCATION}}" line on the cover.
+     Page 1 = cover + proposal letter + signature + acceptance (consolidated).
+     Page 2 = 01/ Scope of Work, 02/ Clarifications & Exclusions.
+     =================================================================== */
+  @font-face {
+    font-family: 'TT Commons Pro';
+    src: url(data:font/woff2;base64,{{FONT_REGULAR_B64}}) format('woff2');
+    font-weight: 400; font-style: normal;
+  }
+  @font-face {
+    font-family: 'TT Commons Pro';
+    src: url(data:font/woff2;base64,{{FONT_BOLD_B64}}) format('woff2');
+    font-weight: 700; font-style: normal;
+  }
+
+  @page { size: letter; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  html, body { background: #ffffff; }
+  body {
+    font-family: 'TT Commons Pro', 'Helvetica Neue', Arial, sans-serif;
+    color: #101418; font-size: 14px; line-height: 1.5;
+  }
+
+  .sheet {
+    width: 8.5in; height: 11in; position: relative;
+    padding: 0.56in 0.75in 1.05in 0.75in;
+    page-break-after: always; overflow: hidden;
+  }
+  .sheet:last-child { page-break-after: auto; }
+  /* page 1 (cover+letter) carries the logo lockup, which needs a touch more
+     top air than the running header on interior pages — keep the optical
+     top gap identical across pages. */
+  .sheet.cover { padding-top: 0.62in; }
+
+  /* --- keep-together rules: nothing that reads as one unit may split --- */
+  p, li, .card, .row, .keep, table tr, .sig-block, .scope-item, blockquote {
+    break-inside: avoid; page-break-inside: avoid;
+  }
+  h1, h2, h3, .label { break-after: avoid; page-break-after: avoid; }
+  table { break-inside: auto; }
+
+  /* ---------- shared atoms (14px floor) ---------- */
+  .label {
+    font-size: 14px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: #0028cc; font-weight: 700;
+  }
+  .label.gray { color: #9AA1AD; }
+  .hairline { border: none; border-top: 1px solid #E4E6EA; }
+  .num { color: #0028cc; font-weight: 700; }
+
+  /* ---------- running header (page 2+) ---------- */
+  .runhead {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    padding-bottom: 10px; border-bottom: 1px solid #E4E6EA; margin-bottom: 26px;
+  }
+  .runhead .wordmark { font-weight: 700; font-size: 15px; letter-spacing: 0.06em; color: #101418; }
+  .runhead .wordmark span { color: #0028cc; }
+  .runhead .meta { font-size: 14px; letter-spacing: 0.02em; color: #6E7480; }
+
+  /* ---------- footer band ---------- */
+  .foot {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 0.52in;
+    background: #0028cc; color: #ffffff;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 0.75in; font-size: 14px; letter-spacing: 0.02em;
+  }
+  .foot .pg { letter-spacing: 0.02em; }
+
+  /* ================= COVER ================= */
+  .cover-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .bars { display: flex; align-items: flex-end; gap: 5px; height: 32px; }
+  .bars i { display: block; width: 11px; }
+  .bars i:nth-child(1) { height: 16px; background: #C3C8D1; }
+  .bars i:nth-child(2) { height: 23px; background: #7E848E; }
+  .bars i:nth-child(3) { height: 32px; background: #0028cc; }
+  .lockup .bars { margin-bottom: 6px; }
+  .lockup .name { font-weight: 700; font-size: 24px; letter-spacing: 0.06em; color: #101418; line-height: 1; }
+  .lockup .sub  { font-size: 14px; letter-spacing: 0.18em; color: #9AA1AD; margin-top: 4px; text-transform: uppercase; }
+
+  .cover-rule { margin: 14px 0 0 0; border-top: 2px solid #101418; }
+
+  .cover-kicker { margin-top: 16px; display: flex; align-items: baseline; gap: 14px; }
+  .cover-kicker .no { font-size: 14px; letter-spacing: normal; color: #101418; font-weight: 700; text-transform: none; }
+  h1.cover-title {
+    font-size: 36px; line-height: 1.12; font-weight: 700; letter-spacing: -0.01em;
+    margin-top: 6px; max-width: 6.4in;
+  }
+  .cover-sub { margin-top: 5px; font-size: 14px; color: #6E7480; }
+
+  .cover-grid { display: flex; gap: 40px; margin-top: 14px; }
+  .cover-grid .col { flex: 1; border-top: 1px solid #E4E6EA; padding-top: 7px; }
+  .cover-grid .label {
+    display: block; margin-bottom: 6px;
+    font-size: 14px; color: #6E7480; font-weight: 400;
+    letter-spacing: normal; text-transform: none;
+  }
+  .cover-grid .big { font-size: 14px; line-height: 1.45; }
+  .cover-grid .big b { font-weight: 700; }
+
+  .invest { margin-top: 14px; border-top: 2px solid #101418; }
+  .invest .head { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 0 2px; }
+  .invest .head .label {
+    font-size: 14px; font-weight: 700; letter-spacing: normal; text-transform: none;
+    color: #0028cc;
+  }
+  .invest .row { display: flex; justify-content: space-between; align-items: baseline;
+                 padding: 5px 0; border-bottom: 1px solid #E4E6EA; font-size: 14px; }
+  .invest .row .k { color: #6E7480; }
+  .invest .row .v { font-weight: 400; font-variant-numeric: tabular-nums; }
+  .invest .total { display: flex; justify-content: space-between; align-items: baseline;
+                   padding: 7px 0 0; }
+  .invest .total .k { font-size: 14px; letter-spacing: 0.04em; text-transform: uppercase;
+                      font-weight: 700; color: #101418; }
+  .invest .total .v { font-size: 28px; font-weight: 700; color: #0028cc;
+                      font-variant-numeric: tabular-nums; }
+
+  /* ---------- consolidated letter (page 1, below the investment summary) ---------- */
+  .letter { margin-top: 14px; padding-top: 12px; border-top: 1px solid #E4E6EA; }
+  .letter p { margin-bottom: 6px; max-width: 6.7in; font-size: 14px; line-height: 1.32; }
+
+  .sig-block { margin-top: 8px; }
+  .sig-block .signer { margin-top: 12px; }
+  .sig-block .signer .nm { font-weight: 700; font-size: 14px; }
+  .sig-block .signer .tt { color: #6E7480; font-size: 14px; }
+
+  .accept { margin-top: 12px; border-top: 2px solid #101418; padding-top: 8px; }
+  .accept .fields { display: flex; gap: 40px; margin-top: 10px; }
+  .accept .f { flex: 1; }
+  .accept .line { border-bottom: 1px solid #101418; height: 18px; }
+  .accept .cap { font-size: 14px; letter-spacing: normal; text-transform: none;
+                 color: #52586A; margin-top: 6px; }
+
+  /* ================= INTERIOR (page 2) ================= */
+  .sec { margin-top: 6px; }
+  .sec-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
+  .sec-head .idx { font-size: 14px; font-weight: 700; color: #0028cc; letter-spacing: 0.02em; }
+  .sec-head h2 { font-size: 21px; font-weight: 700; letter-spacing: -0.005em; }
+
+  /* scope */
+  .scope-item { display: flex; gap: 16px; padding: 13px 0; border-bottom: 1px solid #E4E6EA;
+                font-size: 14px; }
+  .scope-item .n { color: #0028cc; font-weight: 700; min-width: 26px;
+                   font-variant-numeric: tabular-nums; }
+  .notes-list p { max-width: 6.6in; font-size: 14px; color: #3A3F47; margin-bottom: 8px; }
+
+  /* ---------- CSI Schedule of Values (optional addendum page) ---------- */
+  .sov-group { margin-bottom: 4px; }
+  .sov-group-head { display: flex; justify-content: space-between; align-items: baseline;
+                    background: #F2F4F7; padding: 8px 10px; font-weight: 700; font-size: 14px;
+                    color: #101418; margin-top: 14px; }
+  .sov-row { display: flex; justify-content: space-between; align-items: baseline;
+             padding: 7px 10px; border-bottom: 1px solid #E4E6EA; font-size: 14px; }
+  .sov-row .desc { color: #3A3F47; max-width: 4.6in; }
+  .sov-row .phase { color: #9AA1AD; min-width: 1in; text-align: right; }
+  .sov-row .amt { font-variant-numeric: tabular-nums; min-width: 1.1in; text-align: right; }
+  .sov-total { display: flex; justify-content: space-between; align-items: baseline;
+               padding: 10px; margin-top: 6px; border-top: 2px solid #101418; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<!-- ============================== PAGE 1 — COVER + PROPOSAL ============================== -->
+<div class="sheet cover">
+  <div class="cover-top">
+    <div class="lockup">
+      <div class="bars"><i></i><i></i><i></i></div>
+      <div class="name">MONTANA</div>
+      <div class="sub">Contracting</div>
+    </div>
+    <div class="bars"><i></i><i></i><i></i></div>
+  </div>
+  <div class="cover-rule"></div>
+
+  <div class="cover-kicker">
+    <span class="label">Proposal</span>
+    <span class="no">{{PROPOSAL_NO}} &nbsp;·&nbsp; {{DATE_LONG}}</span>
+  </div>
+  <h1 class="cover-title">{{PROJECT_NAME}}</h1>
+  <div class="cover-sub">{{PROJECT_LOCATION}}</div>
+
+  <div class="cover-grid">
+    <div class="col">
+      <span class="label gray">Prepared For</span>
+      <div class="big"><b>{{CLIENT_CONTACT}}</b><br>{{CLIENT_COMPANY}}<br>{{CLIENT_ADDR1}}<br>{{CLIENT_ADDR2}}</div>
+    </div>
+    <div class="col">
+      <span class="label gray">Prepared By</span>
+      <div class="big"><b>{{SIGNER_NAME}}</b><br>{{SIGNER_TITLE}}<br>Montana Contracting Corp.</div>
+    </div>
+    <div class="col">
+      <span class="label gray">Project Duration</span>
+      <div class="big">{{DURATION}}</div>
+    </div>
+  </div>
+
+  <div class="invest">
+    <div class="head"><span class="label">Investment Summary</span></div>
+    <div class="row"><span class="k">Subtotal</span><span class="v">{{SUBTOTAL}}</span></div>
+    <div class="row"><span class="k">{{TAX_LABEL}}</span><span class="v">{{TAX}}</span></div>
+    <div class="total"><span class="k">Total</span><span class="v">{{TOTAL}}</span></div>
+  </div>
+
+  <div class="letter">
+    <p>Montana Contracting Corp. will furnish all necessary supervision, labor,
+    materials and equipment to complete the scope of work outlined for this
+    project, for the investment summarized above. {{DURATION_SENTENCE}}</p>
+
+    <p>All work will be done in a professional and workman-like manner, licensed
+    as required by law. All work to be fully covered with compensation and
+    liability insurances. Thank you for the opportunity.</p>
+
+    <div class="sig-block">
+      <p>Very truly yours,</p>
+      <div class="signer">
+        <div class="nm">{{SIGNER_NAME}}</div>
+        <div class="tt">{{SIGNER_TITLE}}, Montana Contracting Corp.</div>
+      </div>
+    </div>
+
+    <div class="accept keep">
+      <span class="label">Acceptance</span>
+      <div class="fields">
+        <div class="f"><div class="line"></div><div class="cap">Signature &amp; Printed Name</div></div>
+        <div class="f" style="max-width:2.3in;"><div class="line"></div><div class="cap">Date of Acceptance</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>Since 1984 &nbsp;·&nbsp; NY + NJ</span>
+    <span>montanacontracting.com</span>
+  </div>
+</div>
+
+<!-- ============================== PAGE 2 — SCOPE + CLARIFICATIONS ============================== -->
+<div class="sheet">
+  <div class="runhead">
+    <div class="wordmark">MONTANA <span>/</span> CONTRACTING</div>
+    <div class="meta">{{PROPOSAL_NO}} · {{PROJECT_NAME}}</div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head"><span class="idx">01 /</span><h2>Scope of Work</h2></div>
+    {{SCOPE_ITEMS}}
+  </div>
+
+  {{NOTES_SECTION}}
+
+  <div class="foot">
+    <span>Since 1984 &nbsp;·&nbsp; NY + NJ</span>
+    <span class="pg">02</span>
+  </div>
+</div>
+
+{{SOV_PAGE}}
+
+</body>
+</html>

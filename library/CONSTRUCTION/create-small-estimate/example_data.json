@@ -1,0 +1,61 @@
+{
+  "proposal_no": "P-2026-057",
+  "date_long": "August 5, 2026",
+  "project_name": "Boggy Creek Light Poles",
+  "project_location": "10300 Boggy Creek Rd — Orlando, Florida",
+  "client_contact": "Chris Izzi",
+  "client_company": "Brix Corporation",
+  "client_addr1": "30591 Schoolcraft Road",
+  "client_addr2": "Livonia, MI 48150",
+  "signer_name": "Joseph Montana",
+  "signer_title": "President",
+  "duration": "10 working days",
+  "duration_sentence": "Work is scheduled to be completed within 10 working days of mobilization.",
+  "subtotal": 18437.50,
+  "tax_label": "Sales Tax (6.5%)",
+  "tax": 1198.44,
+  "total": 19635.94,
+  "scope_items": [
+    "Excavate a 20\" deep trench from the existing ground box and install 3/4\" PVC conduit with copper conductors to provide power to (4) pole light locations at the site entrance.",
+    "Perform initial troubleshooting to locate the source of the existing electrical issue affecting the entrance pole lights.",
+    "Furnish and install (15) new parking lot pole light fixtures.",
+    "Furnish and install (5) LED wall pack fixtures.",
+    "Provide 45' high-reach lift equipment as required to complete fixture installation."
+  ],
+  "notes": [
+    "All work performed in a professional and workman-like manner, licensed as required by law.",
+    "All work fully covered with compensation and liability insurances.",
+    "Pricing includes all supervision, labor, materials and equipment required to complete the scope above.",
+    "Pricing is valid for 30 days.",
+    "All work to be performed during normal working hours. Overtime is not included.",
+    "Permits and fees are not included."
+  ],
+  "sov": {
+    "has_phases": false,
+    "groups": [
+      {
+        "csi": "26 05 00",
+        "title": "Common Work Results for Electrical",
+        "items": [
+          {"desc": "Trenching, conduit & conductor installation", "amount": 7250.00}
+        ]
+      },
+      {
+        "csi": "26 56 00",
+        "title": "Exterior Lighting",
+        "items": [
+          {"desc": "Furnish/install (15) parking lot pole light fixtures", "amount": 8100.00},
+          {"desc": "Furnish/install (5) LED wall pack fixtures", "amount": 1850.00}
+        ]
+      },
+      {
+        "csi": "01 54 00",
+        "title": "Construction Aids",
+        "items": [
+          {"desc": "45' high-reach lift equipment", "amount": 1237.50}
+        ]
+      }
+    ],
+    "total": 18437.50
+  }
+}

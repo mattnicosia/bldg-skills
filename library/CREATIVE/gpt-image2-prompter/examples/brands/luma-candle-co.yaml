@@ -1,0 +1,39 @@
+name: "Luma Candle Co"
+slug: "luma-candle-co"
+brand_type: "product"
+schema_version: 1
+
+colors:
+  primary:   "#0E3A5F"
+  secondary: "#F5E6D3"
+  accent:    "#D4A574"
+
+typography:
+  display: "Playfair Display"
+  body:    "Inter"
+
+logo:
+  path: "./logo.png"
+  usage: "bottom-right, small, subtle"
+
+tagline: "Slow-burning luxury for mindful mornings"
+audience: "women 30-55, wellness-oriented"
+vibe: ["calm", "premium", "tactile", "warm-minimal"]
+
+do:
+  - "natural daylight, soft shadows"
+  - "real bathroom, bedroom, or living-room contexts"
+  - "single product hero"
+dont:
+  - "no neon colors"
+  - "no cluttered scenes"
+  - "no cartoonish illustration"
+
+refs:
+  product_hero: "./luma-candle-hero.png"
+  style_anchor: "./luma-aesthetic.png"
+
+defaults:
+  infographic_size: "1536x1024"
+  lifestyle_size:   "1024x1536"
+  quality:          "high"

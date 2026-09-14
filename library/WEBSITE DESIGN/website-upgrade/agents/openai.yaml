@@ -1,0 +1,4 @@
+interface:
+  display_name: "Website Upgrade"
+  short_description: "Score a website and plan ten award-level improvements"
+  default_prompt: "Use $website-upgrade to assess this website against Website of the Year contenders, score it out of 100, and propose ten improvements: [URL]."
