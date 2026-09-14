@@ -36,7 +36,7 @@ bldg-skills/
 ```
 
 - `skills/` — curated flat skills. Each folder is one skill; directory name must match `name:` in `SKILL.md`. Default `./install.sh` installs from here.
-- `library/` — faithful mirror of Dropbox `BLDG/SKILLS` by category (199 `SKILL.md` files across 16 top-level category folders). Use `--list-library`, `--from PATH`, or `--library` to install leaf skills (any directory that contains `SKILL.md`).
+- `library/` — faithful mirror of Dropbox `BLDG/SKILLS` by category (196 `SKILL.md` files across 16 top-level category folders). Use `--list-library`, `--from PATH`, or `--library` to install leaf skills (any directory that contains `SKILL.md`).
 
 ## Install on a machine
 
