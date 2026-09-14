@@ -2,7 +2,7 @@
 
 Private-capable skill library for Grok, Claude Code, and any agent that loads [agentskills.io](https://agentskills.io) `SKILL.md` packages.
 
-This repo is the source of truth. Machines install from it. Do not treat `~/.grok/skills`, `~/.claude/skills`, or `~/.codex/skills` as the canonical copy.
+This repo is the source of truth. Machines install from it. Do not treat `~/.grok/skills` or `~/.claude/skills` as the canonical copy.
 
 ## Layout
 
@@ -13,10 +13,9 @@ bldg-skills/
   scripts/validate-skill.sh
   .github/workflows/validate-skills.yml
   skills/
-    project-level-up/        # first skill
-      SKILL.md
-      scripts/
-      references/
+    project-level-up/        # full app audit on a model drop
+    site-level-up/           # site/landing pass gated by model strengths
+    cloud-sync-auditor/      # sync / data-loss (if present)
 ```
 
 Each folder under `skills/` is one skill. Directory name must match `name:` in `SKILL.md`.
@@ -68,9 +67,13 @@ cp -R ~/.grok/skills/cloud-sync-auditor ./skills/cloud-sync-auditor
 bash scripts/validate-skill.sh skills/cloud-sync-auditor
 ```
 
-## First skill
+## Skills
 
-`project-level-up` — run this when a new frontier model ships. It audits one repo for stale model IDs, code leverage, UI/UX wow gaps, and capabilities the new model unlocks. It writes a review pack. It does not rewrite the product until you approve the patch queue.
+- `project-level-up` — full app audit on a model drop (code, routing, UI, UX).
+- `site-level-up` — landing/product site only. Builds a capability delta first. Changes only axes where the new model is actually up and the current page is weak.
+- `cloud-sync-auditor` — IndexedDB / Supabase / realtime data-loss review.
+
+Say the skill name in a new agent session. Do not paste the file.
 
 ## Remote
 
