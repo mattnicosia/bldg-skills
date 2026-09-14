@@ -9,7 +9,7 @@ This repo is the source of truth. Machines install from it. Do not treat `~/.gro
 ```text
 bldg-skills/
   README.md
-  install.sh                 # install curated flat skills from skills/
+  install.sh                 # install from skills/ and/or library/
   scripts/validate-skill.sh
   .github/workflows/validate-skills.yml
   skills/                    # curated, installable via ./install.sh
@@ -30,13 +30,13 @@ bldg-skills/
     STRATEGY/
     WEBSITE DESIGN/
     _ADMIN/
-    _ARCHIVE/
+    _ARCHIVE/                # skipped by --library; still installable via --from
     _INBOX/
     _SHARED/
 ```
 
-- `skills/` — curated flat skills. Each folder is one skill; directory name must match `name:` in `SKILL.md`. `./install.sh` only installs from here.
-- `library/` — faithful mirror of Dropbox `BLDG/SKILLS` by category (199 `SKILL.md` files across 16 top-level category folders). Not mass-linked by install.sh yet.
+- `skills/` — curated flat skills. Each folder is one skill; directory name must match `name:` in `SKILL.md`. Default `./install.sh` installs from here.
+- `library/` — faithful mirror of Dropbox `BLDG/SKILLS` by category (199 `SKILL.md` files across 16 top-level category folders). Use `--list-library`, `--from PATH`, or `--library` to install leaf skills (any directory that contains `SKILL.md`).
 
 ## Install on a machine
 
@@ -48,17 +48,38 @@ cd bldg-skills
 
 `--link` symlinks each skill into the local agent dirs so edits in the git repo are live.
 
+### Curated `skills/`
+
 ```bash
-./install.sh            # copy instead of symlink
-./install.sh --list     # show skills in this repo
+./install.sh            # copy all curated skills (default)
+./install.sh --link     # symlink instead of copy
+./install.sh --list     # show curated skills in skills/
 ./install.sh --only project-level-up
 ```
+
+### Library `library/`
+
+Leaf skill = any directory under `library/` that contains a `SKILL.md`. Destination basename is the leaf folder name.
+
+```bash
+./install.sh --list-library
+./install.sh --from library/CONSTRUCTION/ROM_Budget_Range --link
+./install.sh --from "library/CODING/MATT_POCOCK_1.2.2/skills/engineering/to-spec" --dest /tmp/skills --link
+./install.sh --library --link
+# Archive is skipped by --library; still allowed explicitly:
+./install.sh --from "library/_ARCHIVE/some-skill" --link
+```
+
+`--library` installs every leaf skill except under `library/_ARCHIVE/`. On basename collisions within that batch, the first path (sorted) is installed and later duplicates are warned and skipped.
+
+`--link` / `--copy` / `--claude` / `--dest` apply to curated and library installs.
 
 Default destinations (created if missing):
 
 - `~/.grok/skills` — Grok / xAI
 - `/home/workdir/.grok/skills` — Grok cloud sessions
 - `~/.claude/skills` — Claude Code, if that folder exists or `--claude` is passed
+- `~/.codex/skills` — Codex, if that folder exists
 
 Grok can also pull a single skill after the repo is public or you have a token:
 
