@@ -72,25 +72,17 @@ bash scripts/validate-skill.sh skills/cloud-sync-auditor
 
 `project-level-up` — run this when a new frontier model ships. It audits one repo for stale model IDs, code leverage, UI/UX wow gaps, and capabilities the new model unlocks. It writes a review pack. It does not rewrite the product until you approve the patch queue.
 
-## Create the GitHub repo (once)
+## Remote
+
+Canonical repo: [github.com/mattnicosia/bldg-skills](https://github.com/mattnicosia/bldg-skills)
+
+Keep it **private** unless a skill contains zero product internals. `references/novaterra.md` is product-specific.
 
 ```bash
-cd bldg-skills
 git remote add origin git@github.com:mattnicosia/bldg-skills.git
 git branch -M main
 git push -u origin main
 ```
-
-If the empty repo is not created yet:
-
-```bash
-# GitHub CLI
-gh repo create bldg-skills --private --source=. --remote=origin --push
-
-# or GitHub UI: New repository → bldg-skills → private → then push
-```
-
-Keep it **private** unless a skill contains zero product internals. `references/novaterra.md` is product-specific.
 
 ## Rules
 

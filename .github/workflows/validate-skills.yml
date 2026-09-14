@@ -1,0 +1,28 @@
+name: Validate skills
+
+on:
+  push:
+    paths:
+      - "skills/**"
+      - "scripts/validate-skill.sh"
+      - ".github/workflows/validate-skills.yml"
+  pull_request:
+    paths:
+      - "skills/**"
+      - "scripts/validate-skill.sh"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate every skill
+        run: |
+          set -euo pipefail
+          fail=0
+          for dir in skills/*; do
+            [ -d "$dir" ] || continue
+            echo "==> $dir"
+            bash scripts/validate-skill.sh "$dir" || fail=1
+          done
+          exit $fail
