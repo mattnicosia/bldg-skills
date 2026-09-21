@@ -15,6 +15,7 @@ bldg-skills/
   skills/                    # curated, installable via ./install.sh
     project-level-up/        # full app audit on a model drop
     site-level-up/           # site/landing pass gated by model strengths
+    level-up-design/         # teardown + rebuild of a page that is already weak
     cloud-sync-auditor/      # sync / data-loss
   library/                   # full Dropbox SKILLS mirror by category
     AGENT OPERATIONS/
@@ -112,6 +113,7 @@ bash scripts/validate-skill.sh skills/cloud-sync-auditor
 
 - `project-level-up` — full app audit on a model drop (code, routing, UI, UX).
 - `site-level-up` — landing/product site only. Builds a capability delta first. Changes only axes where the new model is actually up and the current page is weak.
+- `level-up-design`: for a page that is already bad. Scores it against an absolute 10-axis bar, picks one named direction, and rebuilds it. Ships before/after screenshots, not a report.
 - `cloud-sync-auditor` — IndexedDB / Supabase / realtime data-loss review.
 
 Say the skill name in a new agent session. Do not paste the file.
