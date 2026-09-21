@@ -69,6 +69,22 @@ Per page it records a text-layer verdict:
 The three-way split matters. A page with 5 words is neither vector nor image-only, and
 treating it as either loses content.
 
+**The verdict counts words in the drawing area, not on the page.** A scanned sheet
+plotted with a vector titleblock returns plenty of words from the titleblock alone. Count
+the page total and that sheet reads as `vector`, gets `needs_vision: false`, and its
+drawing is never opened. It then sits in the index empty and looks extracted. On job
+260119 this hit three sheets of fifteen, each returning exactly 182 words with none in
+the drawing area, and two of them were the existing-conditions sheets on an alteration.
+`sheets.json` now carries `drawing_area_words` beside `words`, and the run prints a NOTE
+naming any sheet with the scanned-plus-vector-titleblock signature. Fixed in LA-865.
+
+**A page can still be part vector and part raster, and the verdict will not catch it.**
+The test is whole-page. A sheet with real text plus a block of scanned details scores as
+`vector` on its text and never renders, so the scanned block is lost. On the same job,
+A-500 carries its notes as text and its largest detail set as a raster. When a `vector`
+sheet's extraction comes back thin against how dense the sheet looks, render it and check
+before trusting it.
+
 **Do not use `--render-all`.** On a set with a real text layer, rendering every page and
 running vision on all of them costs orders of magnitude more than extracting text per
 page and using vision only where text comes back empty. Selective rendering is the

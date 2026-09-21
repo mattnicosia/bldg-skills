@@ -30,10 +30,19 @@ import glob
 
 import fitz  # PyMuPDF
 
-# A page needs at least this many extractable words before we call its text layer usable.
+# A page needs at least this many extractable words IN THE DRAWING AREA before
+# we call its text layer usable.
 MIN_WORDS_VECTOR = 25
 # Below this, but non-zero, we call it "sparse".
 MIN_WORDS_SPARSE = 5
+
+# The verdict is decided on words in the drawing area, never on the page total.
+# A scanned sheet plotted with a vector titleblock clears MIN_WORDS_VECTOR on
+# titleblock text alone, so a page-total count calls it "vector" and its drawing
+# is never read. Titleblocks sit in a right-hand strip, a bottom strip, or both.
+# Keep these in agreement with split_and_render.py.
+TITLEBLOCK_RIGHT_FRAC = 0.78
+TITLEBLOCK_BOTTOM_FRAC = 0.88
 
 
 def analyze_page(page):
@@ -41,6 +50,11 @@ def analyze_page(page):
     words = page.get_text("words") or []
     n_words = len(words)
     n_chars = len(text.strip())
+
+    r = page.rect
+    x_cut = r.x0 + r.width * TITLEBLOCK_RIGHT_FRAC
+    y_cut = r.y0 + r.height * TITLEBLOCK_BOTTOM_FRAC
+    n_body = sum(1 for w in words if w[0] < x_cut and w[1] < y_cut)
 
     try:
         images = page.get_images(full=True)
@@ -56,9 +70,9 @@ def analyze_page(page):
         text_area += abs((x1 - x0) * (y1 - y0))
     text_coverage = round(min(text_area / page_area, 1.0), 4)
 
-    if n_words >= MIN_WORDS_VECTOR:
+    if n_body >= MIN_WORDS_VECTOR:
         verdict = "vector"
-    elif n_words >= MIN_WORDS_SPARSE:
+    elif n_body >= MIN_WORDS_SPARSE:
         verdict = "sparse"
     else:
         verdict = "image_only"
@@ -66,9 +80,14 @@ def analyze_page(page):
     return {
         "chars": n_chars,
         "words": n_words,
+        "drawing_area_words": n_body,
         "images": n_images,
         "text_coverage": text_coverage,
         "verdict": verdict,
+        # Zero words in the drawing area beside a raster, on a page whose total
+        # would have passed as vector: the scanned-sheet-with-titleblock case.
+        "scanned_with_vector_titleblock": (
+            n_body == 0 and n_words >= MIN_WORDS_VECTOR and n_images > 0),
     }
 
 
@@ -120,15 +139,26 @@ def main():
 
     for r in results:
         print(f"\n{r['file']}  ->  OVERALL: {r['overall'].upper()}")
-        print(f"  {'pg':>3}  {'verdict':<11} {'words':>6} {'chars':>7} {'imgs':>4}  text_cov")
+        print(f"  {'pg':>3}  {'verdict':<11} {'draw':>6} {'total':>6} {'chars':>7} "
+              f"{'imgs':>4}  text_cov")
         for p in r["pages"]:
-            print(f"  {p['page']:>3}  {p['verdict']:<11} {p['words']:>6} "
-                  f"{p['chars']:>7} {p['images']:>4}  {p['text_coverage']:.3f}")
+            flag = "  <- scanned sheet, vector titleblock" if p.get(
+                "scanned_with_vector_titleblock") else ""
+            print(f"  {p['page']:>3}  {p['verdict']:<11} {p['drawing_area_words']:>6} "
+                  f"{p['words']:>6} {p['chars']:>7} {p['images']:>4}  "
+                  f"{p['text_coverage']:.3f}{flag}")
         n_vec = sum(1 for p in r["pages"] if p["verdict"] == "vector")
         n_img = sum(1 for p in r["pages"] if p["verdict"] == "image_only")
         n_sp = sum(1 for p in r["pages"] if p["verdict"] == "sparse")
+        n_tb = sum(1 for p in r["pages"] if p.get("scanned_with_vector_titleblock"))
         print(f"  -> {n_vec} vector (count reliably), {n_sp} sparse (verify), "
               f"{n_img} image-only (vision fallback, LOW confidence)")
+        print("     'draw' is words in the drawing area and decides the verdict; "
+              "'total' includes the titleblock.")
+        if n_tb:
+            print(f"     {n_tb} page(s) are scanned drawings carrying a vector "
+                  f"titleblock. A page-total count would call these vector and "
+                  f"never read them.")
 
 
 if __name__ == "__main__":

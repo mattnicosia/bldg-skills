@@ -40,6 +40,21 @@ import fitz  # PyMuPDF
 MIN_WORDS_VECTOR = 25
 MIN_WORDS_SPARSE = 5
 
+# The verdict is decided on words in the DRAWING AREA, never on the page total.
+# A scanned sheet plotted with a vector titleblock returns far more than
+# MIN_WORDS_VECTOR from the titleblock alone, so a page-total count marks it
+# "vector", sets needs_vision False, and the drawing is never read. The sheet
+# then lands in the index empty and looks extracted. Measured on job 260119:
+# three sheets returned exactly 182 words each, all titleblock, none in the
+# drawing area. Two of them were the existing-conditions sheets on an
+# alteration, which is where the demolition scope lives.
+#
+# Titleblocks sit in a right-hand strip, a bottom strip, or both. These
+# fractions cut generously; a drawing that needs the last 20 percent of the
+# sheet width to clear 25 words is a drawing that needs vision anyway.
+TITLEBLOCK_RIGHT_FRAC = 0.78
+TITLEBLOCK_BOTTOM_FRAC = 0.88
+
 # Construction sheet numbers: A-101, A101, A1.01, M-601, S-3.01, FA-101, C-1, G-001.
 SHEET_RX = re.compile(r"^[A-Z]{1,3}[-.]?\d{1,3}(?:\.\d{1,2})?[A-Z]?$")
 
@@ -67,20 +82,40 @@ def get_arg(name, default=None):
     return default
 
 
+def body_word_count(page, words=None):
+    """Words in the drawing area: the page minus the titleblock strips.
+
+    Returns (n_body, n_total). See the note on TITLEBLOCK_RIGHT_FRAC for why
+    the page total cannot be used.
+    """
+    if words is None:
+        words = page.get_text("words") or []
+    r = page.rect
+    x_cut = r.x0 + r.width * TITLEBLOCK_RIGHT_FRAC
+    y_cut = r.y0 + r.height * TITLEBLOCK_BOTTOM_FRAC
+    n_body = sum(1 for w in words if w[0] < x_cut and w[1] < y_cut)
+    return n_body, len(words)
+
+
 def page_stats(page):
     words = page.get_text("words") or []
-    n_words = len(words)
+    n_body, n_words = body_word_count(page, words)
     try:
         n_images = len(page.get_images(full=True))
     except Exception:
         n_images = 0
-    if n_words >= MIN_WORDS_VECTOR:
+    if n_body >= MIN_WORDS_VECTOR:
         verdict = "vector"
-    elif n_words >= MIN_WORDS_SPARSE:
+    elif n_body >= MIN_WORDS_SPARSE:
         verdict = "sparse"
     else:
         verdict = "image_only"
-    return verdict, n_words, n_images
+    # Zero words in the drawing area next to a raster is the exact signature of
+    # a scanned sheet carrying a vector titleblock. Say so out loud, because the
+    # old failure was silent.
+    scanned_with_titleblock = (n_body == 0 and n_words >= MIN_WORDS_VECTOR
+                               and n_images > 0)
+    return verdict, n_words, n_images, n_body, scanned_with_titleblock
 
 
 def find_sheet_number(page):
@@ -151,7 +186,7 @@ def process(paths, outdir, dpi, render_all):
         for pi in range(len(doc)):
             global_page += 1
             page = doc[pi]
-            verdict, n_words, n_images = page_stats(page)
+            verdict, n_words, n_images, n_body, scanned_tb = page_stats(page)
             sheet_no, how = find_sheet_number(page)
             found = sheet_no is not None
             name = safe_name(sheet_no or f"page-{global_page:03d}", used_names)
@@ -184,8 +219,10 @@ def process(paths, outdir, dpi, render_all):
                 "global_page": global_page,
                 "text_layer": verdict,
                 "words": n_words,
+                "drawing_area_words": n_body,
                 "raster_images": n_images,
                 "needs_vision": needs_vision,
+                "scanned_with_vector_titleblock": scanned_tb,
                 "sheet_pdf": os.path.relpath(sheet_pdf, outdir),
                 "image": os.path.relpath(image_path, outdir) if image_path else None,
                 "extracted": False,
@@ -228,13 +265,22 @@ def main():
     unnamed = sum(1 for s in m if not s["sheet_number_found"])
     rendered = sum(1 for s in m if s["image"])
 
+    scanned_tb = [s for s in m if s.get("scanned_with_vector_titleblock")]
+
     print(f"{len(m)} sheets -> {outdir}")
     print(f"  text layer: {vec} vector | {sp} sparse | {io} image-only")
+    print("  (verdict is decided on words in the drawing area, not the page total)")
     print(f"  rendered for vision: {rendered} "
           f"({'all pages, --render-all' if render_all else 'sparse + image-only only'})")
     if unnamed:
         print(f"  WARNING: {unnamed} sheet(s) had no readable sheet number "
               f"-> named page-NNN. Fix these by hand in sheets.json.")
+    if scanned_tb:
+        names = ", ".join(s["sheet_number"] for s in scanned_tb)
+        print(f"  NOTE: {len(scanned_tb)} scanned sheet(s) carry a vector titleblock "
+              f"and no text in the drawing area: {names}")
+        print("        They are correctly image_only and have been rendered. Before "
+              "this check they were read as text sheets and indexed empty.")
     print("  manifest: sheets.json")
 
 
