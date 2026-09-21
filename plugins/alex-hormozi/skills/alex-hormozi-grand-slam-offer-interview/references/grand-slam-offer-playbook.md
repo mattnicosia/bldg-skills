@@ -84,6 +84,12 @@ Use divergent thinking (the "brick exercise" mindset — many solutions per prob
 
 **Step 2 — List every problem.** Walk the customer's sequence (immediately before → during → after each action) in insane detail. For each step, generate obstacles across all four value drivers (this won't be financially worth it / it won't work for me / it'll be too hard & confusing / it'll take too long & be inconvenient). More problems = more value to create. Expect dozens.
 
+**Decommoditize checklist: before / during / after.** Map service and proof layers at each stage so you are not a commodity:
+- **Before:** how you prepare them, qualify them, set expectations, remove fear of starting.
+- **During:** how delivery feels different (speed, access, done-for-you layers, status inside the experience).
+- **After:** how you lock results, celebrate outcomes, create the next problem your backend solves, and turn them into proof/UGC.
+Brand is a moat too, not only bonuses and guarantees. Aspirational branding (think "North Face / Everest" energy: scoop a bit below category price while feeling premium) lets you win share without racing to the bottom. Thin note: aspiration is status in the value equation made visible.
+
 **Step 3 — Turn problems into solutions.** Reverse each problem into "how to [outcome] without [pain]" language. You will solve *every* problem — one unaddressed "but what about…?" can kill a sale (the eating-out-guide anecdote).
 
 **Step 4 — Create delivery vehicles (the "how").** Brainstorm every way you *could* solve each problem, then choose. Use the **Delivery Cube**:
@@ -205,3 +211,5 @@ Nice-to-haves: **rhyme** ("6-Pack Fast Track") or **alliteration** ("Make Money 
 - Build high-value one-to-many assets once; reuse forever.
 - Be truthful — reputation can't be bankrupted away. A guarantee can't fix a bad product.
 - Relationship to money models: the Grand Slam Offer is **what you sell**; the money model is **how you sequence offers over time** to recoup acquisition cost in ~30 days. Build the offer first, then sequence it.
+- Decommoditize on **before / during / after** layers; brand aspiration can win below category price while feeling premium.
+- One avatar, one product: "flexible SDK / everything for everyone" is an anti-pattern. Niche specificity multiplies price.

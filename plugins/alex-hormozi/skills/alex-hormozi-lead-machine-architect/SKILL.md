@@ -32,6 +32,7 @@ Work in this order and show your work:
    - Paid ads → platform, lookalike + filters, the Call-out + What/Who/When + CTA ad, matched landing page, the track→lose→print phases, client-financed acquisition.
 4. **Add the next Lead Getter** once the first method is reliable: referrals (6 give + 7 ask), employees (internal Core Four + Document/Demonstrate/Duplicate), agencies (learn-then-own), affiliates (6 steps incl. Whisper-Tease-Shout + integration). Pick the one that fits their stage.
 5. **Scaling plan** via More → Better → New (Rule of 100 or Open to Goal; test the constraint; expand placement→platform→activity).
+6. **Self-licking ice cream cone + advertise the winner** (see playbook §7 / heuristics): design paid so customers create UGC that cheapens the next ads; content may mention many SKUs, but paid/affiliate amplify **one** proven hero. If margins are healthy and capacity is free, do not invent new products - fix ads/offer/sales.
 
 End with **the one-page advertising plan** (who / what / where / to-whom / when / why / how / how-much / how-many / how-long) plus the **30-day cash check** (does the customer pay back CAC + fulfillment in 30 days so the machine self-funds?) and what to do first.
 

@@ -8,7 +8,7 @@ Distilled framework for designing offer sequences that maximize cash collected f
 3. Attraction offers (5)
 4. Upsell offers (4)
 5. Downsell offers (3)
-6. Continuity offers (3)
+6. Continuity offers (incl. reoccurring, ink, event/room cash)
 7. Assembling and sequencing a money model
 8. Governing principles and ethics
 9. Quick-reference pricing/data heuristics
@@ -97,6 +97,8 @@ Structure: offer a choice — pay a discounted price now, or pay full price late
 
 "Upsell" = whatever you offer next. Every solved problem reveals the next problem; the upsell solves it. Upsells often carry the majority of profit (the burger is break-even; fries + drink + size make the money). Your first offer need not be profitable — find your "do you want fries with that?" Upsells fail when mistimed, mismatched to the problem, or untrusted. Forms: more (quantity), better (quality), new/complementary (different).
 
+**FE:BE choreography.** Design ascension on purpose; do not leave backend to chance. Track front-end vs back-end contribution to LTV. Hot-seat storytelling cited extreme FE:BE ratios (e.g. ~37:1 vs ~13:1) as proof that choreography beats accident. Treat those numbers as illustrations to validate against *your* books, not targets to invent. Attraction can break even; the stack after the first yes is where profit lives.
+
 ### 4a. Classic Upsell
 "You can't have X without Y." Solve the next problem the instant the customer becomes aware of it (car → insurance → gas → late checkout).
 - Offer the more profitable upsell first.
@@ -150,6 +152,7 @@ Same product, same total price, spread over time. A gamble: wins when you get mo
 Try free *if* they meet your terms; they pay only if they *don't*. Terms mirror your Win-Your-Money-Back criteria (the actions that make great customers), but use fee-avoidance to drive adherence.
 - Five steps: offer the trial last → always get a card ("what card do you want to use?") → sell "staying and paying" if results happen → explain fees *after* getting the card ("we charge to keep you on track") → make check-ins (your upsell moments) required.
 - After the trial: liked it → upsell more/longer; hated it → take the blame, fix it, offer a better-fit (often higher) option (~half convert); didn't use it → reach out, waive fee for a meeting, get them back on track. Use this for recurring products/services (Pay-Less-Now for one-time/physical).
+- **Two conversion points + wait for EPC.** A trial has two conversion events: (1) start the trial, (2) convert to paid. Track post-trial churn as a third metric. Do not kill creatives or offers on early trial noise. Wait for earnings-per-click (EPC) / mature conversion data before judging winners and losers.
 
 ### 5c. Feature Downsell
 Lower the price by changing *what they get* — less quantity, lower quality, cheaper alternative, or cut features entirely. Take something away, lower the price, ask "How about now?"
@@ -178,6 +181,24 @@ Give free time (now, later, spread, or after first payments) if they commit toda
 Offer a month-to-month plan with a big setup fee (typically 3–5x monthly), *or* waive the fee if they commit to a term (≥1 year). Cancel inside the term → they pay the fee.
 - Fees get them to start *and* stick: once it costs more to quit than to stay, they stay. Justify the fee as real setup cost ("commit long-term and I cover it"). Bigger fee → more commitments; smaller fee → more upfront cash. Best for long, slow-to-work services (SEO, weight loss, investing). Fee drops once the commitment is fulfilled.
 
+### 6d. Reoccurring vs recurring
+**Recurring** = billing mechanic (charge until cancel). **Reoccurring** = designed return reason: habit, consumable, identity, or a completion loop that still renews psychologically ("delete the app when done" products that still make people come back for the next cycle).
+- Design question: "Why do they come back even if they could cancel?"
+- Billing alone is not retention. If the only reason they stay is inertia, you have recurring, not reoccurring. Build the reason they cannot leave without deciding.
+- Illustrations (framework only, not verified quotes): Weight Watchers-style habit/identity loops; completion products that still create the next purchase cycle.
+
+### 6e. Continuity "ink" after a timed promise
+After a timed transformation promise (challenge, sprint, 6-week result), continuity needs a consumable reason to stay: "ink" (new protocols, feed, replenishment) or community-generated value members create for each other.
+- Stronger up-front promise ↔ higher churn risk if continuity is soft. Do not attract on the timed promise and then offer empty month-to-month with nothing new to consume.
+- Continuity still comes *last* in the money model (cash offers first). This section is about what makes Stage 3 stick after the promise window closes.
+
+### 6f. Event / room cash
+Live-room / event close choreography (hot-seat heuristic; validate against your event economics):
+1. **Annual + bonuses only in the cart-close window.** Sell the high-commitment annual (stacked with bonuses) only while the room is in close. That is the cash offer.
+2. **Monthly mop-up is bare.** After the close window, mop up monthlies with *no* bonuses. Do not re-gift the stack to people who waited.
+3. **Physical kit / swag = purchase excuse**, not the value. It removes friction ("I get the thing") so they can justify saying yes; the offer is still the transformation/membership.
+4. **Consumer impulse band ~$300–600** (heuristic from hot seat; confirm for your audience; not fake precision). Price the impulse close inside a band buyers can say yes to without a board meeting.
+
 ---
 
 ## 7. Assembling and sequencing a money model
@@ -200,6 +221,11 @@ Worked archetypes (from the book) for inspiration:
 - **Local fitness:** Win-Your-Money-Back challenge → payment-plan / trial-with-penalty downsell → menu upsell (supplements) → feature downsell → rollover upsell + lifetime-discount continuity.
 - **Newsletter (digital):** Pay-Less-Now/Pay-More-Later free trial that is simultaneously attraction + upsell + continuity with a lifetime-rate lock.
 - **Physical product (pet food):** Buy-X-Get-Y-Free → classic upsell (toys/vitamins) → feature downsell → auto-renew continuity.
+- **Low-ticket → onboard → high-ticket (hot-seat recipe):** Low-ticket front → mandatory onboard call → homework commitment → close into a $3–8k backend (band = heuristic to validate later). The front is the filter; the onboard + homework creates the sales conversation.
+- **Quiz + affiliate on a low-margin front (optional pattern):** Personalization quiz as the magnet; affiliates/influencers push a thin-margin front while you monetize the backend. Useful when the hero SKU margins are back-loaded. Do not copy until the FE:BE math clears.
+- **Job-placement ascension (optional niche archetype):** After skills/courses, backend = get them hired (outcome/placement). Only use if you can cleanly deliver placement; otherwise it is a guarantee you will eat.
+
+**B2B / agency pricing mechanic: tiered % of ad spend with non-retroactive watermarks.** When pricing media/services as a % of ad spend, use tiered rates (higher % at lower spend, lower % as spend scales) with watermarks that do **not** claw back prior spend when the client crosses into a new tier. They earn the better rate going forward; you do not refund the old rate retroactively.
 
 ---
 
@@ -225,3 +251,7 @@ Worked archetypes (from the book) for inspiration:
 - Bill every 4 weeks → +8.3% annual revenue; +3% processing fee; ACH to reduce failed charges.
 - Billing cadence vs monthly churn: monthly ~10.7%, quarterly ~5%, annual ~2%.
 - Giveaway window: 3–7 days. Decoy: free → more leads, lower show; discount → fewer leads, higher show.
+- **Close-rate pricing diagnostic (sales-call context; hot-seat heuristic to validate later):** ~35% close ≈ price roughly fits the offer. Much *higher* → raise price (test raise bands ~1.25x-3x as a starting heuristic, not fake precision). Much *lower* → diagnose offer quality and sales process *before* only cutting price. Soft closes are often an offer/sales problem wearing a price costume.
+- **Wallet check:** Would you buy this at this price with *their* wallet, not yours? Mid-market agencies often underprice relative to value and over-customize because they project their own wallet.
+- **Event impulse band:** consumer room closes often land ~$300–600 (heuristic). Annual + bonuses in cart close only; monthly mop-up bare.
+- **Agency watermarks:** tiered % of ad spend; non-retroactive when crossing tiers.

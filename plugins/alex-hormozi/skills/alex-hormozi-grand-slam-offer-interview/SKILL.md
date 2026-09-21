@@ -13,11 +13,16 @@ This skill interviews the user about their business, then delivers **one complet
 
 Ask **12–18 questions** in **small batches (3–5 at a time)**, plain language, adapting follow-ups to answers. Acknowledge what you learn between batches. Skip anything already answered earlier in the conversation. If an interactive question/options tool is available, use it for the multiple-choice items (easier on mobile); ask open-ended items as prose.
 
+### Goal gate (ask before tactics)
+
+★ Before building the offer: is the win **Impact**, **Profit**, or **Both**? Refuse a tactic laundry list until they pick. If both, rank which constraint bites first (cash vs mission reach).
+
 ### Question bank (cover these; starred are essential; pick/adapt 12–18)
 
 **Market & customer**
 1. ★ What do you sell, in a sentence or two?
 2. ★ Who exactly is the ideal customer? (push for a specific niche)
+2b. ★ One-avatar / one-product trap: are you building a "flexible SDK / everything for everyone," or one product for one avatar? If many avatars, pick the starving niche first.
 3. ★ What painful problem do you solve for them — and how badly does it hurt?
 4. Can they afford a premium price, and are they easy to reach as a group (lists, communities, channels)?
 5. Is the market growing, flat, or shrinking? (gate — a shrinking market changes everything)
@@ -37,6 +42,8 @@ Ask **12–18 questions** in **small batches (3–5 at a time)**, plain language
 
 **Pricing & proof**
 13. ★ What do you charge now, and what does it cost you to deliver one customer?
+13b. ★ What is your current close rate on the main sales path? (tie to offer-playbook §9: ~35% ≈ priced right; higher → raise; lower → diagnose offer/sales before only cutting price)
+13c. ★ Wallet check: would you buy this at this price with your own money as the customer?
 14. What proof do you have it works (results, track record, testimonials)? This sets the guarantee strength.
 15. What result can you reliably produce, and how fast can you create an early win?
 

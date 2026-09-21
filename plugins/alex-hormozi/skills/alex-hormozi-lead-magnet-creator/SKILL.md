@@ -20,6 +20,7 @@ Choose a problem that is **narrow and meaningful** to the ideal customer, such t
 - **Reveal a problem (diagnosis):** an audit/test/assessment that shows a gap that worsens with time (speed test, posture analysis, termite inspection). Great when delay is costly.
 - **Sample / trial:** brief but full access to the core offer. Great when the core offer is a recurring solution to a recurring problem (a free adjustment, a free week, a consumable sample — Costco).
 - **One step of a multi-step process:** give one valuable step free, sell the rest (first coat of sealant; free finance calculator that reveals the work involved). Great for complex core offers.
+- **Quiz as magnet (pattern):** a short personalization quiz that diagnoses segment/need and hands them into a tailored CTA (often paired with affiliate/influencer traffic on a low-margin front while backend monetizes). Use when personalization raises perceived likelihood and the next problem after the quiz result is your paid offer.
 
 ### Step 3 — Choose the delivery method (pick one)
 **Software** (tool/calculator/spreadsheet), **information** (mini-course/guide/checklist/interview), **service** (you do work for free — audit, setup, first session), or **physical product** (something they hold). Note: you can usually make several versions of the same magnet across delivery types and rotate them to keep advertising fresh.

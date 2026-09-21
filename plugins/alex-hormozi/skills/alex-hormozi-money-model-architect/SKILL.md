@@ -29,7 +29,7 @@ Work the stages in this order and present them in this order:
 
 1. **Stage 1 — Attraction offer (get the customer, cover cost).** Choose from: Win Your Money Back, Giveaway, Decoy, Buy X Get Y Free, Pay Less Now or Pay More Later. Match to the business: e.g., things people start-and-quit favor Win-Your-Money-Back; high no-show-cost businesses favor discount decoys; one-time physical products favor Buy X Get Y Free.
 2. **Stage 2 — Upsell (the yes path).** Choose from: Classic, Menu, Anchor, Rollover. Tie it to the *next problem* the attraction offer reveals. State the offer made at the customer's moment of greatest need.
-3. **Stage 2 — Downsell ladder (the no path).** Choose from: Payment Plan, Trial with Penalty, Feature Downsell. Never the same thing cheaper. Show the actual fallback sequence.
+3. **Stage 2  -  Downsell ladder (the no path).** Choose from: Payment Plan, Trial with Penalty, Feature Downsell. Never the same thing cheaper. Show the actual fallback sequence.
 4. **Stage 3 — Continuity (keep them paying).** Choose from: Continuity Bonus, Continuity Discount, Waved Fee. Layer it *after* the cash offers, then add a bulk prepaid upsell that rolls into month-to-month.
 
 For each stage give: the chosen offer, **why it fits this business**, concrete numbers (entry price, upsell price, downsell rungs, continuity price using the pricing heuristics in the playbook), and the exact thing the customer hears.
@@ -37,6 +37,12 @@ For each stage give: the chosen offer, **why it fits this business**, concrete n
 End every design with:
 - **The 30-day math.** Estimate per-customer cash collected in 30 days vs. cost to get + service them, and state whether it clears the good-model bar (≥1x in 30 days) and how far it is from the $100M bar (≥2x customers' cost in 30 days). Flag assumptions explicitly.
 - **Build sequence.** Which single offer to implement *first*, made reliable before adding the next. Reinforce "one offer / one stage at a time," raise-prices-in-stages, and simple-scales-fancy-fails.
+
+**Hot-seat pointers (see `references/offer-playbook.md`):**
+- Event / room cash (§6f): annual + bonuses only in cart-close; monthly mop-up bare; physical kit as purchase excuse; ~$300–600 impulse heuristic.
+- FE:BE choreography (§4 + §7): design ascension on purpose; low-ticket → onboard → homework → $3–8k backend recipe when relevant.
+- Trial with Penalty (§5b): wait for EPC / two conversion points before killing creatives.
+- Agency watermarks (§7 / §9): tiered % of ad spend, non-retroactive.
 
 ## §B. Reviewing / scoring a money model
 

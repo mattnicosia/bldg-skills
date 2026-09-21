@@ -15,6 +15,10 @@ Ask **12–18 questions**, delivered in **small batches (3–5 at a time)**, not
 
 If interactive selection UI is available (e.g., a question/options tool), you may use it for the multiple-choice items to make answering easier on mobile; otherwise just ask in prose. Open-ended items ("what do you sell?") are always asked as prose.
 
+### Goal gate (ask before tactics)
+
+★ Before any pricing or offer tactics: is the win **Impact**, **Profit**, or **Both**? Refuse a tactic laundry list until they pick. If they say both, make them rank which constraint bites first (cash vs mission reach).
+
 ### The question bank
 
 Cover these areas. Pick/adapt 12–18 total; the starred ones are essential.
@@ -31,6 +35,8 @@ Cover these areas. Pick/adapt 12–18 total; the starred ones are essential.
 7. Roughly what does it cost you to *deliver/service* one customer?
 8. ★ How long does it currently take to make your acquisition cost back? (days / months / never tracked)
 9. What's your current refund/chargeback/cancellation rate, roughly?
+9b. ★ What is your current close rate on the main sales path (calls/cart)? (tie to playbook §9 close-rate pricing diagnostic: ~35% ≈ fits; higher → raise; lower → diagnose offer/sales before only cutting price)
+9c. ★ Wallet check: would you buy this at this price with your own money as the customer? If not, you may be projecting your wallet.
 
 **What they already have to offer**
 10. ★ Besides the main thing, what *else* could you sell them next — more of it, a better version, or something complementary? (List anything, even rough ideas.)

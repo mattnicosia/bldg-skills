@@ -25,7 +25,7 @@ Work the method in order; show your work at each step.
 
 1. **Market check (gate).** Confirm the market is at least *normal* (growing, affordable, targetable) and the pain is real. If the market is shrinking or can't pay, say so plainly — no offer fixes a bad market. Note the niche; push for specificity (specificity multiplies price).
 2. **Dream outcome.** State the destination/experience you're selling, framed around status and how others will perceive the buyer — not the vehicle.
-3. **Problem list.** Walk the customer's sequence (before → during → after) and enumerate problems across all four value drivers (worth-it / will-it-work-for-me / too-hard / too-slow). Aim for many.
+3. **Problem list.** Walk the customer's sequence (before → during → after) and enumerate problems across all four value drivers (worth-it / will-it-work-for-me / too-hard / too-slow). Aim for many. Use the playbook **decommoditize checklist** (before / during / after service + proof layers) and note aspirational brand as a moat, not only bonuses/guarantees.
 4. **Solutions list.** Reverse each problem into "how to [outcome] without [pain]." Cover *every* problem.
 5. **Delivery vehicles.** Use the Delivery Cube (1-on-1/group/one-to-many; DIY/DWY/DFY; medium; responsiveness; the 10x/¹⁄₁₀th test) to generate options.
 6. **Trim & stack.** Cut high-cost/low-value, then low-cost/low-value; keep low-cost/high-value and high-cost/high-value; favor high-value one-to-many assets. Present the survivors as a **named, value-stacked bundle**, each item with a benefit name and an ascribed dollar value, summing to a total that dwarfs the price.

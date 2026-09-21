@@ -39,6 +39,8 @@ Ask **12–18 questions** in **small batches (3–5 at a time)**, plain language
 
 **Constraints & goals**
 15. ★ What's your #1 goal — more leads, cheaper leads, more reliable leads, or scaling an existing channel?
+15b. ★ Constraint tree: are margins healthy, and do you have unused delivery capacity? If yes to both, the fix is usually ads/offer/sales - not a new product. What is the real bottleneck (leads, close rate, capacity, cash)?
+15c. Are you advertising one proven winner, or spreading paid/affiliate across many SKUs? (Organic can show range; paid should pick a hero.)
 16. How much time per day can you commit to advertising? (Rule of 100 vs Open to Goal)
 17. Any legal/compliance sensitivities (claims, "free", SMS/cold-contact rules, regulated industry)?
 18. What have you tried that flopped, or what's off-limits?

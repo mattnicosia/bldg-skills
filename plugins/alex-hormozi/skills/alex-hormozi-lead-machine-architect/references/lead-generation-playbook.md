@@ -105,6 +105,10 @@ Rent eyeballs. Fastest way to reach the most people; a game of **efficiency**, n
 
 Don't confuse a **sales** problem (qualified leads who don't buy) with an **advertising** problem (wrong leads, or not enough).
 
+**Self-licking ice cream cone (paid → UGC → cheaper ads).** Ads create customers; customers create UGC/proof; that proof makes the next ads cheaper and better. Design paid acquisition so it manufactures creative fuel, not just leads. If your ads never produce customer content you can reuse, you are buying traffic without building the flywheel.
+
+**Advertise the winner (organic / multi-SKU trap).** Organic content creates optionality addiction: many products, many mentions, no forced pick. Content can *mention* many SKUs; paid amplify and affiliate point at **one** proven hero. Ship many; advertise one.
+
 ---
 
 ## 8. More / Better / New (scaling the Core Four)
@@ -158,3 +162,6 @@ Leverage = more leads per unit of your time. Get other people to do the Core Fou
 - Referrals **>** churn = organic compounding growth.
 - Affiliates: 3-tier payout keeps blended payout < max CAC; activate via Whisper-Tease-Shout launches; retain via integration.
 - Relationship to the other playbooks: the **lead magnet/core offer** is the Grand-Slam-Offer ("what you sell"); **client-financed acquisition** is the 30-day money-model logic ("how you sequence to recoup CAC"). Build the offer first, then advertise it, then sequence it.
+- **Self-licking ice cream cone:** ads → customers → UGC/proof → cheaper/better ads. Build the loop on purpose.
+- **Advertise the winner:** organic can show range; paid/affiliate amplify one hero SKU.
+- **Constraint tree (margins + capacity):** if margins are healthy and you have free capacity, do **not** invent new products. Fix ads, offer, or sales. New SKUs are usually a distraction when the constraint is marketing.
