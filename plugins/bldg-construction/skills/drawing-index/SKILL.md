@@ -229,7 +229,8 @@ On ingestion:
    disagree by more than ~25%, that is a calibration signal worth reading.
 
 Until then, linear quantities stay `NOT_MEASURED` or come from explicitly-labeled
-conceptual ratios in `sow-generator-quantities`.
+conceptual ratios in `sow-generator/references/trade-checklists.md`, which carries its own
+READ FIRST warning that every figure in it is an unverified placeholder.
 
 ## When NotebookLM is still the right tool
 

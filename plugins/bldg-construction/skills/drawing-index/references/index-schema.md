@@ -156,7 +156,7 @@ index done — they are either scope-free or a gap in extraction.
 | Skill | Reads |
 |---|---|
 `sow-generator` | `elements[]` grouped by `csi_subdivision`; `specifications` for bracket text; `source_sheets` for the Reference column; `open_items` for Conflicts and TBD |
-`sow-generator-quantities` | `quantities[]` with tiers; `extraction` for confidence context |
+`sow-generator` (quantified mode) | `quantities[]` with tiers; `extraction` for confidence context |
 `electrical-estimator` | `elements[]` filtered to Divisions 26/27/28; `quantities[]` as the count basis |
 `quantity-takeoff` | `sheets[]` for text-layer verdicts; per-sheet PDFs for counting |
 

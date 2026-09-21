@@ -13,18 +13,18 @@ Montana Contracting / BLDG Estimating construction skills. Built 2026-07-29.
       +----------------+   OWNS all extraction. Run this first, always.
          |           |
          v           v
-+---------------+  +--------------------------+
-| sow-generator |  | sow-generator-quantities |
-+---------------+  +--------------------------+
-  SOW + leveling     SOW + leveling + separate
-  ZERO quantities    quantity workbook
+        +---------------+
+        | sow-generator |
+        +---------------+
+   mode: scope       -> SOW + leveling, zero quantities
+   mode: quantified  -> SOW + quantities + rates + leveling
+   Excel always, PDF on request, landlord/tenant split in either
 ```
 
 | Skill | Use when |
 |---|---|
 [`drawing-index`](drawing-index/SKILL.md) | Any task that reads drawings. Makes a set AI-readable once; everything else reads the index instead of the PDFs. |
-[`sow-generator`](sow-generator/SKILL.md) | Scope of Work with four subcontractor bid-leveling columns. Zero quantities, zero pricing, by design. |
-[`sow-generator-quantities`](sow-generator-quantities/SKILL.md) | Same SOW, plus a separate conceptual quantity workbook that opens on a mandatory READ FIRST disclaimer. |
+[`sow-generator`](sow-generator/SKILL.md) | Scope of Work with four subcontractor bid-leveling columns, in Excel and PDF. `scope` mode carries zero quantities and zero pricing; `quantified` mode adds quantities, our rates and the close-out ladder. |
 `ROM_Budget_Range` | Rough order-of-magnitude budget ranges. |
 `Proest-Export-*` | ProEst proposal and unit-cost exports. |
 
@@ -52,7 +52,7 @@ open decision for the Rocco map rather than guessed at here.
 
 ## Known gaps
 
-- **Ratio figures in `sow-generator-quantities/references/trade-checklists.md` are unverified placeholders**, converted from metric source material written for another market. Replace with BLDG Estimating job history and mark them `VERIFIED`. Until then they must be labeled `ESTIMATED -- unverified ratio` in any output.
+- **Ratio figures in `sow-generator/references/trade-checklists.md` are unverified placeholders**, converted from metric source material written for another market. Replace with BLDG Estimating job history and mark them `VERIFIED`. Until then they must be labeled `ESTIMATED -- unverified ratio` in any output.
 - **Takeoff-export ingestion is built but dormant** — no confirmed tool with data export as of 2026-07-29. Switching it on adds a `VERIFIED` tier that outranks every AI-derived quantity and retires the ratio estimates. This is the single largest available accuracy win.
 - **`quantity-takeoff` and `electrical-estimator` still live in `~/.claude/skills/`** and hardcode paths to `~/.claude/skills/quantity-takeoff/scripts/`. They were deliberately left untouched so nothing broke mid-build. Repoint them at `drawing-index/scripts/` when convenient, and convert `trade-checklists.md` before either prices anything.
 
