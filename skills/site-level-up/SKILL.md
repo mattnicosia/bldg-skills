@@ -1,121 +1,144 @@
 ---
 name: site-level-up
-description: Level up a landing page or product site when a new frontier model ships. Trigger on site level-up, new model site pass, landing page wow, model-aware redesign, or selective UI upgrade based on model strengths not blanket restyle.
+description: Level up a landing page or product site. Trigger on site level-up, poorly designed UI, no wow, unrecognizable improvement, landing page wow, model-aware redesign, or selective upgrade based on model strengths. Rescue mode when the current page fails the two-second test.
 license: MIT
 metadata:
   type: workflow
-  version: "1.0"
+  version: "1.1"
 ---
 
 # Site Level Up
 
-Upgrade an existing site using a new model only on axes where that model is actually better. Do not restyle the whole site because a flagship shipped.
+Two modes. Pick one in the first 20 lines of the run. Do not mix them.
 
-This is not `project-level-up`. That skill audits a full app. This skill is for a site or a primary marketing/app-entry surface.
+| Mode | When | Job |
+|---|---|---|
+| **protect** | Page already has presence, brand, or a signature moment | Capability delta. Change only weak axes. Hold the rest. |
+| **rescue** | User says poorly designed, no pop, no wow, unrecognizable improvement, or the two-second test fails on 3+ axes | Visible redesign of primary surfaces. Hold only IA, auth, and named brand tokens. |
+
+If the user does not name a mode, infer it from the audit. A page that fails the two-second test is **rescue**. A page a sharp visitor would already pause on is **protect**.
+
+Default after a failed run is **rescue**. The last version of this skill over-protected weak pages and shipped polish that nobody could see. That is a failed run.
 
 ## Mission
 
-1. Build a capability delta between the incumbent model (what last touched this site) and the challenger (the new model).
-2. Audit the live site for wow gaps.
-3. Change only the intersection — site is weak AND challenger is stronger on that axis.
-4. Protect axes where the incumbent or the current site already wins.
+Protect mode
 
-Default mode is report-only. Do not rewrite until the user names axes or pages.
+1. Build a capability delta vs the incumbent.
+2. Change only site-weak AND model-up axes.
+3. Hold what already works.
+
+Rescue mode
+
+1. Still write a short delta so you do not spend the page on an axis the model is bad at.
+2. Then treat hierarchy, type scale, material, and one signature moment as mandatory work.
+3. The pass fails unless a glance at before/after is obvious without reading the commit message.
 
 ## Inputs
 
-Ask once if missing, then proceed with stated assumptions:
+Ask once if missing:
 
 - Site URL and/or source path
-- Challenger model name
-- Incumbent model if known (what built or last revised this site)
-- Product job in one sentence
-- Hard constraints (brand tokens, stack, no new deps, etc.)
+- Mode if the user already knows (protect / rescue)
+- Challenger model
+- Incumbent model if known
+- Product job
+- Hard constraints (tokens, stack, no new deps)
+
+Unknown incumbent does **not** mean hold everything. In rescue it means hold only constraints the user named.
 
 ## Process
 
-### 1. Capability delta (mandatory before any design work)
+### 0. Classify the page (mandatory)
 
-Load `references/capability-axes.md`.
+Load `references/wow-protocol.md`. Answer the six audit questions. Count fails.
 
-For each axis score the challenger vs the incumbent as **up / same / down / unproven**.
+- 0–1 fails → protect
+- 2 fails → ask, default protect if the user already likes the look
+- 3+ fails → rescue
+- User said "no visual improvement" / "unrecognizable" / "poorly designed" → rescue, skip the debate
 
-Evidence, in order of weight:
+Write the mode at the top of AUDIT.md.
 
-1. The user's own last output from each model on this product
-2. Design/frontend arenas and motion/vision evals, not overall IQ leaderboards
-3. Reproducible public one-shots on similar sites
-4. Vendor launch posts (lowest weight — treat as ads)
+### 1. Capability delta
 
-Rules:
+Load `references/capability-axes.md` and `references/delta-template.md`.
 
-- An overall "better model" score is not a license to touch type, motion, or layout.
-- **Unproven** means do not bet the page. A small isolated probe is allowed. A rewrite is not.
-- **Down** means keep the current treatment. Say so out loud.
-- Write the delta card before proposing a single visual change.
+Protect: a change still needs challenger **up** on that axis.
 
-Template is in `references/delta-template.md`.
+Rescue: hierarchy, type, color/material, and one signature moment are in the allow list unless the challenger is explicitly **down** on that axis. Unproven is allowed here. Same is allowed here. Only **down** blocks it.
 
-### 2. Site audit
+Do not spend rescue budget on 3D/shaders or a motion system if those axes are down or unproven. Put presence into layout, type, and material instead.
 
-Load `references/wow-protocol.md`.
+### 2. Plan
 
-Score the current site on the same axes. Mark each as hold / gap / broken.
+Protect cap: 3 moves.
 
-Hold = already strong. Do not "improve" it just to use the new model.
+Rescue cap: 5 moves, and they must include all of
 
-### 3. Intersection plan
+1. Extreme hierarchy on the one thing that matters (scale jump the current page does not have)
+2. Type that is not the system default and not "slightly larger Inter"
+3. Material / depth / presence so surfaces are not flat cards
+4. One product-specific signature moment
+5. Designed states for the primary CTA (hover, focus, loading, error)
 
-A change is allowed only when:
+If a planned move would not be visible in a 1200px screenshot from 5 feet, cut it. Spacing tweaks, token comments, and "subtle motion" are not rescue work.
 
-- site axis = gap or broken
-- challenger axis = up
-- the move has a verify step
+### 3. Execute
 
-Everything else goes on the hold list or the probe list.
-
-Cap the plan. Three high-leverage moves beat twelve taste edits.
-
-### 4. Execute or report
-
-Report pack:
+Report pack first unless the user already said implement:
 
 ```text
-DELTA.md          # axis table + evidence
-AUDIT.md          # current site, hold vs gap
-PLAN.md           # allowed moves only
-HOLD.md           # what we will not touch and why
+DELTA.md
+AUDIT.md          # includes mode + two-second verdict
+PLAN.md
+HOLD.md
+BEFORE.md         # 6-line description of the current first screen
 ```
 
-If the user says implement, change only PLAN.md items. After building, self-check against HOLD.md so a new-model weakness did not regress a previous strength.
+On implement, change PLAN.md items only. Then fill `AFTER.md` with the same 6 lines. If BEFORE and AFTER could describe the same screenshot, the run failed. Do another pass on hierarchy and the signature moment. Do not declare done.
 
-## How to talk about models
+## Visual acceptance (both modes, harder in rescue)
 
-Name axes, not vibes.
+The run is not done when the code is prettier. It is done when:
 
-Bad: "Fable 5.1 is better so redo the landing page."
+- A sharp user sees a different page in two seconds
+- One element owns the viewport
+- There is a signature moment they could describe later
+- Motion, if any, changed hierarchy rather than decorating an even layout
 
-Good: "Fable 5.1 is up on hierarchy and vision self-check, same on type, down or unproven on WebGL. We will push the hero hierarchy and add a vision pass. We will not rebuild the 3D canvas."
+Failed acceptance language the agent is not allowed to use as success: polished, refined, cleaned up, tightened spacing, more consistent, slightly more premium, modernized.
 
 ## Anti-patterns
 
-- Blanket restyle on a model drop
-- Using composite leaderboard rank as a design brief
-- Adding motion because the new model likes animation
-- Touching brand tokens that already work
-- Throwing away a strong incumbent page to "see what the new model does"
-- Implementing unproven axes at full page scale
+- Running protect logic on a page the user already called bad
+- Shipping spacing and radius changes as a level-up
+- Adding motion on an even layout
+- Holding an ugly default because incumbent is unknown
+- Declaring success without a before/after glance test
+- New brand on a page that already has a working system (protect only)
 
 ## Invocation
 
+Rescue (weak UI, or last run did nothing visible):
+
 ```text
-Load site-level-up.
+Load site-level-up in rescue mode.
 
 Site: [url or path]
-Incumbent model: [what last built this]
-Challenger model: [new model]
-Product job: [one sentence]
-Do not write code yet.
+The current UI is poorly designed. The last pass was not visible.
+Do not protect the current look.
+Implement the rescue allow list.
+Success means a glance at before and after is obvious.
+```
 
-Build the capability delta first. Only plan moves where the site is weak and the new model is actually up.
+Protect (page already has presence):
+
+```text
+Load site-level-up in protect mode.
+
+Site: [url or path]
+Incumbent: [model]
+Challenger: [model]
+Hold the current system. Only touch weak axes.
 ```
