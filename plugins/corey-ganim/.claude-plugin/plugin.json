@@ -1,0 +1,9 @@
+{
+  "name": "corey-ganim",
+  "description": "Corey Ganim's Build With AI set, v3.1.1, from Return My Time. Claude Cowork workspace onboarding, an AI readiness self-assessment on the Audit-Optimize-Automate framework, and a session context loader. The self-assessment is the paid, community-only version.",
+  "version": "3.1.1",
+  "author": {
+    "name": "Corey Ganim",
+    "url": "https://returnmytime.com"
+  }
+}

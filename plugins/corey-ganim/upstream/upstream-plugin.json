@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "build-with-ai",
+  "version": "3.1.1",
+  "description": "Complete AI workspace setup, readiness assessment, and session priming for business owners. Includes interactive onboarding (workspace structure, tool connections, four context files including Voice of Customer, global instructions, skills, scheduled tasks, security review), an AI readiness self-assessment with Impact-Effort Matrix and Skill Blueprint generation, and a tiered context loader for session priming. Built on the AOA (Audit, Optimize, Automate) framework.",
+  "author": { "name": "Return My Time" },
+  "homepage": "https://github.com/ReturnMyTime/buildwithai-plugin",
+  "repository": "https://github.com/ReturnMyTime/buildwithai-plugin",
+  "license": "MIT",
+  "keywords": ["onboarding", "setup", "cowork", "context", "workspace", "assessment", "audit", "prime", "AOA", "skills", "voc", "voice-of-customer"]
+}

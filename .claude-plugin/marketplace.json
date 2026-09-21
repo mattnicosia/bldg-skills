@@ -9,10 +9,10 @@
   "plugins": [
     {
       "name": "alex-hormozi",
-      "description": "Alex Hormozi's offer, lead and money-model skills: grand slam offers, lead magnets, money models and their interview companions.",
+      "description": "Skills built on Alex Hormozi's frameworks: grand slam offers, lead magnets, lead machines and money models, with their interview companions. Mirror maintained by Matt Nicosia.",
       "version": "1.0.0",
       "author": {
-        "name": "Matt Nicosia"
+        "name": "Alex Hormozi"
       },
       "source": "./plugins/alex-hormozi",
       "category": "marketing",
@@ -151,22 +151,24 @@
       "homepage": "https://github.com/mattnicosia/bldg-skills"
     },
     {
-      "name": "build-with-ai",
-      "description": "The Build With AI onboarding and self-assessment set, v3.1.1.",
-      "version": "1.0.0",
+      "name": "corey-ganim",
+      "description": "Corey Ganim's Build With AI set, v3.1.1, from Return My Time. Claude Cowork workspace onboarding, an AI readiness self-assessment on the Audit-Optimize-Automate framework, and a session context loader. The self-assessment is the paid, community-only version.",
+      "version": "3.1.1",
       "author": {
-        "name": "Matt Nicosia"
+        "name": "Corey Ganim",
+        "url": "https://returnmytime.com"
       },
-      "source": "./plugins/build-with-ai",
+      "source": "./plugins/corey-ganim",
       "category": "productivity",
-      "homepage": "https://github.com/mattnicosia/bldg-skills"
+      "homepage": "https://returnmytime.com"
     },
     {
       "name": "matt-pocock",
-      "description": "Matt Pocock's skill collection, mirrored at 1.2.3. TypeScript, testing, code review and the productivity set.",
-      "version": "1.0.0",
+      "description": "Matt Pocock's skill collection, mirrored at 1.2.3. TypeScript, testing, code review and the productivity set. Mirror maintained by Matt Nicosia; upstream docs in upstream/.",
+      "version": "1.2.3",
       "author": {
-        "name": "Matt Nicosia"
+        "name": "Matt Pocock",
+        "url": "https://github.com/mattpocock"
       },
       "source": "./plugins/matt-pocock",
       "category": "development",
