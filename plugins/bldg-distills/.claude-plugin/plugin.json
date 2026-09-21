@@ -1,0 +1,8 @@
+{
+  "name": "bldg-distills",
+  "description": "Distilled one-page methods pulled out of longer sources.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Matt Nicosia"
+  }
+}

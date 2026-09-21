@@ -1,0 +1,8 @@
+{
+  "name": "bldg-strategy",
+  "description": "Strategy: idea scoring, prediction, competitive work and planning.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Matt Nicosia"
+  }
+}

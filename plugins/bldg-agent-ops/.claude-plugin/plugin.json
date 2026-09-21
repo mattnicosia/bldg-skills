@@ -1,0 +1,8 @@
+{
+  "name": "bldg-agent-ops",
+  "description": "Running agents: session worksheets and workflow scaffolding.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Matt Nicosia"
+  }
+}

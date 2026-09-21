@@ -1,8 +1,0 @@
-.DS_Store
-node_modules/
-*.log
-.env
-.env.local
-
-# Release artifacts produced by scripts/release.sh
-buildwithai-plugin-v*.zip

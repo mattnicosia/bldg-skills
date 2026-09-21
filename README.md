@@ -1,138 +1,73 @@
 # BLDG Skills
 
-Private-capable skill library for Grok, Claude Code, and any agent that loads [agentskills.io](https://agentskills.io) `SKILL.md` packages.
+Matt Nicosia's skill library, published as a Claude Code **plugin marketplace**.
 
-This repo is the source of truth. Machines install from it. Do not treat `~/.grok/skills` or `~/.claude/skills` as the canonical copy.
+This repo is the source of truth. Do not treat `~/.claude/skills` as the canonical copy.
+
+## Install
+
+```bash
+claude plugin marketplace add mattnicosia/bldg-skills
+claude plugin install bldg-construction@bldg-skills
+```
+
+Install any plugin from the table below by name. A plugin is the install unit: one
+command brings in every skill inside it, and `claude plugin update` keeps it current.
+Nothing is copied into a second location, so nothing drifts.
+
+## Plugins
+
+| Plugin | Skills | What it is |
+|---|---|---|
+| [`alex-hormozi`](plugins/alex-hormozi) | 8 | Alex Hormozi's offer, lead and money-model skills: grand slam offers, lead magnets, money models and their interview companions. |
+| [`bldg-agent-ops`](plugins/bldg-agent-ops) | 2 | Running agents: session worksheets and workflow scaffolding. |
+| [`bldg-coding`](plugins/bldg-coding) | 7 | Coding skills: review, debugging, architecture and the caveman pass. |
+| [`bldg-construction`](plugins/bldg-construction) | 12 | Construction estimating: drawing indexing, scope of work generation in Excel and PDF, bid leveling, proposals and job folder setup. |
+| [`bldg-creative`](plugins/bldg-creative) | 2 | Creative work: image prompting, voice, and the gauntlet loop. |
+| [`bldg-distills`](plugins/bldg-distills) | 12 | Distilled one-page methods pulled out of longer sources. |
+| [`bldg-documents`](plugins/bldg-documents) | 1 | Document generation and release. |
+| [`bldg-house`](plugins/bldg-house) | 4 | House build skills: project and site level-ups, page teardowns, and the cloud sync auditor. |
+| [`bldg-maker-school`](plugins/bldg-maker-school) | 46 | The Maker School library: growth, offers, funnels, outreach and operating skills. |
+| [`bldg-marketing`](plugins/bldg-marketing) | 19 | Marketing: funnels, positioning, SEO, ads, content and speed to lead. |
+| [`bldg-social`](plugins/bldg-social) | 4 | Social: posting, scheduling and the scroll-stop technique. |
+| [`bldg-strategy`](plugins/bldg-strategy) | 6 | Strategy: idea scoring, prediction, competitive work and planning. |
+| [`bldg-website-design`](plugins/bldg-website-design) | 8 | Website design and build: frontend design, motion, cloning and upgrades. |
+| [`build-with-ai`](plugins/build-with-ai) | 3 | The Build With AI onboarding and self-assessment set, v3.1.1. |
+| [`matt-pocock`](plugins/matt-pocock) | 37 | Matt Pocock's skill collection, mirrored at 1.2.3. TypeScript, testing, code review and the productivity set. |
+
+The vendor collections (`matt-pocock`, `alex-hormozi`, `build-with-ai`) are mirrors of
+other people's work, kept as their own plugins so they can be refreshed as a unit without
+touching anything of Matt's.
+
+## Other tools
+
+Plugins are a Claude Code mechanism. For Codex, Cursor or anything else that reads a
+`SKILL.md` folder, `install.sh` is the bridge:
+
+```bash
+./install.sh --list                 # every skill, as <plugin>/<skill>
+./install.sh --library --link       # symlink them all into the local agent skill dirs
+```
+
+Use `--link`, not the default copy. A copy drifts from the repo; a symlink cannot.
 
 ## Layout
 
 ```text
 bldg-skills/
-  README.md
-  install.sh                 # install from skills/ and/or library/
-  scripts/validate-skill.sh
-  .github/workflows/validate-skills.yml
-  skills/                    # curated, installable via ./install.sh
-    project-level-up/        # full app audit on a model drop
-    site-level-up/           # site/landing pass gated by model strengths
-    level-up-design/         # teardown + rebuild of a page that is already weak
-    cloud-sync-auditor/      # sync / data-loss
-  library/                   # full Dropbox SKILLS mirror by category
-    AGENT OPERATIONS/
-    CODING/
-    CONSTRUCTION/
-    CREATIVE/
-    DISTILLS/
-    DOCUMENTS/
-    MAKER SCHOOL/
-    MARKETING/
-    SEO/
-    SOCIAL/
-    STRATEGY/
-    WEBSITE DESIGN/
-    _ADMIN/
-    _ARCHIVE/                # skipped by --library; still installable via --from
-    _INBOX/
-    _SHARED/
+  .claude-plugin/marketplace.json   # the marketplace: every plugin, its path and category
+  plugins/<plugin>/
+    .claude-plugin/plugin.json      # name, description, version
+    skills/<skill>/SKILL.md         # the skills themselves
+    archive/                        # non-skill files that came with the category
+  library/_ARCHIVE/                 # retired skills, deliberately not published
+  install.sh
 ```
 
-- `skills/` — curated flat skills. Each folder is one skill; directory name must match `name:` in `SKILL.md`. Default `./install.sh` installs from here.
-- `library/` — faithful mirror of Dropbox `BLDG/SKILLS` by category (196 `SKILL.md` files across 16 top-level category folders). Use `--list-library`, `--from PATH`, or `--library` to install leaf skills (any directory that contains `SKILL.md`).
+## Notes
 
-## Install on a machine
-
-```bash
-git clone git@github.com:mattnicosia/bldg-skills.git
-cd bldg-skills
-./install.sh --link
-```
-
-`--link` symlinks each skill into the local agent dirs so edits in the git repo are live.
-
-### Curated `skills/`
-
-```bash
-./install.sh            # copy all curated skills (default)
-./install.sh --link     # symlink instead of copy
-./install.sh --list     # show curated skills in skills/
-./install.sh --only project-level-up
-./install.sh --link --cursor   # also wire Cursor
-```
-
-### Library `library/`
-
-Leaf skill = any directory under `library/` that contains a `SKILL.md`. Destination basename is the leaf folder name.
-
-```bash
-./install.sh --list-library
-./install.sh --from library/CONSTRUCTION/ROM_Budget_Range --link
-./install.sh --from "library/CODING/MATT_POCOCK_1.2.3/skills/engineering/to-spec" --dest /tmp/skills --link
-./install.sh --library --link
-# Archive is skipped by --library; still allowed explicitly:
-./install.sh --from "library/_ARCHIVE/some-skill" --link
-```
-
-`--library` installs every leaf skill except under `library/_ARCHIVE/`. On basename collisions within that batch, the first path (sorted) is installed and later duplicates are warned and skipped.
-
-`--link` / `--copy` / `--claude` / `--dest` apply to curated and library installs.
-
-Default destinations (created if missing):
-
-- `~/.grok/skills` — Grok / xAI
-- `/home/workdir/.grok/skills` — Grok cloud sessions
-- `~/.claude/skills` — Claude Code, if that folder exists or `--claude` is passed
-- `~/.cursor/skills` and `~/.agents/skills` — Cursor, if those folders exist or `--cursor` is passed
-- `~/.codex/skills` — Codex, if that folder exists
-
-Grok can also pull a single skill after the repo is public or you have a token:
-
-```bash
-# from a Grok session with skill-installer loaded
-install-skill.sh --repo mattnicosia/bldg-skills --path skills/project-level-up
-```
-
-## Add a skill
-
-```bash
-# from this repo
-bash scripts/validate-skill.sh skills/your-skill-name
-git add skills/your-skill-name
-git commit -m "Add your-skill-name"
-git push
-./install.sh --link --only your-skill-name
-```
-
-Move an existing local skill in with:
-
-```bash
-cp -R ~/.grok/skills/cloud-sync-auditor ./skills/cloud-sync-auditor
-bash scripts/validate-skill.sh skills/cloud-sync-auditor
-```
-
-## Skills
-
-- `project-level-up` — full app audit on a model drop (code, routing, UI, UX).
-- `site-level-up` — landing/product site only. Builds a capability delta first. Changes only axes where the new model is actually up and the current page is weak.
-- `level-up-design`: for a page that is already bad. Scores it against an absolute 10-axis bar, picks one named direction, and rebuilds it. Ships before/after screenshots, not a report.
-- `cloud-sync-auditor` — IndexedDB / Supabase / realtime data-loss review.
-
-Say the skill name in a new agent session. Do not paste the file.
-
-## Remote
-
-Canonical repo: [github.com/mattnicosia/bldg-skills](https://github.com/mattnicosia/bldg-skills)
-
-Keep it **private** unless a skill contains zero product internals. `references/novaterra.md` is product-specific.
-
-```bash
-git remote add origin git@github.com:mattnicosia/bldg-skills.git
-git branch -M main
-git push -u origin main
-```
-
-## Rules
-
-- One skill = one directory = one `SKILL.md`
-- `description` is an unquoted YAML scalar. No `: `, no `<`, no `>`
-- Validate before push
-- Update `skills/project-level-up/references/model-registry.md` on every model drop, before running audits
+- **Ratio figures in `plugins/bldg-construction/skills/sow-generator/references/trade-checklists.md`
+  are unverified placeholders**, converted from metric source material written for another
+  market. Replace them with BLDG Estimating job history and mark them `VERIFIED`. Until
+  then any output using them must be labeled `ESTIMATED -- unverified ratio`.
+- `library/_ARCHIVE` holds retired skills and is not part of any plugin.

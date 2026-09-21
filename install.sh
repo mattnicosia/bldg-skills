@@ -3,8 +3,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SKILLS_SRC="$ROOT/skills"
-LIBRARY_SRC="$ROOT/library"
+PLUGINS_SRC="$ROOT/plugins"
+LIBRARY_SRC="$ROOT/library"   # only _ARCHIVE now; live skills live in plugins/
 
 LINK=0
 LIST=0
@@ -68,18 +68,20 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# Every skill across every plugin, as "<plugin>/<skill>".
 list_skills() {
-  local d
-  for d in "$SKILLS_SRC"/*; do
-    [ -d "$d" ] || continue
-    basename "$d"
-  done | LC_ALL=C sort
+  local f rel
+  find "$PLUGINS_SRC" -path "*/skills/*/SKILL.md" -print0 2>/dev/null \
+    | while IFS= read -r -d '' f; do
+        rel="${f#"$PLUGINS_SRC"/}"
+        echo "${rel%%/SKILL.md}" | sed 's|/skills/|/|'
+      done | LC_ALL=C sort
 }
 
 # Print relative paths (from repo root) of every library/ dir that contains SKILL.md.
 list_library_skills() {
   local f rel
-  find "$LIBRARY_SRC" -name SKILL.md -print0 2>/dev/null \
+  find "$PLUGINS_SRC" -path "*/skills/*/SKILL.md" -print0 2>/dev/null \
     | while IFS= read -r -d '' f; do
         rel="${f#"$ROOT"/}"
         dirname "$rel"
@@ -89,18 +91,18 @@ list_library_skills() {
 # Same as list_library_skills but skip library/_ARCHIVE/
 list_library_skills_no_archive() {
   local f rel
-  find "$LIBRARY_SRC" -name SKILL.md -print0 2>/dev/null \
+  find "$PLUGINS_SRC" -path "*/skills/*/SKILL.md" -print0 2>/dev/null \
     | while IFS= read -r -d '' f; do
         rel="${f#"$ROOT"/}"
         case "$rel" in
-          library/_ARCHIVE/*) continue ;;
+          */archive/*) continue ;;
         esac
         dirname "$rel"
       done | LC_ALL=C sort
 }
 
 if [ "$LIST" -eq 1 ]; then
-  echo "Skills in $SKILLS_SRC:"
+  echo "Skills in $PLUGINS_SRC:"
   list_skills | sed 's/^/  - /'
   exit 0
 fi

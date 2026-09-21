@@ -1,0 +1,64 @@
+/* ============================================================
+   UI MOTION POLISH: foundational design tokens
+   Drop this in BEFORE building any component. Forbid one-off
+   values. Every state, hover, and dark-mode variant pulls from
+   this set. This single block kills most of the "AI slop" look.
+   ============================================================ */
+
+:root {
+  /* --- Easing curves (the single biggest tell of taste) ---
+     The browser defaults (ease, ease-in-out) read as generic.
+     Never use them. These are tuned by feel, not derived. */
+  --ease-smooth:  cubic-bezier(0.22, 1, 0.36, 1);    /* default for almost everything */
+  --ease-out:     cubic-bezier(0.17, 1, 0.32, 1);    /* decorative entrances */
+  --ease-spring:  cubic-bezier(0.35, 1.55, 0.65, 1); /* badges, pops, overshoot */
+  --ease-in-out:  cubic-bezier(0.66, 0, 0.34, 1);    /* symmetric moves */
+
+  /* --- Corner radius --- */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 24px;
+
+  /* --- Duration --- */
+  --duration-fast:   150ms;  /* press, tooltip */
+  --duration-normal: 200ms;  /* most transitions */
+  --duration-slow:   280ms;  /* entrances, reveals */
+
+  /* --- Shadow: everyday card sitting on a surface ---
+     A hairline ring replaces the border. Opacities stay tiny
+     (2%-8%). Depth is the sum of many faint layers, never one
+     dark blur. */
+  --shadow-card:
+    0 1px 2px rgba(0, 0, 0, 0.05),      /* close drop  */
+    0 2px 4px rgba(0, 0, 0, 0.02),      /* soft spread */
+    0 0 0 0.5px rgba(0, 0, 0, 0.08);    /* hairline ring, not a border */
+
+  /* --- Shadow: elevated (modals, lifted cards) --- */
+  --shadow-elevated:
+    0 4px 8px  rgba(0, 0, 0, 0.02),     /* spread       */
+    0 8px 12px rgba(0, 0, 0, 0.02),     /* wide ambient */
+    0 2px 4px  rgba(0, 0, 0, 0.02),     /* mid          */
+    0 1px 2px  rgba(0, 0, 0, 0.04),     /* contact      */
+    0 0 0 0.5px #e0e0e0;                /* hairline ring */
+}
+
+/* --- Tactile press: every interactive element gets this ---
+   0.98, not 0.9, so it reads as a firm press, not a collapse. */
+.button:active,
+[data-pressable]:active {
+  transform: scale(0.98);
+  transition: transform var(--duration-fast) var(--ease-smooth);
+}
+
+/* --- Accessibility: honor reduced motion everywhere.
+   Animations collapse to instant; decorative loops stop. --- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

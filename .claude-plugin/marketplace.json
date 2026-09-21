@@ -1,19 +1,175 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "bldg-skills",
-  "description": "BLDG Labs skill library. Construction estimating, agent operations, and the house build skills.",
+  "description": "Matt Nicosia's skill library: construction estimating, marketing, coding and the vendor collections he mirrors.",
   "owner": {
     "name": "Matt Nicosia",
     "url": "https://github.com/mattnicosia"
   },
   "plugins": [
     {
-      "name": "bldg-construction",
-      "description": "Construction estimating skills: drawing indexing, scope of work generation, bid leveling, proposals, and the BLDG Estimating job folder setup.",
+      "name": "alex-hormozi",
+      "description": "Alex Hormozi's offer, lead and money-model skills: grand slam offers, lead magnets, money models and their interview companions.",
       "version": "1.0.0",
-      "author": { "name": "Matt Nicosia" },
+      "author": {
+        "name": "Matt Nicosia"
+      },
+      "source": "./plugins/alex-hormozi",
+      "category": "marketing",
+      "homepage": "https://github.com/mattnicosia/bldg-skills"
+    },
+    {
+      "name": "bldg-agent-ops",
+      "description": "Running agents: session worksheets and workflow scaffolding.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Matt Nicosia"
+      },
+      "source": "./plugins/bldg-agent-ops",
+      "category": "productivity",
+      "homepage": "https://github.com/mattnicosia/bldg-skills"
+    },
+    {
+      "name": "bldg-coding",
+      "description": "Coding skills: review, debugging, architecture and the caveman pass.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Matt Nicosia"
+      },
+      "source": "./plugins/bldg-coding",
+      "category": "development",
+      "homepage": "https://github.com/mattnicosia/bldg-skills"
+    },
+    {
+      "name": "bldg-construction",
+      "description": "Construction estimating: drawing indexing, scope of work generation in Excel and PDF, bid leveling, proposals and job folder setup.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Matt Nicosia"
+      },
       "source": "./plugins/bldg-construction",
       "category": "productivity",
+      "homepage": "https://github.com/mattnicosia/bldg-skills"
+    },
+    {
+      "name": "bldg-creative",
+      "description": "Creative work: image prompting, voice, and the gauntlet loop.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Matt Nicosia"
+      },
+      "source": "./plugins/bldg-creative",
+      "category": "creative",
+      "homepage": "https://github.com/mattnicosia/bldg-skills"
+    },
+    {
+      "name": "bldg-distills",
+      "description": "Distilled one-page methods pulled out of longer sources.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Matt Nicosia"
+      },
+      "source": "./plugins/bldg-distills",
+      "category": "productivity",
+      "homepage": "https://github.com/mattnicosia/bldg-skills"
+    },
+    {
+      "name": "bldg-documents",
+      "description": "Document generation and release.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Matt Nicosia"
+      },
+      "source": "./plugins/bldg-documents",
+      "category": "productivity",
+      "homepage": "https://github.com/mattnicosia/bldg-skills"
+    },
+    {
+      "name": "bldg-house",
+      "description": "House build skills: project and site level-ups, page teardowns, and the cloud sync auditor.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Matt Nicosia"
+      },
+      "source": "./plugins/bldg-house",
+      "category": "development",
+      "homepage": "https://github.com/mattnicosia/bldg-skills"
+    },
+    {
+      "name": "bldg-maker-school",
+      "description": "The Maker School library: growth, offers, funnels, outreach and operating skills.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Matt Nicosia"
+      },
+      "source": "./plugins/bldg-maker-school",
+      "category": "marketing",
+      "homepage": "https://github.com/mattnicosia/bldg-skills"
+    },
+    {
+      "name": "bldg-marketing",
+      "description": "Marketing: funnels, positioning, SEO, ads, content and speed to lead.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Matt Nicosia"
+      },
+      "source": "./plugins/bldg-marketing",
+      "category": "marketing",
+      "homepage": "https://github.com/mattnicosia/bldg-skills"
+    },
+    {
+      "name": "bldg-social",
+      "description": "Social: posting, scheduling and the scroll-stop technique.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Matt Nicosia"
+      },
+      "source": "./plugins/bldg-social",
+      "category": "marketing",
+      "homepage": "https://github.com/mattnicosia/bldg-skills"
+    },
+    {
+      "name": "bldg-strategy",
+      "description": "Strategy: idea scoring, prediction, competitive work and planning.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Matt Nicosia"
+      },
+      "source": "./plugins/bldg-strategy",
+      "category": "productivity",
+      "homepage": "https://github.com/mattnicosia/bldg-skills"
+    },
+    {
+      "name": "bldg-website-design",
+      "description": "Website design and build: frontend design, motion, cloning and upgrades.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Matt Nicosia"
+      },
+      "source": "./plugins/bldg-website-design",
+      "category": "design",
+      "homepage": "https://github.com/mattnicosia/bldg-skills"
+    },
+    {
+      "name": "build-with-ai",
+      "description": "The Build With AI onboarding and self-assessment set, v3.1.1.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Matt Nicosia"
+      },
+      "source": "./plugins/build-with-ai",
+      "category": "productivity",
+      "homepage": "https://github.com/mattnicosia/bldg-skills"
+    },
+    {
+      "name": "matt-pocock",
+      "description": "Matt Pocock's skill collection, mirrored at 1.2.3. TypeScript, testing, code review and the productivity set.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Matt Nicosia"
+      },
+      "source": "./plugins/matt-pocock",
+      "category": "development",
       "homepage": "https://github.com/mattnicosia/bldg-skills"
     }
   ]
