@@ -4,13 +4,13 @@ Use only when the repo is NOVATerra / BLDG Estimator. Skip for other products.
 
 ## Product job
 
-AI takeoff + estimating + project control for contractors. Offline-first. Org / multi-user. Competes with Togal, Beam, Kreo, Outbuild.
+AI-assisted takeoff + estimating + project control for contractors. Cloud-authoritative (Supabase is the single source of truth; local storage is a read-through cache only, never offline-first). Org / multi-user. Competes with Togal, Beam, Kreo, Outbuild.
 
 ## Stack invariants
 
 - React app shell, Gantt, estimate surfaces, landing/signin
 - Supabase auth, RLS, realtime, blobs
-- IndexedDB sync, optimistic updates, dedup
+- Read-through local cache, per-row takeoff and item storage, indexReconcile for deletes (no IndexedDB-as-primary)
 - One active estimate per project unless the code explicitly changed that
 - Vercel deploy
 
@@ -19,7 +19,7 @@ Never trade sync correctness for UI wow. If IDB / realtime / blobs are in play, 
 ## Design bar
 
 - Deep charcoal / slate base
-- High-sat indigo (`#6366F1`) and amber accents, used with restraint
+- Red-orange accent (the live NOVA red) used with restraint; amber for warnings. Indigo was retired; do not reintroduce it. (Matt confirmed 2026-09-20.)
 - Premium tool density, not sparse marketing-SaaS emptiness
 - No generic Inter/Roboto system look, no teal default slop, no flat card grids as the whole language
 - Signature moments belong on takeoff, Gantt, and landing/signin — not on every settings row
