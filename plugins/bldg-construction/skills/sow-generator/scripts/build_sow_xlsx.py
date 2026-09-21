@@ -386,8 +386,13 @@ def build(d, out):
     M.append((r_sub, 1, r_sub, LADDER_END))
     for col in MONEY:
         L = get_column_letter(col)
-        ref = "+".join("%s%d" % (L, tr) for _, _, tr in trade_rows) or "0"
-        cc = ws.cell(r_sub, col, "=%s" % ref)
+        # SUM(), not a chain of pluses. A TRADE TOTAL with no bids against it holds the
+        # TEXT "-", and "-" + "-" is #VALUE!, which propagated into every markup row and
+        # the grand total. SUM ignores text. The SOV already guarded this with N(); the
+        # guard was never carried back to this sheet. Caught by rendering the workbook,
+        # not by reading the cells, which is the whole argument for step 7.
+        cells = ",".join("%s%d" % (L, tr) for _, _, tr in trade_rows) or "0"
+        cc = ws.cell(r_sub, col, '=IF(SUM(%s)=0,"-",SUM(%s))' % (cells, cells))
         cc.number_format = CUR
         cc.font = Font(FONT, 11, bold=True)
         cc.alignment = Alignment("right", "center")
@@ -421,8 +426,9 @@ def build(d, out):
         pc.fill = PatternFill("solid", fgColor=VLT)
         for col in MONEY:
             L = get_column_letter(col)
-            base = ("%s%d" % (L, r_sub) if i == 0 else
-                    "%s%d+SUM(%s%d:%s%d)" % (L, r_sub, L, r_m1, L, rr - 1))
+            # N() around the subtotal: it reads "-" when that column has no bids.
+            base = ("N(%s%d)" % (L, r_sub) if i == 0 else
+                    "N(%s%d)+SUM(%s%d:%s%d)" % (L, r_sub, L, r_m1, L, rr - 1))
             cc = ws.cell(rr, col, '=IF($%s%d="","",ROUND((%s)*$%s%d,2))' % (PL, rr, base, PL, rr))
             cc.number_format = CUR
             cc.alignment = Alignment("right", "center")
@@ -436,8 +442,8 @@ def build(d, out):
         M.append((r_tot, 1, r_tot, LADDER_END))
         for col in MONEY:
             L = get_column_letter(col)
-            cc = ws.cell(r_tot, col, '=ROUND(%s%d+SUM(%s%d:%s%d),2)'
-                         % (L, r_sub, L, r_m1, L, r_m1 + n_mk - 1))
+            cc = ws.cell(r_tot, col, '=IF(N(%s%d)=0,"-",ROUND(N(%s%d)+SUM(%s%d:%s%d),2))'
+                         % (L, r_sub, L, r_sub, L, r_m1, L, r_m1 + n_mk - 1))
             cc.number_format = CUR
             cc.font = Font(FONT, 12, bold=True)
             cc.alignment = Alignment("right", "center")
