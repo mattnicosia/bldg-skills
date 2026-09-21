@@ -1,0 +1,54 @@
+{
+  "outputName": "FlynnConstruction_SawcutSlabRemoval_Proposal_v2.docx",
+  "date": "August 4, 2026",
+  "estimateNumber": "260106",
+  "client": {
+    "name": "Lucas Bukovina",
+    "title": "Project Manager",
+    "company": "Flynn Construction",
+    "address": ["1305 Grandview Ave., Ste 450", "Pittsburgh, PA 15211"]
+  },
+  "projectRef": "83 E. Park Ave.",
+  "introParagraphs": [
+    "Violante & Sons is pleased to submit our detailed proposal for the scope of work as outlined in the referenced construction documents. Our proposal includes the saw cutting and removal of the existing 6\" concrete slab on grade, and the hand excavation and removal of existing fill, at the locations described herein.",
+    "All work will be completed by qualified open-shop labor forces under the supervision of experienced project managers and field supervisors. Our team will coordinate proactively with other trades to ensure timely and efficient project execution. Daily oversight, quality assurance, and compliance with project milestones will be maintained throughout the duration of our scope."
+  ],
+  "serviceBullets": [
+    "Saw cutting and removal of the existing 6\" concrete slab on grade at all designated areas.",
+    "Hand excavation and off-site removal of existing fill to a depth of 3' below the removed slab.",
+    "Loading, hauling, and disposal of all removed concrete, fill, and debris.",
+    "Supplying all labor, supervision, tools, equipment, and incidentals required to complete the work.",
+    "Maintaining a safe, clean, and organized jobsite environment throughout the duration of the work.",
+    "Coordinating site access and sequencing with other trades as required."
+  ],
+  "totalPrice": "$18,430",
+  "includeSOV": false,
+  "includeScopeOfWork": true,
+  "scopeOfWorkOwnPage": false,
+  "includeClarifications": true,
+  "sov": {
+    "rows": [
+      { "group": "02 Existing Conditions" },
+      { "desc": "02.4100 Selective Demolition - Slab Removal & Haul", "total": "$14,214", "pct": "77.12%" },
+      { "desc": "02.4200 Hand Excavation & Removal of Fill", "total": "$2,200", "pct": "11.94%" },
+      { "group": "03 Concrete" },
+      { "desc": "03.1500 Concrete Cutting - Saw Cutting", "total": "$2,016", "pct": "10.94%" }
+    ]
+  },
+  "scopeOfWork": [
+    "Saw cut and remove the existing 6\" concrete slab on grade per the dimensions and locations outlined in this proposal.",
+    "Hand excavate existing fill to a depth of 3' below the removed slab and remove off-site."
+  ],
+  "exclusions": [
+    "Pricing is valid for 30 days.",
+    "Pricing is based on normal working hours and open shop labor.",
+    "Permit fees are not included.",
+    "Pricing is based on 6\" slab thickness as stated; actual field-verified thickness may adjust price.",
+    "Hand excavation is limited to a depth of 3' below the removed slab. Excavation beyond 3', unsuitable subgrade, or obstructions encountered shall be treated as a change order.",
+    "No new concrete, forming, reinforcement, or backfill is included; this is saw cutting, excavation, and removal only.",
+    "Underground utility locating, protection, or repair is not included.",
+    "Disposal and haul-off of removed concrete and fill is included.",
+    "Asbestos and hazardous material testing and removal is not included.",
+    "Existing conditions concealed beneath the slab are excluded. Any unforeseen conditions encountered shall be treated as a change order."
+  ]
+}

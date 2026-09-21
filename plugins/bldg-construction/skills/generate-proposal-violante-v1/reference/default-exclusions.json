@@ -1,0 +1,13 @@
+{
+  "note": "Universal Violante & Sons boilerplate exclusions, pulled from real past proposals. Start every new proposal's exclusions list with these, then add scope-specific items (thickness assumptions, what's not included in the trade scope, etc.) after.",
+  "universal": [
+    "Pricing is valid for 30 days.",
+    "Pricing is based on normal working hours and open shop labor.",
+    "Permit fees are not included.",
+    "Special inspections are not included.",
+    "Existing conditions concealed within walls, ceilings, shafts, or floors are excluded. Any unforeseen conditions encountered shall be treated as a change order.",
+    "Existing structural deficiencies or code deficiencies discovered during construction are excluded.",
+    "Building services and fees are not included.",
+    "Asbestos and hazardous material testing and removal is not included."
+  ]
+}

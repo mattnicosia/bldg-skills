@@ -1,0 +1,6 @@
+{
+  "name": "bldg-construction",
+  "description": "Construction estimating skills: drawing indexing, scope of work generation, bid leveling, proposals, and the BLDG Estimating job folder setup.",
+  "version": "1.0.0",
+  "author": { "name": "Matt Nicosia" }
+}

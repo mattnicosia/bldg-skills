@@ -1,0 +1,58 @@
+{
+  "date_long": "August 7, 2026",
+  "client_contact": "Michael Edelstein",
+  "client_company": "Camp Ramah",
+  "client_addr1": "289 Christian Herald Rd",
+  "client_addr2": "Valley Cottage, NY 10989",
+  "project_name": "Camp Ramah – Bathroom Renovation",
+  "signer_name": "Joseph Montana",
+  "signer_title": "President",
+
+  "scope_items": [
+    { "label": "Demolition", "description": "Remove and dispose of existing bathroom finishes and fixtures. Furnish (1) 30-yard container for debris removal." },
+    { "label": "Framing", "description": "Furnish and install framing as required to support new construction." },
+    { "label": "Drywall", "description": "Furnish and install 1/2\" moisture-resistant (green board) drywall, Level 3 finish, approximately 1,840 sq ft." },
+    { "label": "Painting", "description": "Prepare and paint all new drywall surfaces, approximately 1,840 sq ft." },
+    { "label": "Plumbing", "description": "Furnish and install rough-in and supply/install of the following fixtures: (6) sinks, (5) toilets, (5) showers, (5) shower drains." },
+    { "label": "Tile", "description": "Furnish and install wall tile (288 sf), floor tile (226 sf), and chair rail tile (410 sf). Furnish and install wall waterproofing (288 sf). Furnish and install (5) shower pan mud jobs with waterproofing." },
+    { "label": "Bathroom Accessories", "description": "Furnish and install bathroom accessories." },
+    { "label": "Countertops", "description": "Furnish and install countertops, approximately 36 sq ft." },
+    { "label": "Finish Carpentry", "description": "Furnish and install finish carpentry as required." },
+    { "label": "Toilet Partitions", "description": "Furnish and install toilet partitions." },
+    { "label": "Protection", "description": "Provide protection of existing surfaces and adjacent areas during construction." }
+  ],
+
+  "clarifications": [
+    "Pricing is valid for thirty (30) days.",
+    "All work will be done in a professional and workmanlike manner, licensed as required by law.",
+    "All work to be fully covered with compensation and liability insurances.",
+    "Permit fees are not included.",
+    "Tax is not included. It is assumed that a capital improvement certificate will be provided prior to the start of construction.",
+    "Excludes drilling for plumbing or modifying any existing plumbing lines. Scope is limited to fixture-level rough-in and supply/install of the fixtures listed above.",
+    "Electrical work is not included."
+  ],
+
+  "sov_items": [
+    { "code": "01 56 00", "description": "Temporary Barriers and Enclosures (Protection)", "amount": 2500.00 },
+    { "code": "02 41 00", "description": "Demolition", "amount": 5100.00 },
+    { "code": "06 11 00", "description": "Wood Framing", "amount": 2750.00 },
+    { "code": "06 20 00", "description": "Finish Carpentry", "amount": 7200.00 },
+    { "code": "07 14 00", "description": "Fluid-Applied Waterproofing", "amount": 6690.00 },
+    { "code": "09 29 00", "description": "Gypsum Board", "amount": 4600.00 },
+    { "code": "09 30 13", "description": "Ceramic Tiling", "amount": 21252.00 },
+    { "code": "09 91 00", "description": "Painting", "amount": 3000.00 },
+    { "code": "10 21 00", "description": "Toilet Compartments", "amount": 12000.00 },
+    { "code": "10 28 00", "description": "Toilet, Bath, and Laundry Accessories", "amount": 1300.00 },
+    { "code": "12 36 00", "description": "Countertops", "amount": 4680.00 },
+    { "code": "22 40 00", "description": "Plumbing Fixtures", "amount": 54600.00 }
+  ],
+
+  "gc_pct": 0.10,
+  "fee_pct": 0.075,
+  "insurance_pct": 0.03,
+
+  "tax_label": "Sales Tax (NY — excluded, capital improvement certificate assumed)",
+  "tax_amount": 0.00,
+
+  "expected_total": 153065.35
+}

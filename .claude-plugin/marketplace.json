@@ -1,0 +1,20 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "bldg-skills",
+  "description": "BLDG Labs skill library. Construction estimating, agent operations, and the house build skills.",
+  "owner": {
+    "name": "Matt Nicosia",
+    "url": "https://github.com/mattnicosia"
+  },
+  "plugins": [
+    {
+      "name": "bldg-construction",
+      "description": "Construction estimating skills: drawing indexing, scope of work generation, bid leveling, proposals, and the BLDG Estimating job folder setup.",
+      "version": "1.0.0",
+      "author": { "name": "Matt Nicosia" },
+      "source": "./plugins/bldg-construction",
+      "category": "productivity",
+      "homepage": "https://github.com/mattnicosia/bldg-skills"
+    }
+  ]
+}
