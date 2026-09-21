@@ -1,20 +1,29 @@
 """
 build_sow_pdf.py — Editorial Scope of Work PDF Generator
 
-Generates a polished, typeset PDF from the same sow_data.json structure.
-Black/gray/white only. Helvetica/Helvetica-Bold for typography.
+Generates a polished, typeset PDF from the same sow_data.json the Excel builder
+reads. Black/gray/white only. Helvetica/Helvetica-Bold for typography.
 
 Layout:
 - Cover page with massive editorial title
 - Table of contents
-- Scope of work organized by subdivision (heavy black band headers)
-- Appendix: notes, conflicts, TBD, QA report
+- Scope of work organized by trade (heavy black band headers)
+- Appendix: notes, conflicts, TBD
+
+Honours the same `mode` switch as build_sow_xlsx.py. In "quantified" mode the
+line table carries Qty, Unit and Total; in "scope" mode it does not.
+
+THE QA REPORT IS NOT IN THIS DOCUMENT. It used to be an appendix section, which
+put internal counts of unverified citations in front of whoever received the PDF.
+The QA passes still run; their report is read in chat. A client-facing document
+carries qualifications, never process. See SKILL.md, "Notes & Clarifications".
 
 Usage:
-    python build_sow_pdf.py <sow_data.json> <output_path.pdf>
+    python build_sow_pdf.py <sow_data.json> <output.pdf> [--responsibility Landlord|Tenant|All]
 """
 
 import json
+import os
 import sys
 from datetime import datetime
 from reportlab.lib.pagesizes import letter
@@ -438,6 +447,44 @@ def _build_toc(story, sow_data, styles):
 # ============================================================
 # SCOPE OF WORK BODY
 # ============================================================
+def adapt(d):
+    """Read the shared contract, and hand this module the key names it was written
+    against. One normalizer for both builders, so a data file that makes a workbook
+    always makes the matching PDF."""
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from build_sow_xlsx import normalize
+    d = normalize(dict(d))
+    out = dict(d)
+    out["project_name"] = d.get("project", "")
+    out["project_address"] = d.get("address", "")
+    out["date_prepared"] = d.get("date", "")
+    out["mode"] = d.get("mode", "quantified")
+    out["subdivisions"] = [{
+        "code": ", ".join(t.get("csi", [])),
+        "title": t.get("trade", ""),
+        "line_items": [{"reference": ln.get("reference", ""),
+                        "scope_item": ln.get("scope", ""),
+                        "qty": ln.get("qty"), "unit": ln.get("unit", ""),
+                        "rate": ln.get("rate"),
+                        "responsibility": ln.get("responsibility") or None,
+                        "bullets": ln.get("bullets") or []}
+                       for ln in t.get("lines", [])]
+    } for t in d.get("trades", [])]
+    std, drw = [], []
+    for n in d.get("notes", []):
+        if n.get("item") == "Standard":
+            std.append(n.get("text", ""))
+        else:
+            drw.append({"reference": n.get("item", ""), "text": n.get("text", "")})
+    out["standard_clarifications"] = std
+    out["drawing_specific_clarifications"] = drw
+    return out
+
+
+def _money(v):
+    return "" if v in (None, "") else "${:,.2f}".format(v)
+
+
 def _build_sow_body(story, sow_data, styles):
     project_name = sow_data.get("project_name", "")
     project_address = sow_data.get("project_address", "")
@@ -472,14 +519,17 @@ def _build_sow_body(story, sow_data, styles):
     story.append(legend_table)
     story.append(Spacer(1, 0.25 * inch))
 
-    # Column headers
-    col_widths = [0.6 * inch, 1.3 * inch, CONTENT_WIDTH - 1.9 * inch]
+    # Column headers. The grid follows the mode, exactly as the workbook's does.
+    priced = sow_data.get("mode", "quantified") == "quantified"
+    if priced:
+        col_widths = [0.5 * inch, 1.1 * inch, CONTENT_WIDTH - 4.05 * inch,
+                      0.75 * inch, 0.5 * inch, 1.2 * inch]
+        titles = ["ITEM", "REFERENCE", "SCOPE", "QTY", "UNIT", "TOTAL"]
+    else:
+        col_widths = [0.6 * inch, 1.3 * inch, CONTENT_WIDTH - 1.9 * inch]
+        titles = ["ITEM", "REFERENCE", "SCOPE"]
 
-    header_row = [
-        Paragraph("ITEM", styles["section_label"]),
-        Paragraph("REFERENCE", styles["section_label"]),
-        Paragraph("SCOPE", styles["section_label"]),
-    ]
+    header_row = [Paragraph(t, styles["section_label"]) for t in titles]
     header_table = Table([header_row], colWidths=col_widths)
     header_table.setStyle(TableStyle([
         ("LINEBELOW", (0, 0), (-1, 0), 1, COLOR_BLACK),
@@ -493,10 +543,10 @@ def _build_sow_body(story, sow_data, styles):
 
     # Each subdivision
     for subdiv_idx, subdiv in enumerate(sow_data.get("subdivisions", [])):
-        _build_subdivision(story, subdiv, subdiv_idx, styles, col_widths)
+        _build_subdivision(story, subdiv, subdiv_idx, styles, col_widths, priced)
 
 
-def _build_subdivision(story, subdiv, subdiv_idx, styles, col_widths):
+def _build_subdivision(story, subdiv, subdiv_idx, styles, col_widths, priced=False):
     code = subdiv.get("code", "")
     title = subdiv.get("title", "").upper()
 
@@ -525,11 +575,31 @@ def _build_subdivision(story, subdiv, subdiv_idx, styles, col_widths):
 
         ref_style = styles["item_ref_unverified"] if ref.strip() == "[UNVERIFIED]" else styles["item_ref"]
 
-        item_rows.append([
+        row = [
             Paragraph(seq, styles["item_num"]),
             Paragraph(ref, ref_style),
             Paragraph(scope, styles["item_scope"]),
-        ])
+        ]
+        if priced:
+            q = item.get("qty")
+            rate = item.get("rate")
+            total = (q * rate) if (q is not None and rate is not None) else None
+            row += [
+                # A line with no quantity reads "--" and shows no total, the same
+                # promise the workbook makes: it cannot be bid until someone counts it.
+                Paragraph("{:,.2f}".format(q) if q is not None else "--", styles["item_ref"]),
+                Paragraph(item.get("unit", "") if q is not None else "", styles["item_ref"]),
+                Paragraph(_money(total), styles["item_ref"]),
+            ]
+        item_rows.append(row)
+
+        for b in item.get("bullets") or []:
+            brow = [Paragraph("", styles["item_num"]),
+                    Paragraph("", styles["item_ref"]),
+                    Paragraph("- " + b, styles["legend"])]
+            if priced:
+                brow += [Paragraph("", styles["item_ref"])] * 3
+            item_rows.append(brow)
 
     if not item_rows:
         return
@@ -599,50 +669,10 @@ def _build_appendix(story, sow_data, styles):
             textColor=COLOR_MEDIUM,
         )))
 
-    # ===== QA Report =====
-    _appendix_section_header(story, "QA REPORT", styles)
-    qa = sow_data.get("qa_report", {})
-
-    metrics = [
-        ("Total Line Items", qa.get("total_line_items", 0)),
-        ("Subdivisions Used", qa.get("subdivisions_used", 0)),
-        ("Items with [UNVERIFIED] Citations", qa.get("unverified_count", 0)),
-        ("Items with [Not Specified] Specs", qa.get("not_specified_count", 0)),
-        ("Conflicts Detected", len(conflicts)),
-        ("TBD Items Flagged", len(tbd_items)),
-        ("Trade Splits Applied", qa.get("trade_splits_applied", 0)),
-        ("Auto-Inserted Line Items", qa.get("auto_inserted_count", 0)),
-    ]
-    qa_rows = []
-    for label, value in metrics:
-        qa_rows.append([
-            Paragraph(label, styles["appendix_subhead"]),
-            Paragraph(
-                str(value),
-                ParagraphStyle("v", parent=styles["appendix_body"], fontName="Helvetica-Bold")
-            ),
-        ])
-
-    qa_table = Table(qa_rows, colWidths=[CONTENT_WIDTH * 0.65, CONTENT_WIDTH * 0.35])
-    qa_table_style = [
-        ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("LEFTPADDING", (0, 0), (-1, -1), 0),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-        ("TOPPADDING", (0, 0), (-1, -1), 6),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-    ]
-    for i in range(len(qa_rows)):
-        qa_table_style.append(("LINEBELOW", (0, i), (-1, i), 0.4, COLOR_WHISPER))
-    qa_table.setStyle(TableStyle(qa_table_style))
-    story.append(qa_table)
-
-    qa_notes = qa.get("notes", [])
-    if qa_notes:
-        story.append(Spacer(1, 0.2 * inch))
-        story.append(Paragraph("QA NOTES", styles["appendix_subhead"]))
-        for note in qa_notes:
-            story.append(Paragraph(f"&bull;  {note}", styles["appendix_body"]))
-            story.append(Spacer(1, 0.05 * inch))
+    # The QA report used to render here. It counted unverified citations and
+    # not-specified specs on the face of a document that goes to a sub or a GC,
+    # which is internal process language in a commercial deliverable. The passes
+    # still run and their report is read in chat. Do not put it back.
 
 
 def _appendix_section_header(story, title, styles):
@@ -675,9 +705,15 @@ def _build_appendix_list(story, items, styles):
 def _build_appendix_ref_list(story, items, styles):
     rows = []
     for item in items:
+        # Conflicts and TBD arrived as bare strings in the older data shape and as
+        # {reference, text} in the current one. Both render.
+        if isinstance(item, dict):
+            ref, text = item.get("reference", ""), item.get("text", "")
+        else:
+            ref, text = "", str(item)
         rows.append([
-            Paragraph(item.get("reference", ""), styles["item_ref"]),
-            Paragraph(item.get("text", ""), styles["appendix_body"]),
+            Paragraph(ref, styles["item_ref"]),
+            Paragraph(text, styles["appendix_body"]),
         ])
     if not rows:
         return
@@ -783,6 +819,7 @@ if __name__ == "__main__":
     with open(args[0], "r") as f:
         sow_data = json.load(f)
 
+    sow_data = adapt(sow_data)
     sow_data = filter_by_responsibility(sow_data, responsibility)
     saved = build_sow_pdf(sow_data, args[1])
     print(f"SOW PDF saved: {saved} (responsibility filter: {responsibility})")
