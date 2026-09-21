@@ -42,8 +42,17 @@ python3 scripts/sweep.py <path-to>/index.json
 It writes `index.json` back with a `jev` block on every element and a `jev_pass`
 block at the top, keeping a `.bak`. It writes `SCOPE-GAPS.md` beside it.
 
-Cost is roughly 1,000 input and 260 output tokens per element, one request each.
-Sixty-eight elements came to about a cent.
+One request per element. Cost scales with how much the element's own
+specifications carry, so measure before promising a number:
+
+| Job | Elements | Per element |
+|---|---|---|
+| 260119, residential alteration, 15 sheets | 68 | ~900 in / ~770 out |
+| 260120, medical office renovation, 31 sheets | 288 | ~2,600 in / ~1,860 out |
+
+The second is nearly three times the first per element, because a commercial
+MEP set puts far more verbatim specification on each one. Run `--limit 10`
+first on an unfamiliar set and multiply.
 
 ## The seven questions
 
@@ -87,10 +96,12 @@ warranted, and a bump for scope that is absent entirely. Use it to decide what
 to read first.
 
 **Low confidence is a signal, not an error.** When `trade_confidence` is under
-0.5, the model is telling you the element is genuinely ambiguous. On the test
-set every low-confidence call landed on something a person would also argue
-about: a framed stair, porch columns, a door opening modification. The report
-lists them in their own section.
+0.5, the model is telling you the element is genuinely ambiguous. Across both
+proving jobs every low-confidence call landed on something a person would also
+argue about: a framed stair, porch columns, burglar bars at a roof opening, and
+an underslab pipe hanger assembly at 0.39 that a structural detail draws, a
+plumber installs, and a concrete sub pours around. The report lists them in
+their own section.
 
 **Check the element before acting on a row.** Every judgment is reviewable
 against the element's own `specifications`, which are cited to a sheet.
@@ -125,5 +136,6 @@ against the element's own `specifications`, which are cited to a sheet.
 | `scripts/sweep.py` | The sweep, the report, the risk ranking |
 | `scripts/jev_client.py` | Minimal System One client, no SDK, retries on 429 and 5xx |
 
-Proven on job 260119, 68 elements across 17 trades, 476 judgments.
+Proven on job 260119 (68 elements, 17 trades) and job 260120 (288 elements,
+19 trades, 31 sheets, all seven disciplines).
 Reasoning is in `learnings/2026-09-21-ask-jev-what-is-absent.md` in bldg-labs.
