@@ -342,3 +342,22 @@ observation that a 3D model would make this pipeline unnecessary.
 
 The selective-render approach (text first, vision only on empty pages) was validated on a
 75-page MEP set at 3915 Austin Blvd, Island Park NY.
+
+## What runs after this
+
+`index.json` is the input to three skills. They are separate because they answer
+different questions.
+
+| Next | Question it answers |
+|---|---|
+| `scope-gap-sweep` | What does this set fail to define well enough to price? |
+| `sow-generator` | What is the scope of work, as a document a sub can bid? |
+| `omission-check` | What do these drawings require that a priced estimate does not carry? |
+
+`omission-check` needs a priced estimate as well as the drawings. The other two
+need only the index.
+
+On a job with addenda, index the original issue and the addendum separately and
+diff the sheet lists before any of the three. The current set is the addendum
+sheets plus every original sheet the addendum did not reissue, and a sheet
+number that appears in both is not the same drawing.
