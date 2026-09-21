@@ -66,7 +66,7 @@ Leaf skill = any directory under `library/` that contains a `SKILL.md`. Destinat
 ```bash
 ./install.sh --list-library
 ./install.sh --from library/CONSTRUCTION/ROM_Budget_Range --link
-./install.sh --from "library/CODING/MATT_POCOCK_1.2.2/skills/engineering/to-spec" --dest /tmp/skills --link
+./install.sh --from "library/CODING/MATT_POCOCK_1.2.3/skills/engineering/to-spec" --dest /tmp/skills --link
 ./install.sh --library --link
 # Archive is skipped by --library; still allowed explicitly:
 ./install.sh --from "library/_ARCHIVE/some-skill" --link

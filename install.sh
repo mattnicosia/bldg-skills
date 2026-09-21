@@ -39,7 +39,7 @@ Examples:
   ./install.sh --only project-level-up --link
   ./install.sh --list-library
   ./install.sh --from library/CONSTRUCTION/ROM_Budget_Range --dest /tmp/skills --link
-  ./install.sh --from "library/CODING/MATT_POCOCK_1.2.2/skills/engineering/to-spec" --link
+  ./install.sh --from "library/CODING/MATT_POCOCK_1.2.3/skills/engineering/to-spec" --link
   ./install.sh --library --link
   ./install.sh --from library/_ARCHIVE/some-old-skill --link
 EOF
