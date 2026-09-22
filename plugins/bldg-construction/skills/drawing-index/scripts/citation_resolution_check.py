@@ -20,11 +20,13 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from build_index import (  # noqa: E402
+    citation_context,
     parse_citation,
     resolve_citation,
     split_sheet_number,
     subdivided_bases,
     sheet_identity,
+    superseded_sheets,
     validate,
 )
 
@@ -166,6 +168,124 @@ check("with the sheet in the message", "X-100" in errs[0], True)
 
 errs, _ = validate(index_with(["A-101.01", "A-101.02"], ["A-101"]))
 check("validate() refuses an ambiguous base rather than picking one", len(errs), 1)
+
+# --- superseded sheets ----------------------------------------------------
+#
+# Job 260120's merged set holds a dead S-001.00 beside the live S-001.01,
+# because Addendum No.1 reissued the sheet under a new number. By count alone
+# that is indistinguishable from a subdivided pair, so the set has to say so.
+
+REAL = [
+    {"sheet_number": "S-001.00", "superseded_by": "S-001.01"},
+    {"sheet_number": "S-001.01"},
+    {"sheet_number": "S-100.00"},
+    {"sheet_number": "A-105"},
+    {"sheet_number": "E-200"},
+]
+
+
+def ctx(entries):
+    return citation_context({"sheets": entries})
+
+
+def resolve_in(cite, entries):
+    numbers, subdivided, superseded = ctx(entries)
+    return resolve_citation(cite, numbers, subdivided, superseded)
+
+
+check("the set's dead sheets are read off the entries, never inferred",
+      superseded_sheets(REAL), {"S-001.00"})
+check("a bare base skips the dead sheet and names the live one",
+      resolve_in("S-001", REAL), ("S-001.01", None))
+check("the dead sheet still answers to its own number exactly",
+      resolve_in("S-001.00", REAL), ("S-001.00", None))
+check("and the live one to its own",
+      resolve_in("S-001.01", REAL), ("S-001.01", None))
+check("a detail on the base resolves to the live sheet too",
+      resolve_in("3/S-001", REAL), ("S-001.01", None))
+check("an unrelated suffixed sheet is untouched",
+      resolve_in("S-100", REAL), ("S-100.00", None))
+check("as is an unsuffixed one", resolve_in("A-105", REAL), ("A-105", None))
+
+# subdivided is computed over the live sheets. Compute it over all of them and
+# S-001 looks subdivided, the ambiguity check fires first, and the supersession
+# never gets a look in.
+check("the dead sheet does not make its own base look subdivided",
+      "S-001" in ctx(REAL)[1], False)
+check("while a genuinely subdivided base still reads as subdivided",
+      "A-101" in ctx([{"sheet_number": "A-101.01"},
+                      {"sheet_number": "A-101.02"}])[1], True)
+
+# Declaring a sheet dead must never turn a citation that resolved into one
+# that does not. Here the only sheet under the base is the dead one, so the
+# live pass finds nothing and the fallback answers with what the set holds.
+REPLACED = [{"sheet_number": "S-100.00", "superseded_by": "S-101.00"},
+            {"sheet_number": "S-101.00"}]
+check("a base whose only sheet is dead still resolves to it",
+      resolve_in("S-100", REPLACED), ("S-100.00", None))
+check("which is what it resolved to before the sheet was marked",
+      resolve_citation("S-100", ["S-100.00", "S-101.00"],
+                       subdivided_bases(["S-100.00", "S-101.00"])),
+      ("S-100.00", None))
+
+# Two dead sheets under one base name neither, which is the same refusal a
+# live pair gets and for the same reason.
+ALL_DEAD = [{"sheet_number": "X-100.00", "superseded_by": "X-100.02"},
+            {"sheet_number": "X-100.01", "superseded_by": "X-100.02"},
+            {"sheet_number": "X-100.02"}]
+check("but two dead sheets under one base still name neither",
+      resolve_in("X-100", ALL_DEAD)[0], "X-100.02")
+
+# A subdivided series where one member was reissued under a new number.
+MIXED = [{"sheet_number": "A-101.01"},
+         {"sheet_number": "A-101.02", "superseded_by": "A-101.03"},
+         {"sheet_number": "A-101.03"}]
+check("a base with several live sheets is still ambiguous, dead ones aside",
+      resolve_in("A-101", MIXED)[0], None)
+
+# --- validate() over the superseded model ---------------------------------
+def index_of(sheets, refs, elements=None):
+    return {
+        "schema_version": "1.0",
+        "project": {"name": "Adjuvant Health"},
+        "sheets": sheets,
+        "elements": elements or [{
+            "element": "Metal Deck", "trade": "Structural Steel",
+            "csi_subdivision": "05 31 00", "location": "Roof",
+            "source_sheets": refs,
+        }],
+    }
+
+
+errs, warns = validate(index_of(REAL, ["S-001", "3/S-001", "S-100"]))
+check("validate() passes the real shape once the dead sheet is marked", errs, [])
+check("and says nothing about it, because nothing cited it",
+      [w for w in warns if "superseded" in w], [])
+
+errs, warns = validate(index_of(REAL, ["S-001.00"]))
+check("citing the dead sheet is a warning, not an error", errs, [])
+check("and the warning names what replaced it",
+      any("superseded by S-001.01" in w for w in warns), True)
+
+BAD = [{"sheet_number": "S-001.00", "superseded_by": "S-999.99"},
+       {"sheet_number": "S-001.01"}]
+check("a superseded_by pointing outside the set is a hard error",
+      any("not in the set" in e for e in validate(index_of(BAD, ["S-001.01"]))[0]),
+      True)
+
+SELF = [{"sheet_number": "S-001.00", "superseded_by": "S-001.00"}]
+check("a sheet superseding itself is a hard error",
+      any("superseded by itself" in e
+          for e in validate(index_of(SELF, ["S-001.00"]))[0]), True)
+
+# The warning that would have caught job 260120 before it cost anything.
+UNMARKED = [{"sheet_number": "S-001.00"}, {"sheet_number": "S-001.01"}]
+_, warns = validate(index_of(UNMARKED, ["S-001.01"]))
+check("an unmarked pair under one base is flagged before a citation fails",
+      any("live sheets share the base S-001" in w for w in warns), True)
+_, warns = validate(index_of(REAL, ["S-001.01"]))
+check("and marking the dead one silences it",
+      any("live sheets share the base" in w for w in warns), False)
 
 print(f"\n{failed} FAILED" if failed else "\nAll citation-resolution checks passed.")
 sys.exit(1 if failed else 0)

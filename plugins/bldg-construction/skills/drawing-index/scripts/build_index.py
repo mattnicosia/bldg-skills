@@ -79,6 +79,28 @@ SCHEMA_VERSION = "1.0"
 # on one set and a subdivided sheet on another, and the difference is visible
 # without reading a drawing: a set that subdivides A-101 into A-101.01 and
 # A-101.02 SHIPS BOTH, so its own sheet list settles it.
+#
+# ---------------------------------------------------------------------------
+# WHERE COUNTING SHEETS IS NOT ENOUGH
+# ---------------------------------------------------------------------------
+#
+# The revision workflow merges each new issue into one current set, so a
+# merged set holds the sheets the latest issue reissued plus the earlier ones
+# it left alone. That works while a reissue keeps its number, because the new
+# sheet overwrites the old by filename.
+#
+# It breaks when the architect changes the number. Addendum No.1 on job 260120
+# reissued the structural framing plan as S-001.01 rather than S-001.00, so the
+# merge kept both: one live sheet and one dead one, indistinguishable from a
+# subdivided pair by count. A bare S-001 then names two sheets and resolves to
+# neither, and the operator cannot fix it by editing the citation, because the
+# citation is right and the sheet list is wrong.
+#
+# So a set says which of its sheets are dead, with `superseded_by` on the sheet
+# entry, and resolution runs against the live sheets. An exact citation to a
+# superseded sheet still resolves, because it names a sheet that is really in
+# the set, and validate() warns rather than refusing: a citation nobody can
+# satisfy is worse than a citation worth a second look.
 
 
 def split_sheet_number(printed):
@@ -122,7 +144,34 @@ def parse_citation(source):
     return trimmed[slash + 1:].strip(), (trimmed[:slash].strip() or None)
 
 
-def resolve_citation(source, sheets, subdivided):
+def superseded_sheets(sheet_entries):
+    """
+    The printed numbers a set has declared dead, via `superseded_by`.
+
+    Read off the sheet entries rather than inferred. A sheet being older is not
+    the same as a sheet being superseded, and nothing in a number says which.
+    """
+    return {s.get("sheet_number") for s in sheet_entries
+            if s.get("sheet_number") and s.get("superseded_by")}
+
+
+def citation_context(index):
+    """
+    The three things resolution needs, computed together so they cannot drift.
+
+    `subdivided` is deliberately computed over the LIVE sheets. Compute it over
+    all of them and a superseded sheet still makes its own base look subdivided,
+    the ambiguity check fires first, and the supersession never gets a look in.
+    That ordering is the whole bug this function exists to prevent.
+    """
+    entries = [s for s in index.get("sheets", []) if s.get("sheet_number")]
+    numbers = [s["sheet_number"] for s in entries]
+    superseded = superseded_sheets(entries)
+    live = [n for n in numbers if n not in superseded]
+    return numbers, subdivided_bases(live), superseded
+
+
+def resolve_citation(source, sheets, subdivided, superseded=frozenset()):
     """
     Mirror of resolveCitation. Three steps, in order, and the order is the point.
 
@@ -132,6 +181,8 @@ def resolve_citation(source, sheets, subdivided):
 
     1. The printed number, exactly, so a set with no suffixes takes the path
        it always took. That is what keeps an unsuffixed set provably unchanged.
+       A superseded sheet still answers here: the citation named it, it is in
+       the set, and refusing would be a lie about what the set holds.
     2. The identity, which is the fix: S-100.00 IS S-100, so a citation naming
        S-100 has named that sheet.
     3. The base, for the other direction: a citation to S-001.01 in a set that
@@ -139,6 +190,11 @@ def resolve_citation(source, sheets, subdivided):
        Several means it named none of them, and that refusal is deliberate. A
        citation pointed at whichever sheet was listed first is invented
        provenance, which is the one thing this index exists to make impossible.
+
+    Steps 2 and 3 run against the live sheets, so a bare S-001 in a set holding
+    a dead S-001.00 beside a live S-001.01 names the live one. Where that finds
+    nothing they run again over every sheet, so declaring a sheet superseded can
+    never turn a citation that used to resolve into one that does not.
     """
     sheet_number, _detail = parse_citation(source)
     if not sheet_number:
@@ -148,6 +204,22 @@ def resolve_citation(source, sheets, subdivided):
         if s == sheet_number:
             return s, None
 
+    live = [s for s in sheets if s not in superseded]
+    hit, reason = _resolve_against(sheet_number, live, subdivided)
+    if hit or not superseded:
+        return hit, reason
+
+    # Nothing live answered. Try every sheet, so a base whose sheets are all
+    # superseded still resolves to what the set actually holds.
+    hit_all, reason_all = _resolve_against(
+        sheet_number, sheets, subdivided_bases(sheets))
+    if hit_all:
+        return hit_all, None
+    return None, reason_all
+
+
+def _resolve_against(sheet_number, sheets, subdivided):
+    """Steps 2 and 3 over one pool of sheets. See resolve_citation."""
     for s in sheets:
         if sheet_identity(s, subdivided) == sheet_number:
             return s, None
@@ -252,11 +324,41 @@ def validate(index):
 
     # An ordered list, not a set: resolve_citation tries the printed number
     # first and the set's own sheet list is what settles an ambiguous base.
-    sheet_numbers = [s.get("sheet_number") for s in index.get("sheets", [])
-                     if s.get("sheet_number")]
-    subdivided = subdivided_bases(sheet_numbers)
+    sheet_numbers, subdivided, superseded = citation_context(index)
     if not sheet_numbers:
         errors.append("index has no sheets[]")
+
+    # A `superseded_by` has to name a sheet the set actually holds, or the
+    # record of what replaced what points at nothing.
+    for entry in index.get("sheets", []):
+        target = entry.get("superseded_by")
+        if not target:
+            continue
+        number = entry.get("sheet_number")
+        if target == number:
+            errors.append(f"sheet {number} is marked superseded by itself")
+        elif target not in sheet_numbers:
+            errors.append(f"sheet {number} is marked superseded by {target}, "
+                          f"which is not in the set")
+        elif target in superseded:
+            warnings.append(f"sheet {number} is superseded by {target}, which is "
+                            f"itself superseded -- point it at the live sheet")
+
+    # The check that would have caught job 260120. Several sheets under one
+    # base is either a subdivided series, which is fine, or a reissue that
+    # changed number and left the dead sheet standing, which is not. The two
+    # look identical from here, so this asks rather than decides.
+    under = defaultdict(list)
+    for number in sheet_numbers:
+        under[split_sheet_number(number)[0]].append(number)
+    for base, members in sorted(under.items()):
+        live = [n for n in members if n not in superseded]
+        if len(live) > 1:
+            warnings.append(
+                f"{len(live)} live sheets share the base {base} "
+                f"({', '.join(live)}) -- a subdivided series is fine, but if one "
+                f"reissued another under a new number, mark the dead one with "
+                f"'superseded_by' or every citation to a bare {base} will fail")
 
     elements = index.get("elements", [])
     if not elements:
@@ -276,9 +378,17 @@ def validate(index):
         for ref in el.get("source_sheets", []) or []:
             if not sheet_numbers:
                 continue
-            sheet, reason = resolve_citation(ref, sheet_numbers, subdivided)
+            sheet, reason = resolve_citation(ref, sheet_numbers, subdivided,
+                                             superseded)
             if sheet is None:
                 errors.append(f"[{label}] source_sheets ref '{ref}' {reason}")
+            elif sheet in superseded:
+                replacement = next(
+                    (e.get("superseded_by") for e in index.get("sheets", [])
+                     if e.get("sheet_number") == sheet), None)
+                warnings.append(f"[{label}] cites {sheet}, which is superseded "
+                                f"by {replacement} -- confirm the scope is still "
+                                f"on the live sheet")
 
         for spec in el.get("specifications", []) or []:
             if not spec.get("source"):
@@ -326,19 +436,20 @@ def stats(index):
     # printed S-100.00 and cited as S-100 counts as cited. Matching the printed
     # number undercounts twice over: it reports S-100 as cited-but-absent and
     # S-100.00 as cited by nobody, from the same citation.
-    sheet_list = [s.get("sheet_number") for s in index.get("sheets", [])
-                  if s.get("sheet_number")]
-    subdivided = subdivided_bases(sheet_list)
+    sheet_list, subdivided, superseded = citation_context(index)
     all_sheets = set(sheet_list)
     referenced, unresolved_refs = set(), set()
     for el in elements:
         for ref in el.get("source_sheets", []) or []:
-            sheet, _reason = resolve_citation(ref, sheet_list, subdivided)
+            sheet, _reason = resolve_citation(ref, sheet_list, subdivided,
+                                              superseded)
             if sheet is None:
                 unresolved_refs.add(ref.strip())
             else:
                 referenced.add(sheet)
-    orphans = sorted(all_sheets - referenced)
+    # A superseded sheet nobody cites is the expected state, not a gap in the
+    # extraction, so it is reported on its own line rather than as an orphan.
+    orphans = sorted(all_sheets - referenced - superseded)
     # A citation that resolves to no sheet is a validation error, not content.
     bogus = sorted(unresolved_refs)
 
@@ -351,7 +462,14 @@ def stats(index):
     print("\nby confidence:")
     for c, n in by_conf.most_common():
         print(f"  {n:4d}  {c}")
-    print(f"\nsheets represented: {len(referenced)}/{len(all_sheets)}")
+    live_total = len(all_sheets) - len(superseded)
+    print(f"\nsheets represented: {len(referenced & (all_sheets - superseded))}"
+          f"/{live_total} live")
+    if superseded:
+        cited = sorted(superseded & referenced)
+        print(f"superseded sheets ({len(superseded)}): "
+              f"{', '.join(sorted(superseded))}"
+              f"{'  -- still cited: ' + ', '.join(cited) if cited else ''}")
     if bogus:
         print(f"UNRESOLVED refs ({len(bogus)}): {', '.join(bogus)} "
               f"-- named by an element but resolving to no one sheet; run --validate")
