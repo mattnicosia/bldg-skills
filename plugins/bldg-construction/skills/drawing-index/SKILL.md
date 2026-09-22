@@ -211,6 +211,13 @@ Validation hard-fails on: a placeholder project name, a citation pointing at a s
 that is not in the set, a specification with no source, a quantity with no basis, a
 missing required field. Do not proceed to a downstream skill until it exits clean.
 
+A citation is resolved against what the set calls a sheet, not against what one title
+block prints, so `S-100` finds the sheet numbered `S-100.00`. Where a set ships several
+sheets under one base (`A-101.01`, `A-101.02`), a citation to the bare `A-101` names none
+of them and fails rather than picking one. The rule is a port of `resolveCitation` in
+`connie`'s `lib/sheet-identity.ts`; `scripts/citation_resolution_check.py` holds it in
+step and is worth running after any edit to it.
+
 `--stats` reports which sheets no element cites. Those are either genuinely scope-free or
 the extraction missed them — check before calling the index complete.
 
