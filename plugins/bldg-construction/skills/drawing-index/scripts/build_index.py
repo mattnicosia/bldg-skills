@@ -40,6 +40,7 @@ Requires: stdlib only.
 import sys
 import json
 import os
+import re
 from collections import Counter, defaultdict
 
 # Every element must carry these. Missing any one is a hard error.
@@ -52,6 +53,119 @@ OPTIONAL_ELEMENT_FIELDS = [
 ]
 
 SCHEMA_VERSION = "1.0"
+
+
+# ---------------------------------------------------------------------------
+# WHAT A SHEET IS CALLED, AND WHAT A CITATION TO ONE MEANS
+# ---------------------------------------------------------------------------
+#
+# A drawing refers to its own sheets the way a person writes them. S-001.00
+# says "SEE S-100 FOR GENERAL NOTES" and "REINFORCE METAL DECK PER DETAIL
+# 3/S-100", while the title block on that sheet prints S-100.00. Matching a
+# citation against the printed number rejects every one of those, and the
+# error blames the citation, which was transcribed exactly as the drawing
+# prints it.
+#
+# This is a PORT. The rule lives in connie's lib/sheet-identity.ts and the
+# functions below mirror it name for name: split_sheet_number is
+# splitSheetNumber, subdivided_bases is subdividedBases, sheet_identity is
+# resolveSheetIdentity, parse_citation is parseCitation, resolve_citation is
+# resolveCitation. Keep them in step. Two rules about what a sheet is called
+# is two rules to drift, and the drift is what this fixes: before it, the
+# skill refused on the printed number while the module resolved on identity,
+# each consistently, with the real drawings sitting between them.
+#
+# Nothing here infers meaning from the shape of a suffix. ".01" is a revision
+# on one set and a subdivided sheet on another, and the difference is visible
+# without reading a drawing: a set that subdivides A-101 into A-101.01 and
+# A-101.02 SHIPS BOTH, so its own sheet list settles it.
+
+
+def split_sheet_number(printed):
+    """Mirror of splitSheetNumber. -> (base, suffix or None)."""
+    m = re.match(r"^(.*?)\.(\d{1,2})$", (printed or "").strip())
+    return (m.group(1), m.group(2)) if m else ((printed or "").strip(), None)
+
+
+def subdivided_bases(printed_numbers):
+    """Mirror of subdividedBases: bases this set lists more than one sheet under."""
+    counts = Counter(split_sheet_number(n)[0] for n in printed_numbers if n)
+    return {base for base, n in counts.items() if n > 1}
+
+
+def sheet_identity(printed, subdivided):
+    """
+    Mirror of resolveSheetIdentity with roster=None.
+
+    index.json carries no drawing index, so nothing here vouches for what the
+    set calls its sheets, which is the roster=None branch in connie: a
+    suffixed sheet whose base is not subdivided IS its base. Where connie
+    reads a published index it can instead keep the printed number, and that
+    never changes whether a citation resolves, only which string comes back,
+    because the base step below catches the same sheet either way.
+    """
+    base, suffix = split_sheet_number(printed)
+    if base in subdivided:
+        # Decisive, and checked first: the suffix names a sheet here, not an issue.
+        return printed
+    if suffix is None:
+        return printed
+    return base
+
+
+def parse_citation(source):
+    """Mirror of parseCitation. "3/S-100" -> ("S-100", "3"). -> (sheet_number, detail)."""
+    trimmed = (source or "").strip()
+    slash = trimmed.find("/")
+    if slash == -1:
+        return trimmed, None
+    return trimmed[slash + 1:].strip(), (trimmed[:slash].strip() or None)
+
+
+def resolve_citation(source, sheets, subdivided):
+    """
+    Mirror of resolveCitation. Three steps, in order, and the order is the point.
+
+    Returns (printed_sheet, None) when the citation names a sheet in the set,
+    or (None, reason) when it does not. The sheet comes back as the number the
+    title block prints, because that is the key sheets[] is written in.
+
+    1. The printed number, exactly, so a set with no suffixes takes the path
+       it always took. That is what keeps an unsuffixed set provably unchanged.
+    2. The identity, which is the fix: S-100.00 IS S-100, so a citation naming
+       S-100 has named that sheet.
+    3. The base, for the other direction: a citation to S-001.01 in a set that
+       ships S-001.00. One sheet under the base means the citation named it.
+       Several means it named none of them, and that refusal is deliberate. A
+       citation pointed at whichever sheet was listed first is invented
+       provenance, which is the one thing this index exists to make impossible.
+    """
+    sheet_number, _detail = parse_citation(source)
+    if not sheet_number:
+        return None, "names sheet (blank), which is not in the set"
+
+    for s in sheets:
+        if s == sheet_number:
+            return s, None
+
+    for s in sheets:
+        if sheet_identity(s, subdivided) == sheet_number:
+            return s, None
+
+    base = split_sheet_number(sheet_number)[0]
+    ambiguous = (f"the set ships more than one sheet numbered {base}.NN, "
+                 f"so {sheet_number} names none of them in particular")
+    if base in subdivided:
+        return None, ambiguous
+
+    under_base = [s for s in sheets if split_sheet_number(s)[0] == base]
+    identities = {sheet_identity(s, subdivided) for s in under_base}
+    if len(identities) == 1:
+        return under_base[0], None
+    if len(identities) > 1:
+        return None, ambiguous
+
+    return None, f"names sheet {sheet_number}, which is not in the set"
 
 
 def get_arg(name, default=None):
@@ -136,7 +250,11 @@ def validate(index):
         errors.append("project.name is missing or a placeholder "
                       "(Untitled/TODO is a QA failure -- resolve the real name)")
 
-    sheet_numbers = {s.get("sheet_number") for s in index.get("sheets", [])}
+    # An ordered list, not a set: resolve_citation tries the printed number
+    # first and the set's own sheet list is what settles an ambiguous base.
+    sheet_numbers = [s.get("sheet_number") for s in index.get("sheets", [])
+                     if s.get("sheet_number")]
+    subdivided = subdivided_bases(sheet_numbers)
     if not sheet_numbers:
         errors.append("index has no sheets[]")
 
@@ -153,12 +271,14 @@ def validate(index):
 
         seen[(el.get("element"), el.get("csi_subdivision"))] += 1
 
-        # Citations must resolve to a real sheet. "5/S-301" -> "S-301".
+        # Citations must resolve to a real sheet, against what the set decides
+        # a sheet is called rather than against what one title block prints.
         for ref in el.get("source_sheets", []) or []:
-            base = ref.split("/")[-1].strip()
-            if sheet_numbers and base not in sheet_numbers:
-                errors.append(f"[{label}] source_sheets ref '{ref}' does not resolve "
-                              f"to any sheet in the set")
+            if not sheet_numbers:
+                continue
+            sheet, reason = resolve_citation(ref, sheet_numbers, subdivided)
+            if sheet is None:
+                errors.append(f"[{label}] source_sheets ref '{ref}' {reason}")
 
         for spec in el.get("specifications", []) or []:
             if not spec.get("source"):
@@ -202,16 +322,25 @@ def stats(index):
     specs_cited = sum(1 for el in elements
                       for s in (el.get("specifications") or []) if s.get("source"))
 
-    referenced = set()
+    # Coverage is counted against the sheet a citation RESOLVES to, so a sheet
+    # printed S-100.00 and cited as S-100 counts as cited. Matching the printed
+    # number undercounts twice over: it reports S-100 as cited-but-absent and
+    # S-100.00 as cited by nobody, from the same citation.
+    sheet_list = [s.get("sheet_number") for s in index.get("sheets", [])
+                  if s.get("sheet_number")]
+    subdivided = subdivided_bases(sheet_list)
+    all_sheets = set(sheet_list)
+    referenced, unresolved_refs = set(), set()
     for el in elements:
         for ref in el.get("source_sheets", []) or []:
-            referenced.add(ref.split("/")[-1].strip())
-    all_sheets = {s.get("sheet_number") for s in index.get("sheets", [])}
+            sheet, _reason = resolve_citation(ref, sheet_list, subdivided)
+            if sheet is None:
+                unresolved_refs.add(ref.strip())
+            else:
+                referenced.add(sheet)
     orphans = sorted(all_sheets - referenced)
-    # Only refs that resolve to a real sheet count as coverage; a citation to a
-    # sheet that isn't in the set is a validation error, not represented content.
-    bogus = sorted(referenced - all_sheets)
-    referenced &= all_sheets
+    # A citation that resolves to no sheet is a validation error, not content.
+    bogus = sorted(unresolved_refs)
 
     print(f"elements: {len(elements)}")
     print(f"citation rate: {cited}/{len(elements)} elements have source_sheets")
@@ -225,7 +354,7 @@ def stats(index):
     print(f"\nsheets represented: {len(referenced)}/{len(all_sheets)}")
     if bogus:
         print(f"UNRESOLVED refs ({len(bogus)}): {', '.join(bogus)} "
-              f"-- cited but not in the set; run --validate")
+              f"-- named by an element but resolving to no one sheet; run --validate")
     if orphans:
         print(f"sheets NOT referenced by any element ({len(orphans)}): "
               f"{', '.join(orphans[:15])}{' ...' if len(orphans) > 15 else ''}")

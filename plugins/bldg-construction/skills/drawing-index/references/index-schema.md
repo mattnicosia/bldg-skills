@@ -42,7 +42,7 @@ unnamed sheets.
 
 | Field | Required | Notes |
 |---|---|---|
-`sheet_number` | yes | `A-101`, `M-601`. The citation key everything else resolves against. |
+`sheet_number` | yes | `A-101`, `M-601`. Exactly as the title block prints it, suffix and all (`S-100.00`). Citations resolve against it; write the number, do not normalise it. |
 `discipline` | yes | Architectural, Structural, Mechanical, ... |
 `text_layer` | yes | `vector` \| `sparse` \| `image_only` |
 `needs_vision` | yes | boolean |
@@ -61,7 +61,7 @@ writing one element per sheet, stop: you have rebuilt a sheet index and lost the
 `element` | string | The thing itself: `Slab On Grade`, `Perimeter Grade Beam`, `Rooftop Unit RTU-1`, `Toilet Exhaust Fan`. Title Case. |
 `trade` | string | `Concrete`, `HVAC`, `Electrical`, `Plumbing`, `Drywall & Carpentry` |
 `csi_subdivision` | string | 6-digit MasterFormat: `03 30 00`. Must match the code set `sow-generator` uses so scope lines route without translation. |
-`source_sheets` | string[] | Every sheet describing this element. `5/S-301` for a detail, `S-301` for a plan. Each must resolve to a real `sheets[].sheet_number` or validation fails. |
+`source_sheets` | string[] | Every sheet describing this element. `5/S-301` for a detail, `S-301` for a plan. **Write the citation the way the drawing prints it.** A sheet numbered `S-100.00` cited as `S-100` resolves, because the set ships one sheet under that base. A base the set ships several sheets under (`A-101.01`, `A-101.02`) names none of them and hard-fails. |
 
 ### Recommended
 
@@ -142,8 +142,8 @@ python scripts/build_index.py drawings/index.json --stats
 ```
 
 Hard errors: placeholder project name; no `elements[]`; missing required field;
-`source_sheets` ref that resolves to nothing; spec with no `source`; non-null quantity
-with no `basis`.
+`source_sheets` ref that resolves to no sheet, or to an ambiguous base; spec with no
+`source`; non-null quantity with no `basis`.
 
 Warnings: quantity with no `confidence`; element with no `location`; duplicate
 element+CSI pair; sheets still flagged `needs_vision`.
