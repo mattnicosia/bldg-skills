@@ -27,6 +27,7 @@ Montana Contracting / BLDG Estimating construction skills. Built 2026-07-29.
 [`sow-generator`](sow-generator/SKILL.md) | Scope of Work with four subcontractor bid-leveling columns, in Excel and PDF. `scope` mode carries zero quantities and zero pricing; `quantified` mode adds quantities, our rates and the close-out ladder. |
 `rom-budget-range` | Rough order-of-magnitude budget ranges. |
 `Proest-Export-*` | ProEst proposal and unit-cost exports. |
+[`generate-estimate-workbook`](generate-estimate-workbook/SKILL.md) | Internal estimate workbook from a priced estimate export + Cost Detail PDF: Estimate tab with alternates (each with Subtotal / GC / Fee / Insurance / Total), SOV with Final Price and alternates vs proposal, Notes, internal Estimate Review. |
 
 ## System of record for project files
 
