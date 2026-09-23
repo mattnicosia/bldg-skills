@@ -1,5 +1,5 @@
 ---
-name: forge-7-website-builder
+name: forge-7
 description: FORGE-7 website-building system. Nine levels from brief to adversarial review. The ladder that shipped TOTAL STATION on bldglabs.ai. Trigger on "forge", "forge-7", "level up this page", "redesign", "make this page beautiful", "new landing page".
 ---
 

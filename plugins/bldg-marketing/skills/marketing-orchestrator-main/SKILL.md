@@ -1,5 +1,5 @@
 ---
-name: marketing-orchestrator
+name: marketing-orchestrator-main
 description: >
   AI-powered marketing orchestrator that thinks, routes, self-corrects, and remembers. Use this
   skill for ANY marketing task: brand strategy, ICP development, ad copy, content creation, email
