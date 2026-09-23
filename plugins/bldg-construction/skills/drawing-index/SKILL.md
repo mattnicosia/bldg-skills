@@ -282,9 +282,20 @@ When the user says drawings were updated, do NOT re-run the whole pipeline.
 2. Diff `sheets.json` against the prior one: new sheets, removed sheets, changed page
    counts.
 3. For sheets present in both, compare revision number/date from the titleblock.
-4. Re-extract **only** changed and new sheets. Merge into the existing `index.json`.
-5. Log what changed in `index_revisions.md` — sheet, old rev, new rev, elements touched.
-6. Re-run `--validate` and `--stats` on the merged index.
+4. **For a sheet in the old set with no counterpart in the new, check whether it was
+   replaced under a different number** before treating it as untouched. Compare the
+   base: a new `S-001.01` against an old `S-001.00` is one sheet reissued, not a sheet
+   added beside a sheet left alone. Mark the old one `superseded_by` the new one. Step 3
+   cannot see this, because the old sheet looks present-only-in-old and the new one looks
+   new, which is how job 260120 ended up carrying a dead sheet that no citation could
+   distinguish from a live one.
+5. Re-extract **only** changed and new sheets. Merge into the existing `index.json`.
+6. Log what changed in `index_revisions.md`: sheet, old rev, new rev, elements touched.
+   A sheet replaced under a new number is logged as one row, not as a removal and an
+   addition.
+7. Re-run `--validate` and `--stats` on the merged index. `--validate` warns when several
+   live sheets share a base, which is the prompt to confirm a subdivided series rather
+   than a missed step 4.
 
 Archive the prior `index.json` as `index_rev[N].json` before merging. Never overwrite.
 

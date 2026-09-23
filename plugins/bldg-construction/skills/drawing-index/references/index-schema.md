@@ -48,6 +48,40 @@ unnamed sheets.
 `needs_vision` | yes | boolean |
 `title` | recommended | Sheet title from the titleblock |
 `summary` | recommended | One line: what is on this sheet |
+`source_issue` | on a merged set | Which issue this sheet came from, e.g. `Addendum No.1, 2026-09-17` or `Issued for Owner Review; not reissued`. |
+`reissued` | on a merged set | `true` when the latest issue reissued this sheet. |
+`superseded_by` | when dead | The sheet number that replaced this one. See below. |
+
+### A sheet that was replaced under a different number
+
+A merged set holds the sheets the latest issue reissued plus the earlier ones it left
+alone. That works while a reissue keeps its number, because the new sheet overwrites the
+old one by filename.
+
+It breaks when the architect changes the number. Addendum No.1 on job 260120 reissued the
+structural framing plan as `S-001.01` rather than `S-001.00`, so the merge kept both: one
+live sheet and one dead one. By count that is indistinguishable from a subdivided series
+like `A-101.01` / `A-101.02`, so a bare `S-001` named two sheets and resolved to neither.
+
+`reissued: false` cannot express this. It is literally true of `S-001.00`, because the
+addendum did not reissue that sheet, it replaced it. Mark the dead sheet instead:
+
+```json
+{ "sheet_number": "S-001.00", "reissued": false, "superseded_by": "S-001.01" }
+```
+
+Citations then resolve against the live sheets, so `S-001` names `S-001.01`. An explicit
+citation to `S-001.00` still resolves, because it names a sheet the set really holds, and
+validation warns rather than failing. `superseded_by` naming a sheet outside the set, or
+a sheet naming itself, is a hard error.
+
+**Do not delete the dead sheet instead.** It was issued, it is part of the record, and
+notes legitimately reason about it: 260120's index says "no construction joints are shown
+anywhere on `S-001.00`, `S-001.01` or `S-100.00`", which stops being checkable the moment
+the sheet leaves the set.
+
+Where several live sheets share a base and none is marked, validation warns. A subdivided
+series is fine and the warning is the prompt to confirm that is what it is.
 
 ## `elements[]` — the payload
 
