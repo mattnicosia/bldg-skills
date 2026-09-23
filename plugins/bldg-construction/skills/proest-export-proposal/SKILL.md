@@ -1,5 +1,5 @@
 ---
-name: proest-export-pdf-reports
+name: proest-export-proposal
 description: Export ProEst PDF reports from a logged-in ProEst browser session. Use when asked to download, print, save, generate, or verify ProEst proposal PDFs, Schedule of Values PDFs, Estimate Cost Totals PDFs, or a small PDF report package for a named estimate/project/revision.
 ---
 

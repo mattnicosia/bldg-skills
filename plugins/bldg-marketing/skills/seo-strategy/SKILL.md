@@ -1,26 +1,20 @@
 ---
 name: seo-strategy
 description: >
-  Unified SEO skill with two modes: Article/Page Optimization and Full Website Audit.
+  Unified SEO skill with two modes, article optimization and full website audit.
 
-  MODE 1 — ARTICLE/PAGE SEO OPTIMIZATION: Use this mode whenever the user shares an article,
-  blog post, draft, page content, or a URL to a single page and mentions SEO, search optimization,
-  ranking, or Google — or even when they just say "check this article", "optimize this", or
-  "improve this" without explicitly saying SEO. Also trigger when the user pastes or attaches
-  article text and asks you to review, improve, rewrite, or polish it for publishing. Trigger
-  phrases include: "optimize this article", "SEO optimize this", "improve this for SEO",
-  "optimize this page", "rewrite for SEO", "check this article", "improve this content",
-  "make this rank", "SEO this". When in doubt, lean toward activating this mode — it's better
-  to offer SEO optimization than to miss the opportunity.
+  MODE 1, ARTICLE OR PAGE SEO. Use whenever the user shares an article, blog post, draft,
+  page content, or a single-page URL and mentions SEO, search optimization, ranking or
+  Google. Use it too when they only say "check this article", "optimize this", "improve
+  this", "rewrite for SEO" or "make this rank", or paste article text to review or polish
+  before publishing. When in doubt, lean toward activating this mode.
 
-  MODE 2 — FULL WEBSITE AUDIT: Use this mode whenever the user asks for a full website SEO audit,
-  site-wide SEO strategy, multi-page SEO analysis, SEO health check, website audit, site audit,
-  domain SEO review, or wants to understand their overall website SEO performance. Trigger phrases
-  include: "audit my site", "SEO strategy for my website", "check my website SEO", "full SEO audit",
-  "multi-page SEO", "site SEO", "website SEO review", "SEO health check", "site audit",
-  "domain audit", or when the user provides a root URL and asks for SEO help. This mode crawls
-  multiple pages across a website and produces a comprehensive HTML report with site-wide analysis,
-  cross-page patterns, architecture review, and prioritized strategy.
+  MODE 2, FULL WEBSITE AUDIT. Use whenever the user asks for a site-wide audit, SEO
+  strategy, multi-page analysis, SEO health check or domain review, or gives a root URL
+  and asks for SEO help. Trigger phrases include "audit my site", "SEO strategy for my
+  website", "check my website SEO", "full SEO audit" and "site audit". This mode crawls
+  several pages and produces an HTML report covering cross-page patterns, architecture
+  and prioritized strategy.
 ---
 
 # Unified SEO Skill

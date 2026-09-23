@@ -1,5 +1,5 @@
 ---
-name: generate-proposal-od-builders
+name: generate-proposal-ond
 description: "Generate or revise an O+D Builders construction proposal PDF with the firm's branded letterhead, measured pagination, clear price hierarchy, and fixed print design system. Use for O+D proposal letters, Schedules of Values, alternates, qualifications, clarifications, exclusions, and CSI-style scopes of work."
 ---
 

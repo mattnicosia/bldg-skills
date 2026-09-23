@@ -3,13 +3,15 @@ name: Validate skills
 on:
   push:
     paths:
-      - "skills/**"
+      - "plugins/*/skills/**"
       - "scripts/validate-skill.sh"
       - ".github/workflows/validate-skills.yml"
   pull_request:
     paths:
-      - "skills/**"
+      - "plugins/*/skills/**"
       - "scripts/validate-skill.sh"
+      - ".github/workflows/validate-skills.yml"
+  workflow_dispatch:
 
 jobs:
   validate:
@@ -19,10 +21,25 @@ jobs:
       - name: Validate every skill
         run: |
           set -euo pipefail
-          fail=0
-          for dir in skills/*; do
-            [ -d "$dir" ] || continue
-            echo "==> $dir"
-            bash scripts/validate-skill.sh "$dir" || fail=1
+          checked=0
+          failed=0
+          for dir in plugins/*/skills/*/; do
+            skill="${dir%/}"
+            [ -f "$skill/SKILL.md" ] || continue
+            checked=$((checked + 1))
+            if ! bash scripts/validate-skill.sh "$skill"; then
+              failed=$((failed + 1))
+            fi
           done
-          exit $fail
+
+          # A run that checks nothing must be red. The previous version of this
+          # workflow iterated `skills/*`, a directory the plugins migration
+          # removed, so it would have reported success having validated zero
+          # skills. That is worse than not running at all.
+          if [ "$checked" -eq 0 ]; then
+            echo "::error::Validated 0 skills. The layout moved and this workflow did not follow it."
+            exit 1
+          fi
+
+          echo "Checked $checked skills, $failed failed."
+          [ "$failed" -eq 0 ]

@@ -1,11 +1,11 @@
 ---
 name: agent-session-worksheet
 description: "Use when starting, continuing, or handing off agentic coding work. Session worksheet traces: init, update, handoff, git tag optional. Another agent must be able to finish from the sheet alone."
-version: 1.0.0
-author: Kron / BLDG Labs
 license: MIT
-platforms: [linux, macos]
 metadata:
+  version: 1.0.0
+  author: Kron / BLDG Labs
+  platforms: [linux, macos]
   hermes:
     tags: [worksheet, handoff, session, recoverable, jamon]
     related_skills: [agent-workflow, plan, requesting-code-review]

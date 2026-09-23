@@ -1,5 +1,5 @@
 ---
-name: seo-aeo-optimization
+name: seo-aeo-optimization-claude-code
 description: >
   Expert SEO and AI Search Optimization (AEO) skill for Claude Code. Triggers on any request
   involving: SEO audits, keyword research, on-page optimization, technical SEO, content strategy,

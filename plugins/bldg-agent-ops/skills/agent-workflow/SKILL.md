@@ -1,11 +1,11 @@
 ---
 name: agent-workflow
 description: "Use when starting or running a product coding session in a BLDG repo. Standard session workflow: bootstrap AGENTS.md router, worksheet, plan/build/review loop, keep docs greppable, finish with run-app + feedback."
-version: 1.0.0
-author: Kron / BLDG Labs
 license: MIT
-platforms: [linux, macos]
 metadata:
+  version: 1.0.0
+  author: Kron / BLDG Labs
+  platforms: [linux, macos]
   hermes:
     tags: [workflow, agents-md, coding, session, jamon]
     related_skills: [agent-session-worksheet, plan, test-driven-development, requesting-code-review, systematic-debugging, simplify-code]

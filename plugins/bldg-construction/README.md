@@ -25,7 +25,7 @@ Montana Contracting / BLDG Estimating construction skills. Built 2026-07-29.
 |---|---|
 [`drawing-index`](drawing-index/SKILL.md) | Any task that reads drawings. Makes a set AI-readable once; everything else reads the index instead of the PDFs. |
 [`sow-generator`](sow-generator/SKILL.md) | Scope of Work with four subcontractor bid-leveling columns, in Excel and PDF. `scope` mode carries zero quantities and zero pricing; `quantified` mode adds quantities, our rates and the close-out ladder. |
-`ROM_Budget_Range` | Rough order-of-magnitude budget ranges. |
+`rom-budget-range` | Rough order-of-magnitude budget ranges. |
 `Proest-Export-*` | ProEst proposal and unit-cost exports. |
 
 ## System of record for project files

@@ -1,5 +1,5 @@
 ---
-name: Add-to-estimating-BLDG
+name: add-to-estimating-bldg
 description: Creates a new project folder in the BLDG Estimating Dropbox directory by duplicating the master template folder and naming it with the next sequential job number, following Matt's "NNNNNN - Property/Client [Tag]" convention. Use whenever Matt asks to set up, create, or start a new estimate/job/project folder for BLDG Estimating — phrases like "set up a new estimate folder", "create a job folder for [property]", "start a new BLDG project for [client]", "make a new estimating folder", "what's the next job number", or when he just gives a property address or client name plus a tag (e.g. "[Violante]", "[O+D]") and wants a folder for it.
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: video-to-website
+name: video-to-website-nate
 description: Turn a video into a premium scroll-driven animated website with GSAP, canvas frame rendering, and layered animation choreography.
 ---
 

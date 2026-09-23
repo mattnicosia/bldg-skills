@@ -4,6 +4,7 @@ description: Distill websites into a compounding web design tactics bank (requir
   physics. Use on a URL (study), client brief (design), Arrival demos, or full implement.
   Entry skill for Matt's web design mastery.
 metadata:
+  version: 1.1.0
   hermes:
     related_skills:
     - bldg-web-design-tactics
@@ -21,8 +22,6 @@ metadata:
     - clients
     - arrival
 name: distill-web-design
-tags: []
-version: 1.1.0
 ---
 
 # Distill Web Design
