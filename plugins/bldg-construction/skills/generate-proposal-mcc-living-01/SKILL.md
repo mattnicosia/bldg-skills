@@ -1,6 +1,6 @@
 ---
 name: generate-proposal-mcc-living-01
-description: Build a Montana Contracting living proposal: a scroll presentation where the model builds as you scroll, plus the budget, alternates, schedule, pre-construction, principals and a Detailed Budget, from the estimate workbook and drawings or a 3D model.
+description: Build a Montana Contracting living proposal, a scroll presentation where the model builds as you scroll, plus the budget, alternates, schedule, pre-construction, principals and a Detailed Budget, from the estimate workbook and drawings or a 3D model.
 ---
 
 # Generate Proposal MCC Living 01
