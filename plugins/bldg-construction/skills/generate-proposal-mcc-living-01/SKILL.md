@@ -1,6 +1,6 @@
 ---
 name: generate-proposal-mcc-living-01
-description: Build a Montana Contracting living proposal, a scroll presentation where the model builds as you scroll, plus the budget, alternates, schedule, pre-construction, principals and a Detailed Budget, from the estimate workbook and drawings or a 3D model.
+description: Build a Montana Contracting living proposal: a scroll presentation where the model builds as you scroll, plus the budget, alternates, schedule, pre-construction, principals and a Detailed Budget, from the estimate workbook and drawings or a 3D model.
 ---
 
 # Generate Proposal MCC Living 01
@@ -14,7 +14,7 @@ Call it a "presentation". The budget view is the "Detailed Budget". Options are 
 All code lives in the Bid Presentation Kit. Do not rebuild it from scratch.
 
 - Master copy: `MCC\Estimating\Misc. Templates\Bid Presentation Kit\` on the Montana shared drive.
-- If that folder is not there yet, the v1 zip is in the E26040 job folder under `05 Claude Cowork\Montana_Bid_Presentation_Kit_v1.zip`. Ask Matt to move it to Misc. Templates once.
+- If that folder is not there yet, the latest zip is in the E26040 job folder under `05 Claude Cowork\` (v1.1 adds the Decision List). Ask Matt to move it to Misc. Templates once.
 - To get it into the session:
   1. Stage the zip from the linked computer, or ask Matt to attach it.
   2. Unzip it into the working directory.
@@ -54,9 +54,19 @@ If you improve the kit during a job (a fix, a new stop type), bump the version, 
    - The numbers match the workbook.
    - Fix the camera with `view` presets or exact poses.
 7. **Publish:**
-   - Publish `out/presentation.html` with the Artifact tool. The same file path keeps the URL.
+   - Publish `out/presentation.html` with the Artifact tool, with `capabilities: {"db": {}, "user": {"scopes": ["profile"]}}` so the Decision List saves for everyone on the link. The same file path keeps the URL. After the first publish, list the `decisions` and `log` collections with ArtifactData once to confirm the store answers.
    - Save `out/<JOB>_Presentation_Netlify.zip` to the job's `04 Deliverables` as `<JOB>_Presentation_Netlify_v#.zip`, using the next version number. Matt drags it onto Netlify. It carries noindex.
    - Record the artifact URL, the final numbers and the open questions in the Claude project doc for the job.
+
+## Decision List
+
+On by default (kit v1.1). A header button opens every alternate (Include, Not Now, Discuss) and every `decision` milestone in schedule.json (Confirmed, Open), each with a note, who answered and when, a working total, and an activity log. It turns the presentation into the start of pre-construction.
+
+- **Where it saves:** shared saving works only in the claude.ai artifact. On Netlify or in a saved copy, answers last for the visit, and the email button sends the list to Montana.
+- **Sharing:** tell Matt how to share it. People outside Montana can save answers only if he invites them by email as Editor, and only while the artifact is not also shared by public link. Editors can also republish the page, so he should invite only the people who should answer.
+- **Selections:** put the selection deadlines in schedule.json as a `decision` row with dated milestones, so they appear as Selections.
+- **Before the working session:** read the answers back with ArtifactData (`decisions`, `log`) and summarize them for Matt: what was included, what is under discussion, and the notes.
+- **Schedule impact:** do not add a schedule impact to an alternate unless Matt gives its duration.
 
 ## Copy rules from Matt
 
@@ -90,7 +100,7 @@ The kit already handles phones: it stops redrawing at rest, ignores address-bar 
 
 ## Done means
 
-- The artifact is published and Matt has a card for it.
+- The artifact is published with the db and user capabilities, and Matt has a card for it.
 - The Netlify zip is saved in 04 Deliverables.
 - The budget ties to the workbook to the dollar, and the reply says so.
 - Both contact sheets were looked at.
