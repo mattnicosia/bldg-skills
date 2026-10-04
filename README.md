@@ -33,7 +33,7 @@ Nothing is copied into a second location, so nothing drifts.
 | [`bldg-strategy`](plugins/bldg-strategy) | 6 |  | Strategy: idea scoring, prediction, competitive work and planning. |
 | [`bldg-website-design`](plugins/bldg-website-design) | 8 |  | Website design and build: frontend design, motion, cloning and upgrades. |
 | [`corey-ganim`](plugins/corey-ganim) | 3 | Corey Ganim | Corey Ganim's Build With AI set, v3.1.1, from Return My Time. Claude Cowork workspace onboarding, an AI readiness self-assessment on the Audit-Optimize-Automate framework, and a session context loader. The self-assessment is the paid, community-only version. |
-| [`matt-pocock`](plugins/matt-pocock) | 37 | Matt Pocock | Matt Pocock's skill collection, mirrored at 1.2.3. TypeScript, testing, code review and the productivity set. Mirror maintained by Matt Nicosia; upstream docs in upstream/. |
+| [`matt-pocock`](plugins/matt-pocock) | 37 | Matt Pocock | Matt Pocock's skill collection, mirrored at 1.3.1. TypeScript, testing, code review and the productivity set. Mirror maintained by Matt Nicosia; upstream docs in upstream/. |
 
 The plugins with a name in the **Whose** column are other people's work, mirrored here
 and named after their author so it is obvious at a glance whose thinking you are running.
