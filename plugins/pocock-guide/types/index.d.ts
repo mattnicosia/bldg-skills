@@ -14,7 +14,8 @@ export type Flow = {
 
 export type Nudge = { text: string; kind: 'grill' | 'bug' } | null
 
-export type Env = { isRead: boolean; hasSkills: boolean; hasPstackGuide: boolean }
+// isOutdated: the only copy is the official marketplace's, which predates v1.3.1 and lacks /implement-spec, /pr and /retro.
+export type Env = { isRead: boolean; hasSkills: boolean; isOutdated: boolean; hasPstackGuide: boolean }
 
 export type PullRequest = { number: number; title: string; ci: 'fail' | 'pending' | 'pass' | 'none'; isDraft: boolean }
 

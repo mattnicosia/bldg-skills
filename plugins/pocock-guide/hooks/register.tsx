@@ -10,7 +10,7 @@ const tab = atom({ plugin: 'pocock-guide', key: 'tab' } as const, 'start' as Tab
 const EMPTY_FLOW: Flow = { root: '', done: [], current: null, last: '', isBugFix: false }
 const flow = atom({ plugin: 'pocock-guide', key: 'flow' } as const, EMPTY_FLOW)
 const nudge = atom({ plugin: 'pocock-guide', key: 'nudge' } as const, null as Nudge)
-const env = atom({ plugin: 'pocock-guide', key: 'env' } as const, { isRead: false, hasSkills: true, hasPstackGuide: false } as Env)
+const env = atom({ plugin: 'pocock-guide', key: 'env' } as const, { isRead: false, hasSkills: true, isOutdated: false, hasPstackGuide: false } as Env)
 const summary = atom({ plugin: 'pocock-guide', key: 'summary' } as const, null as Summary)
 const decision = atom({ plugin: 'pocock-guide', key: 'decision' } as const, null as Decision)
 
@@ -655,6 +655,9 @@ const fit = (source: string, columns: number) => {
 // ---------- Is the setup there? ----------
 
 const SKILL_PLUGINS = ['mattpocock-skills@', 'matt-pocock@']
+// The official marketplace pins a commit from before v1.3.1, so the mirror is the one to install.
+const OUTDATED = 'mattpocock-skills@claude-plugins-official'
+const INSTALL = 'claude plugin marketplace add mattnicosia/bldg-skills && claude plugin install matt-pocock@bldg-skills'
 
 async function readEnv($: EngineInterface) {
   const home = (await $.env.get('HOME')) ?? ''
@@ -669,9 +672,11 @@ async function readEnv($: EngineInterface) {
   const isCopied =
     (await $.fs.exists(`${home}/.claude/skills/grill-with-docs/SKILL.md`).catch(() => false)) ||
     (await $.fs.exists('.claude/skills/grill-with-docs/SKILL.md').catch(() => false))
+  const found = keys.filter(k => SKILL_PLUGINS.some(p => k.startsWith(p)))
   const value: Env = {
     isRead: true,
-    hasSkills: isCopied || keys.some(k => SKILL_PLUGINS.some(p => k.startsWith(p))),
+    hasSkills: isCopied || found.length > 0,
+    isOutdated: !isCopied && found.length > 0 && found.every(k => k === OUTDATED),
     hasPstackGuide: keys.some(k => k.startsWith('pstack-guide@')),
   }
   await update($, env, () => value)
@@ -1173,14 +1178,18 @@ export const register: Register = on => {
         </Box>
       )
 
-    const installCard = setup.hasSkills ? null : (
+    const installCard = setup.hasSkills && !setup.isOutdated ? null : (
       <Box key="install" flexDirection="column" gap={1} borderStyle="round" borderColor="#E5342C" paddingX={1}>
         <Text bold color="#E5342C">
-          Matt Pocock's skills are not installed
+          {setup.hasSkills ? "Your copy of Matt Pocock's skills is out of date" : "Matt Pocock's skills are not installed"}
         </Text>
-        <Text>The buttons here run his skills, so install them first. Run this in a terminal, then start a new session:</Text>
-        <Code source="claude plugins install mattpocock-skills" />
-        <Text dimColor>Or type /plugin install mattpocock-skills inside a session.</Text>
+        <Text>
+          {setup.hasSkills
+            ? 'The copy from the official marketplace is older than v1.3.1 and has no /implement-spec, /pr or /retro, which later steps need. Run this in a terminal, then start a new session:'
+            : 'The buttons here run his skills, so install them first. Run this in a terminal, then start a new session:'}
+        </Text>
+        <Code source={INSTALL} />
+        {setup.hasSkills ? <Text dimColor>Then remove the old copy with: claude plugin uninstall mattpocock-skills</Text> : null}
         <Box flexDirection="row" gap={1}>
           <Button key="check-again" label="Check again" onPress={() => readEnv($)} />
         </Box>

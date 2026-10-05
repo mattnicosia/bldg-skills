@@ -19,7 +19,7 @@ type Setup = { plugins?: string[]; isSetUp?: boolean; saved?: Record<string, unk
 const engine = (on: On, setup: Setup = {}) => {
   const store: Record<string, unknown> = { ...setup.saved }
   const seen = { opened: 0, filled: [] as string[], sent: [] as string[], ran: [] as string[], context: [] as string[] }
-  const plugins = setup.plugins ?? ['mattpocock-skills@claude-plugins-official']
+  const plugins = setup.plugins ?? ['matt-pocock@bldg-skills']
   on('session.start', async (_$, e) => ({ cwd: e.cwd }))
   on('session.cwd', async () => ({ value: '/Users/me/dev/app' }))
   on('env.get', async () => ({ value: '/Users/me' }))
@@ -136,9 +136,26 @@ test('without the skills installed, the Start tab shows how to install them and 
   const pane = await $.ui.mount(PANE)
   const text = JSON.stringify(await pane.find({ type: 'Box' }))
   expect(text).toContain("Matt Pocock's skills are not installed")
-  expect(text).toContain('claude plugins install mattpocock-skills')
+  expect(text).toContain('claude plugin install matt-pocock@bldg-skills')
   expect(text).toContain('Catch me up')
   expect(text).not.toContain('I have an idea')
+})
+
+test('the official marketplace copy counts as installed but out of date, so the card points at the mirror', async ($, on) => {
+  engine(on, { plugins: ['mattpocock-skills@claude-plugins-official'] })
+  await $.session.start(START)
+  const pane = await $.ui.mount(PANE)
+  const text = JSON.stringify(await pane.find({ type: 'Box' }))
+  expect(text).toContain('is out of date')
+  expect(text).toContain('claude plugin install matt-pocock@bldg-skills')
+  expect(text).toContain('I have an idea')
+})
+
+test('the mirror next to the official copy is not out of date', async ($, on) => {
+  engine(on, { plugins: ['mattpocock-skills@claude-plugins-official', 'matt-pocock@bldg-skills'] })
+  await $.session.start(START)
+  const pane = await $.ui.mount(PANE)
+  expect(JSON.stringify(await pane.find({ type: 'Box' }))).not.toContain('out of date')
 })
 
 test('a repo that is not set up offers Set up this repo first', async ($, on) => {
