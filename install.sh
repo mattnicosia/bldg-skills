@@ -22,26 +22,29 @@ Usage: ./install.sh [options]
 
   --link              Symlink instead of copy (git repo stays source of truth)
   --copy              Copy (default)
-  --only NAME         Install one curated skill from skills/
-  --list              Print curated skills in skills/
-  --list-library      Print every library/ leaf skill path (dirs with SKILL.md)
-  --from PATH         Install one skill by path (e.g. library/CONSTRUCTION/ROM_Budget_Range)
-  --library           Install all library/ leaf skills except library/_ARCHIVE/
+  --list              Print every plugin skill as <plugin>/<skill>
+  --list-library      Print those skills as repo-relative paths (plugins/<plugin>/skills/...)
+  --from PATH         Install one skill by repo-relative path (directory must contain SKILL.md)
+  --library           Install every plugin skill (skips paths under archive/)
+  --only NAME         Does not work. There is no top-level skills/ directory, so this exits.
+                      Install one skill with --from plugins/<plugin>/skills/<name>.
   --claude            Also install into ~/.claude/skills even if the dir is missing
   --cursor            Also install into ~/.cursor/skills (and ~/.agents/skills)
   (Codex: auto if ~/.codex/skills exists)
   --dest PATH         Extra destination
   -h, --help          Show this help
 
+Running with no mode (--link or --copy alone) takes the same missing skills/ path
+as --only and exits. To install everything, use --library.
+
 Examples:
-  ./install.sh --link
   ./install.sh --list
-  ./install.sh --only project-level-up --link
   ./install.sh --list-library
-  ./install.sh --from library/CONSTRUCTION/ROM_Budget_Range --dest /tmp/skills --link
-  ./install.sh --from "library/CODING/MATT_POCOCK_1.2.3/skills/engineering/to-spec" --link
   ./install.sh --library --link
-  ./install.sh --from library/_ARCHIVE/some-old-skill --link
+  ./install.sh --from plugins/bldg-house/skills/project-level-up --link
+  ./install.sh --from plugins/bldg-construction/skills/rom-budget-range --dest /tmp/skills --link
+  ./install.sh --from plugins/matt-pocock/skills/to-spec --link
+  ./install.sh --from library/_ARCHIVE/CODING/MATT_POCOCK_1.2.2/skills/engineering/to-spec --link
 EOF
 }
 
