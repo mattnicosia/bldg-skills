@@ -177,7 +177,7 @@
     {
       "name": "pocock-guide",
       "description": "A Claude Code mod: a side pane that keeps a beginner on Matt Pocock's flow (grill, spec, tickets, build, review, PR, retro), with pictures, a Next step button and a nudge to grill before coding. Needs the matt-pocock mirror from this marketplace.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "author": {
         "name": "Matt Nicosia"
       },
