@@ -1,0 +1,17 @@
+{
+  "name": "pocock-guide",
+  "version": "0.1.0",
+  "description": "A side pane that keeps a beginner on Matt Pocock's flow, from grilling to retro: /mod-pocock",
+  "author": {
+    "name": "Matt Nicosia"
+  },
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "gitGuard": {
+      "type": "boolean",
+      "title": "Block destructive git",
+      "description": "Stops Claude from pushing to main, force pushing, reset --hard, clean -f, branch -D, checkout . or restore ., and gh pr merge. Turn it off on a reviewer's own machine.",
+      "default": true
+    }
+  }
+}
