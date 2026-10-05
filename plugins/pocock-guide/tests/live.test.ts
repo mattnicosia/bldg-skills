@@ -210,3 +210,55 @@ test('a turn that ends with a choice draws the decision card with a button per o
   await (pane as any).press({ key: 'choose-A' })
   expect(seen.sent.at(-1)).toBe('A')
 })
+
+const BLOCKED = [
+  ['git push --force origin feature/login', 'git push --force'],
+  ['git -C /Users/me/dev/app push -f', 'git push --force'],
+  ['git push origin +feature/login', 'git push --force'],
+  ['git push origin main', 'git push to main'],
+  ['git push origin HEAD:main', 'git push to main'],
+  ['git push', 'git push to main'],
+  ['cd /Users/me/dev/app && git reset --hard HEAD~1', 'git reset --hard'],
+  ['git clean -fd', 'git clean -f'],
+  ['git branch -D old-idea', 'git branch -D'],
+  ['git checkout -- .', 'git checkout .'],
+  ['git restore .', 'git restore .'],
+  ['gh pr merge 5 --squash', 'gh pr merge'],
+] as const
+
+const ALLOWED = [
+  'git push -u origin feature/login',
+  'git push origin feature/login:feature/login',
+  'git restore --staged .',
+  'git branch -d merged-idea',
+  'git checkout -b feature/signup',
+  'git status && git log --oneline -5',
+  'echo "never run git push origin main"',
+  'gh pr create --fill',
+]
+
+test('the git guard blocks destructive commands and says why', async ($, on) => {
+  engine(on)
+  await $.session.start(START)
+  for (const [command, what] of BLOCKED) {
+    const ran = JSON.stringify(await $.tool.call({ tool: 'Bash', command }))
+    expect(ran).toContain(`pocock-guide blocked ${what}`)
+  }
+})
+
+test('the git guard lets a beginner push a feature branch and open a PR', async ($, on) => {
+  engine(on)
+  await $.session.start(START)
+  for (const command of ALLOWED) {
+    const ran = JSON.stringify(await $.tool.call({ tool: 'Bash', command }))
+    expect(ran).not.toContain('pocock-guide blocked')
+  }
+})
+
+test('the git guard is off when gitGuard is false', { options: { gitGuard: false } }, async ($, on) => {
+  engine(on)
+  await $.session.start(START)
+  const ran = JSON.stringify(await $.tool.call({ tool: 'Bash', command: 'gh pr merge 5 --squash' }))
+  expect(ran).not.toContain('pocock-guide blocked')  // Lets the repo read that session.start began finish before the test ends.
+  await (await $.ui.mount(PANE)).press({ key: 'refresh' })
+})

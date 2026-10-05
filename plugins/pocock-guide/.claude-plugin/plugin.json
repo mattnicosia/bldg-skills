@@ -5,5 +5,13 @@
   "author": {
     "name": "Matt Nicosia"
   },
-  "types": "./types/index.d.ts"
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "gitGuard": {
+      "type": "boolean",
+      "title": "Block destructive git",
+      "description": "Stops Claude from pushing to main, force pushing, reset --hard, clean -f, branch -D, checkout . or restore ., and gh pr merge. Turn it off on a reviewer's own machine.",
+      "default": true
+    }
+  }
 }
