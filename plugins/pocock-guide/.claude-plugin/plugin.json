@@ -1,0 +1,9 @@
+{
+  "name": "pocock-guide",
+  "version": "0.1.0",
+  "description": "A side pane that keeps a beginner on Matt Pocock's flow, from grilling to retro: /mod-pocock",
+  "author": {
+    "name": "Matt Nicosia"
+  },
+  "types": "./types/index.d.ts"
+}
