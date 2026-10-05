@@ -130,6 +130,26 @@ test('a build request before any grilling gets a nudge card and a note for the m
   expect(seen.context.length).toBe(before)
 })
 
+test('the nudge stays quiet where pstack-guide is installed until /mod-pocock opens the pane', async ($, on) => {
+  const { seen } = engine(on, { plugins: ['matt-pocock@bldg-skills', 'pstack-guide@matt-mods'] })
+  await $.session.start(START)
+  await $.prompt.submit({ text: 'add a dark mode toggle to settings', wait: false, origin: { kind: 'composer' } })
+  expect(seen.context).toEqual([])
+  await $.command.run({ command: 'mod-pocock', args: '', origin: { kind: 'composer' }, presentation: { isFullscreen: true, columns: 120 } })
+  await $.prompt.submit({ text: 'add a dark mode toggle to settings', wait: false, origin: { kind: 'composer' } })
+  expect(seen.context.join(' ')).toContain('/grill-with-docs')
+  await (await $.ui.mount(PANE)).press({ key: 'refresh' })
+})
+
+test('the word exception alone is not a bug report', async ($, on) => {
+  const { seen } = engine(on)
+  await $.session.start(START)
+  await $.prompt.submit({ text: 'yes add the exception line', wait: false, origin: { kind: 'composer' } })
+  expect(seen.context.join(' ')).not.toContain('/diagnosing-bugs')
+  await $.prompt.submit({ text: 'saving the form throws an exception', wait: false, origin: { kind: 'composer' } })
+  expect(seen.context.join(' ')).toContain('/diagnosing-bugs')
+})
+
 test('without the skills installed, the Start tab shows how to install them and hides the skill buttons', async ($, on) => {
   engine(on, { plugins: [] })
   await $.session.start(START)

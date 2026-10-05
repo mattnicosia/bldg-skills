@@ -825,7 +825,7 @@ const STARTS: Act[] = [
 // ---------- Guard rail: grill before building ----------
 
 const BUILD_ASK = /\b(build|add|implement|make|create|change|refactor|rewrite|update|wire up|hook up|code|feature|new (page|screen|button|endpoint|component))\b/i
-const BUG_ASK = /\b(bug|broken|error|crash(es|ed|ing)?|fails?|failing|doesn'?t work|not working|exception|stack trace)\b/i
+const BUG_ASK = /\b(bug|broken|error|crash(es|ed|ing)?|fails?|failing|doesn'?t work|not working|uncaught exception|(throws?|threw|raises?|raised) (an? )?exception|exception (is |was )?(thrown|raised)|stack trace)\b/i
 const QUESTION = /^(how|what|why|where|when|who|which|is|are|does|can you explain|explain|tell me)\b/i
 
 const nudgeFor = (prompt: string, f: Flow): Nudge => {
@@ -1079,7 +1079,8 @@ export const register: Register = (on, options) => {
     await update($, decision, () => null)
     await update($, summary, s => (s ? { ...s, isWaiting: false } : s))
     const isPerson = e.origin.kind === 'composer' || e.origin.kind === 'bridge'
-    const found = isPerson && !isNudgeOff && (await read($, env)).hasSkills ? nudgeFor(e.text, await read($, flow)) : null
+    // Only where the pane is active, so a reviewer's own sessions get no beginner nudges.
+    const found = isActive && isPerson && !isNudgeOff && (await read($, env)).hasSkills ? nudgeFor(e.text, await read($, flow)) : null
     await update($, nudge, () => found)
     if (!found) return next(e)
     $.ui.toast(found.kind === 'bug' ? 'Pocock flow: try /diagnosing-bugs. The pane has a button.' : 'Pocock flow: grill it first? The pane has a button.')
