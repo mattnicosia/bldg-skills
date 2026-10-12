@@ -2,17 +2,47 @@ import { expect, test } from 'claude-code/testing'
 
 import { all, COMPOSER, engine, PANE, POCOCK, PSTACK, settle, START } from './engine'
 
-test('the Guide tab picks the method it shows, the Start tab follows the pick, and the pick is remembered', async ($, on) => {
-  const { store, seen } = engine(on, { plugins: [...PSTACK, ...POCOCK] })
+test('the Start tab shows a labelled row of starts from each method, and a press sends that method\'s start', async ($, on) => {
+  const { seen } = engine(on, { plugins: [...PSTACK, ...POCOCK] })
   await $.session.start(START)
   expect(seen.opened).toBe(1)
   expect(seen.tools).toEqual(['task_create', 'task_update'])
   const pane = await $.ui.mount(PANE())
   const start = await all(pane)
-  expect(start).toContain('Assess the project')
-  // No method switch above the tabs any more.
+  expect(start).toContain('"key":"starts-pstack"')
+  expect(start).toContain('"key":"starts-pocock"')
+  expect(start).toContain('"key":"pstack:start-assess"')
+  expect(start).toContain('"key":"pocock:start-idea"')
+  // No method switch, and no line saying the tab follows one method.
   expect(start).not.toContain('"key":"pick-pocock"')
+  expect(start).not.toContain('the Guide tab picks the method')
 
+  await pane.press({ key: 'pstack:start-ticket' })
+  await pane.press({ key: 'pocock:start-ticket' })
+  expect(seen.sent[0]).toContain('start /poteto-mode implement')
+  expect(seen.sent[1]).toContain('docs/agents/issue-tracker.md')
+  await pane.press({ key: 'pocock:start-idea' })
+  expect(seen.filled.at(-1)).toBe('/grill-with-docs ')
+  await settle()
+})
+
+test('a PR whose buttons differ per method shows the pstack set first and the pocock set after, each labelled', async ($, on) => {
+  const { seen } = engine(on, { plugins: [...PSTACK, ...POCOCK], prs: [{ number: 7, title: 'Login form', isDraft: false, statusCheckRollup: [{ status: 'COMPLETED', conclusion: 'FAILURE' }], mergeable: 'MERGEABLE' }] })
+  await $.session.start(START)
+  const pane = await $.ui.mount(PANE())
+  await pane.press({ key: 'refresh' })
+  const text = await all(pane)
+  expect(text).toContain('PR #7 · checks failing')
+  expect(text.indexOf('"key":"pstack:green-7"')).toBeLessThan(text.indexOf('"key":"pocock:fix-7"'))
+  await pane.press({ key: 'pocock:fix-7' })
+  expect(seen.filled.at(-1)).toContain('pull request #7 has failing checks')
+  await settle()
+})
+
+test('the Guide tab picks the method it shows, and the pick is remembered', async ($, on) => {
+  const { store } = engine(on, { plugins: [...PSTACK, ...POCOCK] })
+  await $.session.start(START)
+  const pane = await $.ui.mount(PANE())
   await pane.press({ key: 'tab-guide' })
   const guide = await all(pane)
   expect(guide).toContain('Router')
@@ -23,20 +53,15 @@ test('the Guide tab picks the method it shows, the Start tab follows the pick, a
   const text = await all(pane)
   expect(text).toContain('Main path')
   expect(text).not.toContain('Router')
-  await pane.press({ key: 'tab-start' })
-  const after = await all(pane)
-  expect(after).toContain('I have an idea')
-  expect(after).toContain("These are pocock's starts")
   await settle()
 })
 
-test('a session starts on pocock where pstack is not installed', async ($, on) => {
+test('the Guide tab starts on pocock where pstack is not installed', async ($, on) => {
   engine(on, { plugins: POCOCK })
   await $.session.start(START)
   const pane = await $.ui.mount(PANE())
-  const text = await all(pane)
-  expect(text).toContain('I have an idea')
-  expect(text).not.toContain('Assess the project')
+  await pane.press({ key: 'tab-guide' })
+  expect(await all(pane)).toContain('Main path')
   await settle()
 })
 
@@ -44,7 +69,8 @@ test('a method picked in an earlier session wins over the one detected', async (
   engine(on, { plugins: [...PSTACK, ...POCOCK], store: { method: 'pocock' } })
   await $.session.start(START)
   const pane = await $.ui.mount(PANE())
-  expect(await all(pane)).toContain('I have an idea')
+  await pane.press({ key: 'tab-guide' })
+  expect(await all(pane)).toContain('Main path')
   await settle()
 })
 

@@ -3,8 +3,8 @@ import type { AnyMethod } from '../method'
 import { pocock } from './pocock'
 import { pstack } from './pstack'
 
-// The Now tab draws these side by side, in order. The Guide and Start tabs show
-// the one picked, which starts as the first whose skills are installed, or FALLBACK.
+// The Start and Now tabs show these in order. The Guide tab shows the one
+// picked, which starts as the first whose skills are installed, or FALLBACK.
 export const METHODS: AnyMethod[] = [pstack, pocock]
 
 // The beginner's flow: the safer start for someone with nothing installed.

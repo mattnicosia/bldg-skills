@@ -123,7 +123,7 @@ test('the Start tab lists open work from git and gh, and a start button sends at
   expect(text).not.toContain('2 stale')
   expect(text).toContain('Get it green')
 
-  await pane.press({ key: 'start-ticket' })
+  await pane.press({ key: 'pstack:start-ticket' })
   expect(seen.sent[0]).toContain('ready-for-agent')
   await pane.press({ key: 'clean-up' })
   expect(seen.filled.at(-1)).toMatch(/^\/poteto-mode list the stale branches/)
@@ -151,7 +151,7 @@ test('buttons whose text starts with a slash run the command instead of submitti
   const { seen } = engine(on, { plugins: PSTACK })
   await $.session.start(START)
   const pane = await $.ui.mount(PANE())
-  await pane.press({ key: 'start-recall' })
+  await pane.press({ key: 'pstack:start-recall' })
   await $.tool.call({ tool: 'mcp__build-guide__task_create', subject: 'Write the failing test' })
   await $.tool.call({ tool: 'mcp__build-guide__task_update', taskId: '1', status: 'in_progress' })
   await pane.press({ key: 'tab-now' })

@@ -137,7 +137,6 @@ async function mainCheckout($: EngineInterface) {
 
 // Reads the repo once per press, never while drawing, so the pane stays still.
 async function readRepo($: EngineInterface) {
-  const setupFile = (await picked($)).setup?.file
   const top = await git($, ['rev-parse', '--show-toplevel'])
   if (top === null) {
     await update($, repo, () => ({ ...NO_REPO, isRead: true, error: 'This session is not in a git repo.' }))
@@ -160,7 +159,12 @@ async function readRepo($: EngineInterface) {
   } catch {
     error = 'Could not read pull requests with gh.'
   }
-  const isSetUp = setupFile ? await $.fs.exists(`${top}/${setupFile}`).catch(() => true) : true
+  // Set up when every method that names a setup file finds it.
+  let isSetUp = true
+  for (const m of METHODS) {
+    const file = m.setup?.file
+    if (file && !(await $.fs.exists(`${top}/${file}`).catch(() => true))) isSetUp = false
+  }
   const name = ((await mainCheckout($)) ?? top).split('/').pop() ?? top
   await update($, repo, () => ({ isRead: true, error, name, branch, dirty: status ? status.split('\n').length : 0, stale, worktrees: others.length, prs, isSetUp }))
 }
@@ -245,14 +249,13 @@ async function registerTools($: EngineInterface) {
   }
 }
 
-// Makes `id` the method the Guide and Start tabs show.
+// Makes `id` the method the Guide tab shows.
 async function pick($: EngineInterface, id: MethodId) {
   const m = methodOf(id)
   await $.store.set(PICKED, m.id)
   await update($, method, () => m.id)
   // A guide page of the old method becomes the new method's first page.
   await update($, tab, t => (t === 'start' || t === 'now' || m.guide.some(g => g.id === t) ? t : (m.guide[0]?.id ?? 'start')))
-  void readRepo($)
 }
 
 // The engine refuses a submitted prompt that starts with a slash, so a slash
@@ -276,7 +279,7 @@ function installCard(m: AnyMethod, e: Env): Card | null {
     body: `${isOld ? `${m.requires.outdatedNote ?? ''} ` : `The buttons here run ${m.requires.name}, so install it first. `}Run this in a terminal, then start a new session:`,
     color: '#E5342C',
     code: m.requires.install,
-    note: isOld ? (m.requires.removeOld ? `Then remove the old copy with: ${m.requires.removeOld}` : undefined) : 'Or pick another method in the Guide tab.',
+    note: isOld ? (m.requires.removeOld ? `Then remove the old copy with: ${m.requires.removeOld}` : undefined) : undefined,
     acts: [],
   }
 }
@@ -600,24 +603,32 @@ export const register: Register = (on, options) => {
 
     const tree = await (async () => {
       if (current === 'start') {
-        const install = installCard(pm, setup)
-        const isMissing = skillsOf(pm, setup) === 'missing'
-        const needsSetup = pm.setup !== undefined && r.isRead && !r.isSetUp && install === null
-        const usable = pm.starts.filter(a => !a.needs || setup.plugins.some(k => k.startsWith(a.needs!)))
-        const starts = isMissing ? pm.plainStarts : needsSetup && pm.setup ? [{ ...pm.setup.act, isPrimary: true }, ...usable.map(a => ({ ...a, isPrimary: false }))] : usable
-        const rows = openWork(r, pm, !isGuarded)
+        // Both methods' starts, one labelled group each. A key carries its
+        // method's id, since both methods name a start-ticket.
+        const own = (m: AnyMethod, a: Act): Act => ({ ...a, key: `${m.id}:${a.key}` })
+        const groups = METHODS.map(m => {
+          const install = installCard(m, setup)
+          const isMissing = skillsOf(m, setup) === 'missing'
+          const needsSetup = m.setup !== undefined && r.isRead && !r.isSetUp && install === null
+          const usable = m.starts.filter(a => !a.needs || setup.plugins.some(k => k.startsWith(a.needs!)))
+          const starts = isMissing ? m.plainStarts : needsSetup && m.setup ? [{ ...m.setup.act, isPrimary: true }, ...usable.map(a => ({ ...a, isPrimary: false }))] : usable
+          return { m, install: install ? { ...install, key: `install-${m.id}` } : null, needsSetup, starts: starts.map(a => own(m, a)) }
+        })
+        // Open work: one row per item. Where the methods' buttons differ, pstack's
+        // set comes first and pocock's after, each labelled; a method whose skills
+        // are missing offers none.
+        const usable = METHODS.filter(m => skillsOf(m, setup) !== 'missing')
+        const offering = usable.length > 0 ? usable : METHODS.slice(0, 1)
+        const perMethod = offering.map(m => ({ m, rows: openWork(r, m, !isGuarded) }))
+        const work = (perMethod[0]?.rows ?? []).map(w => {
+          const sets = perMethod.map(x => ({ m: x.m, acts: x.rows.find(y => y.key === w.key)?.acts ?? [] }))
+          const isSame = sets.every(x => JSON.stringify(x.acts.map(a => a.text)) === JSON.stringify(sets[0]?.acts.map(a => a.text)))
+          return { key: w.key, label: w.label, sets: isSame ? sets.slice(0, 1).map(x => ({ ...x, isLabelled: false })) : sets.map(x => ({ ...x, isLabelled: true })) }
+        })
         return (
           <Box flexDirection="column" gap={1}>
             {nav}
             {strip}
-            {install
-              ? drawCard(
-                  install,
-                  <Box flexDirection="row" gap={1}>
-                    <Button key="check-again" label="Check again" onPress={() => readEnv($)} />
-                  </Box>,
-                )
-              : null}
             {summaryCard}
             {decisionCard}
             {isDesktop && r.isRead && r.name ? (
@@ -626,17 +637,37 @@ export const register: Register = (on, options) => {
               <Text bold>{r.isRead ? (r.name ? `${r.name} · ${r.branch}` : 'No repo') : 'Reading the repo…'}</Text>
             )}
             {r.error ? <Text dimColor>{r.error}</Text> : null}
-            {rows.length > 0 ? <Text bold>Open work</Text> : null}
-            {rows.map(w => (
-              <Box key={w.key} flexDirection="row" flexWrap="wrap" gap={1} alignItems="center">
+            {work.length > 0 ? <Text bold>Open work</Text> : null}
+            {work.map(w => (
+              <Box key={w.key} flexDirection="column">
                 <Text>{w.label}</Text>
-                {w.acts.map(a => button(a))}
+                {w.sets.map(x => (
+                  <Box key={`${w.key}-${x.m.id}`} flexDirection="row" flexWrap="wrap" gap={1} alignItems="center">
+                    {x.isLabelled ? <Text dimColor>{x.m.label}</Text> : null}
+                    {x.acts.map(a => button(x.isLabelled ? own(x.m, a) : a))}
+                  </Box>
+                ))}
               </Box>
             ))}
             <Text bold>Start something</Text>
-            {needsSetup && pm.setup ? <Text color="#E5342C">{pm.setup.warn}</Text> : null}
-            {row(starts)}
-            <Text dimColor>{`${pm.startNote} These are ${pm.label}'s starts; the Guide tab picks the method.`}</Text>
+            {groups.map(g => (
+              <Box key={`starts-${g.m.id}`} flexDirection="column" gap={1}>
+                <Text bold color="#6E6E73">
+                  {g.m.label}
+                </Text>
+                {g.install
+                  ? drawCard(
+                      g.install,
+                      <Box flexDirection="row" gap={1}>
+                        <Button key={`check-again-${g.m.id}`} label="Check again" onPress={() => readEnv($)} />
+                      </Box>,
+                    )
+                  : null}
+                {g.needsSetup && g.m.setup ? <Text color="#E5342C">{g.m.setup.warn}</Text> : null}
+                {row(g.starts)}
+                <Text dimColor>{g.m.startNote}</Text>
+              </Box>
+            ))}
             <Box flexDirection="row" gap={1}>
               <Button key="refresh" label="Refresh" onPress={() => readRepo($)} />
             </Box>

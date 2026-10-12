@@ -30,7 +30,7 @@ export type Repo = {
   stale: string[]
   worktrees: number
   prs: PullRequest[]
-  // False only when the method names a setup file and the repo lacks it.
+  // False only when a method names a setup file and the repo lacks it.
   isSetUp: boolean
 }
 
@@ -122,7 +122,7 @@ export type States = { pocock?: PocockState; pstack?: Live }
 declare module 'claude-code' {
   interface PluginState {
     'build-guide': {
-      // The method the Guide tab and the Start tab show. The Now tab shows every method.
+      // The method the Guide tab shows. The Start and Now tabs show every method.
       method: MethodId | null
       tab: Tab
       env: Env

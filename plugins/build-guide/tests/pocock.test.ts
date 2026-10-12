@@ -132,7 +132,7 @@ test('a repo that is not set up offers Set up this repo first', async ($, on) =>
   const pane = await $.ui.mount(PANE())
   await pane.press({ key: 'refresh' })
   expect(await all(pane)).toContain('This repo is not set up')
-  await pane.press({ key: 'start-setup' })
+  await pane.press({ key: 'pocock:start-setup' })
   expect(seen.ran.at(-1)).toBe('/setup-matt-pocock-skills')
   expect(seen.sent).toEqual([])
   await settle()
