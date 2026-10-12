@@ -496,7 +496,8 @@ export const register: Register = (on, options) => {
         const install = installCard(m, setup)
         const isMissing = skillsOf(m, setup) === 'missing'
         const needsSetup = m.setup !== undefined && r.isRead && !r.isSetUp && install === null
-        const starts = isMissing ? m.plainStarts : needsSetup && m.setup ? [{ ...m.setup.act, isPrimary: true }, ...m.starts.map(a => ({ ...a, isPrimary: false }))] : m.starts
+        const usable = m.starts.filter(a => !a.needs || setup.plugins.some(k => k.startsWith(a.needs!)))
+        const starts = isMissing ? m.plainStarts : needsSetup && m.setup ? [{ ...m.setup.act, isPrimary: true }, ...usable.map(a => ({ ...a, isPrimary: false }))] : usable
         const rows = openWork(r, m, !isGuarded)
         return (
           <Box flexDirection="column" gap={1}>

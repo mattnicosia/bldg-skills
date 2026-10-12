@@ -208,3 +208,23 @@ test('the model a step needs is checked against the one the session runs on', as
   expect(await md(pane)).toContain("Needs Haiku · Low. The session's model shows after its next step.")
   await settle()
 })
+
+test('the level-up start shows only when bldg-house is installed', async ($, on) => {
+  engine(on, { plugins: PSTACK })
+  await $.session.start(START)
+  const without = await $.ui.mount(PANE())
+  await without.press({ key: 'tab-start' })
+  const text = await all(without)
+  expect(text).toContain('Catch me up')
+  expect(text).not.toContain('Level up (new model)')
+  await settle()
+})
+
+test('the level-up start shows when bldg-house is installed', async ($, on) => {
+  engine(on, { plugins: [...PSTACK, 'bldg-house@bldg-skills'] })
+  await $.session.start(START)
+  const withIt = await $.ui.mount(PANE())
+  await withIt.press({ key: 'tab-start' })
+  expect(await all(withIt)).toContain('Level up (new model)')
+  await settle()
+})

@@ -840,11 +840,14 @@ const STARTS: Act[] = [
     'Pick a ticket',
     "list this repo's open ready-for-agent tickets and ask me to pick one with a multiple-choice question. when I pick, start /poteto-mode implement <that ticket>, with the ticket's acceptance check as done means. open a PR when done, don't merge.",
   ),
-  say(
-    'start-levelup',
-    'Level up (new model)',
-    "run the bldg-house:project-level-up skill on this repo. a new frontier model is out: use the model this session runs on unless I name another. don't write any files; give me the review pack and the ranked patch queue, then ask which to take on with a multiple-choice question.",
-  ),
+  {
+    ...say(
+      'start-levelup',
+      'Level up (new model)',
+      "run the bldg-house:project-level-up skill on this repo. a new frontier model is out: use the model this session runs on unless I name another. don't write any files; give me the review pack and the ranked patch queue, then ask which to take on with a multiple-choice question.",
+    ),
+    needs: 'bldg-house@',
+  },
   say(
     'start-bug',
     'Fix a bug',

@@ -15,6 +15,8 @@ export type Act<S = any> = {
   isSend?: boolean
   isPrimary?: boolean
   apply?: (s: S) => S
+  // A plugin key prefix the button calls; the button hides when it is not installed.
+  needs?: string
 }
 
 // A bordered card above the tab's own content: a nudge, a warning.
