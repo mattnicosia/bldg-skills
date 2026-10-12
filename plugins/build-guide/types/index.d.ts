@@ -2,7 +2,15 @@
 
 export type MethodId = 'pstack' | 'pocock'
 
-// 'start', 'now', or the id of one of the active method's guide pages.
+// The stages every method maps onto: pstack's six. The stage bar draws these.
+export type SharedId = 'understand' | 'design' | 'build' | 'verify' | 'ship' | 'overnight'
+
+// Where the work is on the shared stage bar, the method whose own move put it
+// there, and how many stage changes the session has seen. One change is one
+// move, however many methods it moves.
+export type Stage = { at: SharedId | null; by: MethodId | null; moves: number }
+
+// 'start', 'now', or the id of one of the picked method's guide pages.
 export type Tab = string
 
 // Plugin keys from installed_plugins.json, and the methods whose skills were
@@ -11,7 +19,7 @@ export type Env = { isRead: boolean; plugins: string[]; copied: MethodId[] }
 
 export type PrStage = 'conflict' | 'fail' | 'draft' | 'running' | 'changes' | 'checking' | 'ready'
 
-export type PullRequest = { number: number; title: string; ci: 'fail' | 'pending' | 'pass' | 'none'; isDraft: boolean; stage: PrStage }
+export type PullRequest = { number: number; title: string; branch: string; ci: 'fail' | 'pending' | 'pass' | 'none'; isDraft: boolean; stage: PrStage }
 
 export type Repo = {
   isRead: boolean
@@ -32,6 +40,37 @@ export type Decision = { question: string; options: Choice[]; pick: string; why:
 
 export type Summary = { done: string; next: string; links: string[]; isWaiting: boolean } | null
 
+// ---------- Target map ----------
+// The shape BLDG OS's scripts/target-map-status.mjs writes.
+
+export type JobState = 'moved' | 'not_yet' | 'gray'
+
+export type Job = {
+  id: string
+  name: string
+  short: string
+  state: JobState
+  stuck: boolean
+  since: string
+  evidence: string
+  needs: string
+  source: string
+  proofKind: string
+  zeroSince?: string
+}
+
+export type Flag = { id: string; name: string; note?: string; jobs: Job[] }
+
+export type Road = { id: string; name: string; from: string; crossesOff: string[] | string; unlocks: string[] | string; source: string }
+
+export type Status = { product: string; goal: string; targetSetOn: string; checkedAt: string; flags: Flag[]; roads: Road[]; decisions: string[] }
+
+export type Target =
+  | { phase: 'unread' }
+  | { phase: 'missing' }
+  | { phase: 'bad'; reason: string }
+  | { phase: 'ok'; data: Status }
+
 // ---------- pocock ----------
 
 export type StepId = 'grill' | 'spec' | 'tickets' | 'build' | 'review' | 'pr' | 'retro'
@@ -48,7 +87,7 @@ export type Flow = {
 
 export type Nudge = { text: string; kind: 'grill' | 'bug' } | null
 
-export type PocockState = { flow: Flow; nudge: Nudge; isNudgeOff: boolean }
+export type PocockState = { flow: Flow; nudge: Nudge }
 
 // ---------- pstack ----------
 
@@ -56,14 +95,18 @@ export type TaskStatus = 'pending' | 'in_progress' | 'completed'
 
 export type Task = { id: string; subject: string; status: TaskStatus }
 
-export type Advice = { what: string; move: string; isReady: boolean }
+// What Haiku said about one step: what is happening, and one line per method
+// on what that method would have the person do now, by method id.
+export type Advice = { what: string; would: Record<string, string>; isReady: boolean }
 
 export type Power = { model: string; effort: string }
 
-export type Seen = { commands: number; skills: number; tools: number; last: string[] }
 
 export type Live = {
   playbook: string | null
+  // The shared stage pstack is on: set by its own playbook, skills and tasks,
+  // or moved there when the other method moved.
+  stage: SharedId | null
   advice: Record<string, Advice>
   power: Power
   steps: string[]
@@ -79,6 +122,7 @@ export type States = { pocock?: PocockState; pstack?: Live }
 declare module 'claude-code' {
   interface PluginState {
     'build-guide': {
+      // The method the Guide tab and the Start tab show. The Now tab shows every method.
       method: MethodId | null
       tab: Tab
       env: Env
@@ -86,7 +130,9 @@ declare module 'claude-code' {
       decision: Decision
       summary: Summary
       states: States
-      seen: Seen
+      stage: Stage
+      target: Target
+      isTargetOpen: boolean
     }
   }
 }

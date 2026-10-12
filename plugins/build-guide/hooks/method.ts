@@ -3,24 +3,22 @@
 // follows `$` only into functions of the file that holds the hooks, so nothing
 // here touches `$`.
 
-import type { Env, MethodId, PullRequest, Seen } from '../types'
+import type { Env, MethodId, PullRequest } from '../types'
 
-// A button. With `apply` it changes the method's state; otherwise it puts `text`
-// in the prompt, or sends it at once when `isSend` (a slash command runs as a command).
-// S is the state `apply` changes; a plain prompt button takes any.
-export type Act<S = any> = {
+// A button. It puts `text` in the prompt, or sends it at once when `isSend`
+// (a slash command runs as a command).
+export type Act = {
   key: string
   label: string
   text?: string
   isSend?: boolean
   isPrimary?: boolean
-  apply?: (s: S) => S
   // A plugin key prefix the button calls; the button hides when it is not installed.
   needs?: string
 }
 
-// A bordered card above the tab's own content: a nudge, a warning.
-export type Card<S = any> = { key: string; title: string; body: string; color: string; code?: string; note?: string; acts: Act<S>[] }
+// A bordered card: the install warning.
+export type Card = { key: string; title: string; body: string; color: string; code?: string; note?: string; acts: Act[] }
 
 export type GuidePage = {
   id: string
@@ -35,26 +33,30 @@ export type GuidePage = {
   recipes?: { title: string; prompt: string }[]
 }
 
-// What the Now tab shows: a picture of where the work is, and what to press next.
-export type NowView<S> = {
-  svg: string
-  alt: string
-  md: string
-  next: Act<S>
-  others: Act<S>[]
-  note: string
-  // Idle shows no quick replies; running shows the shared ones; done shows the method's `after`.
-  phase: 'idle' | 'running' | 'done'
-  reset: Act<S>
+// One method's column on the Now tab, as data; pair.ts draws it.
+export type Row = { label: string; mark: 'done' | 'now' | 'todo' | 'skipped'; tag?: string }
+export type Section = { title: string; body: string; tone?: 'warn' | 'bad' | 'good' }
+export type Column = {
+  // The method's own stage, as it names it: "Build", "Step 4 of 7 · Build".
+  stage: string
+  title: string
+  rows: Row[]
+  sections: Section[]
+  // What the method would have the person do now: Haiku's line, else the stage's own text.
+  would: string
 }
 
-// The state a reducer hands back, and the work it asks the pane to do.
+// The one thing the method would do next, and the prompt that does it.
+export type Move = { label: string; text: string; why: string }
+
+// The state a reducer hands back, and the work it asks the pane to do. A method
+// never toasts or adds a note to a prompt: its advice shows in its own column.
 export type Out<S> = {
   s: S
-  toast?: string
   // Read this file, then hand it to `hooks.file`.
   read?: string
-  // Ask Haiku this, then hand the answer to `hooks.answer` with the key.
+  // Ask Haiku this, then hand the answer to `hooks.answer` with the key. The pane
+  // adds every method's position and asks for one line per method.
   ask?: { key: string; prompt: string }
 }
 
@@ -91,16 +93,26 @@ export type Method<S> = {
   after: Act[]
   // How the after-turn reader is told what this method favors.
   decide: { who: string; favors: string }
-  ask: { title: string; pick: string }
   guide: GuidePage[]
 
   empty: S
   // Progress kept per repo in the store, so a new session in the repo picks it up.
   persist?: { rootOf: (s: S) => string; save: (s: S) => unknown; load: (s: S, saved: unknown, root: string) => S }
-  // A command or skill of this method, so the tally counts it as a skill.
-  knows: (name: string) => boolean
-  cards?: (s: S) => Card<S>[]
-  now: (s: S, tally: Seen) => NowView<S>
+
+  // Its own stage now (an entry of its STAGE_MAP list), and the state moved to
+  // another of its stages when the other method moves.
+  stageOf: (s: S) => string | null
+  moveTo: (s: S, stage: string) => S
+  // Where it is, in one line, for the Haiku prompt.
+  brief: (s: S) => string
+  // Haiku's lines for the running step, by method id, once they came back.
+  would?: (s: S) => Record<string, string> | undefined
+  // Words naming the work under way, for matching it to a target map job.
+  focus?: (s: S) => string[]
+  column: (s: S, would: string | undefined) => Column
+  next: (s: S) => Move
+  phase: (s: S) => 'idle' | 'running' | 'done'
+  reset: (s: S) => S
   isBusy: (s: S) => boolean
   hooks: {
     // A slash command the person ran; returns the args to pass on.
@@ -111,8 +123,8 @@ export type Method<S> = {
     tool?: (s: S, tool: string, args: Record<string, unknown>, output: string) => Out<S>
     // A model step of the main agent: the model and effort it ran on.
     step?: (s: S, model: string, effort: string) => S
-    // A prompt about to be sent; may return a note for the model.
-    prompt?: (s: S, text: string, isPerson: boolean, hasSkills: boolean) => Out<S> & { note?: string }
+    // A prompt about to be sent. It changes the method's own state and nothing else.
+    prompt?: (s: S, text: string, isPerson: boolean, hasSkills: boolean) => Out<S>
     file?: (s: S, path: string, content: string | null) => Out<S>
     answer?: (s: S, key: string, text: string | null) => S
   }
@@ -144,6 +156,7 @@ export const mergeAct = (n: number): Act =>
   )
 
 // Quick replies while work is running. They send at once and wait their turn.
+// `explain` is the plain-words reply of a method whose skills are installed.
 export const during = (explain: Act): Act[] => [
   say('q-continue', 'Continue', 'continue'),
   say('q-evidence', 'Show me the evidence', 'show me the evidence for what you just did: the real command, output or screenshot.'),
@@ -151,5 +164,5 @@ export const during = (explain: Act): Act[] => [
   say('q-stop', 'Stop and explain', "stop after this step. tell me where you are, what's left, and anything you need from me."),
 ]
 
-// A method whatever its state, for the list the pane switches between.
+// A method whatever its state, for the list the pane draws.
 export type AnyMethod = Method<any>

@@ -94,10 +94,6 @@ export const chips = (x0: number, y0: number, maxX: number, items: Item[], color
 
 export const down = (cx: number, y: number) => `<path class="ar" d="M${cx - 6} ${y} l6 7 l6 -7z"/>`
 
-// A white tick, drawn on a filled circle the caller supplies.
-export const tick = (cx: number, cy: number) =>
-  `<path d="M${cx - 4.5} ${cy} l3 3.2 l6 -6.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`
-
 export const doc = (h: number, body: string) => `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 ${W} ${h}" preserveAspectRatio="xMidYMin meet">
 <style>
 svg{background:#F5F5F7}
@@ -119,19 +115,6 @@ export const noteCard = (y: number, title: string, body: string, color: string) 
     `<text x="30" y="${y + 22}" font-size="13" font-weight="700" fill="${inkOf(color)}">${esc(title)}</text>` +
     lines(30, y + 42, 'body ink', rows, 16)
   return { svg, h }
-}
-
-// The green card at the foot of a Now picture: the one thing to do next.
-export const nextCard = (y: number, heading: string, label: string, prompt: string, why: string) => {
-  const rows = why ? wrap(why, 50) : []
-  const h = 84 + rows.length * 16
-  let b = `<rect x="16" y="${y}" width="${W - 32}" height="${h}" rx="12" fill="${C.green}" fill-opacity=".13" stroke="${C.green}" stroke-opacity=".5"/>`
-  b += `<circle cx="48" cy="${y + 38}" r="20" fill="${C.green}"/><path d="M38 ${y + 38} h16 m-6 -7 l7 7 l-7 7" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`
-  b += `<text x="80" y="${y + 26}" font-size="11.5" font-weight="700" fill="${inkOf(C.green)}" letter-spacing=".04em">${esc(heading)}</text>`
-  b += text(80, y + 47, 'ink', cut(label, 38), ' font-size="17" font-weight="700"')
-  b += `<text x="80" y="${y + 67}" font-size="12.5" font-family="${MONO}" class="ink">${esc(cut(prompt.trim(), 44))}</text>`
-  b += lines(80, y + 86, 'sm mut', rows, 16)
-  return { svg: b, h }
 }
 
 // The desktop draws an Svg in a frame it cannot size from the markup, so pass

@@ -17,11 +17,14 @@ export const looksLikeChoice = (answer: string) => {
   )
 }
 
-export const decidePrompt = (m: AnyMethod, answer: string) =>
-  `An agent working through ${m.decide.who} finished a turn. Summarize it in short everyday words for the user, and if it ends by asking the user to make a choice, extract it. ` +
-  `The method favors: ${m.decide.favors}\n\n` +
+// Every method's voice at once: no method leads the decision.
+export const ASK = { title: 'Decision waiting', pick: 'suggested pick' }
+
+export const decidePrompt = (methods: AnyMethod[], answer: string) =>
+  `An agent finished a turn. The user follows ${methods.map(m => m.decide.who).join(' and ')}. Summarize the turn in short everyday words for the user, and if it ends by asking the user to make a choice, extract it. ` +
+  `The methods favor: ${methods.map(m => m.decide.favors).join(' Also: ')}\n\n` +
   'Reply with JSON only, no prose, in this shape:\n' +
-  '{"done":"<what this turn did or found, one or two plain sentences>","next":"<what happens next or what the user should do, one sentence>","isWaiting":<true if the agent stopped and needs the user to answer or act>,"isChoice":true,"question":"<one short line>","options":[{"key":"<what the user would type, e.g. B or yes>","label":"<3 to 6 words>","tier":"<model and effort if the reply gave one, else empty>"}],"pick":"<key the method favors>","why":"<one plain sentence>"}\n' +
+  '{"done":"<what this turn did or found, one or two plain sentences>","next":"<what happens next or what the user should do, one sentence>","isWaiting":<true if the agent stopped and needs the user to answer or act>,"isChoice":true,"question":"<one short line>","options":[{"key":"<what the user would type, e.g. B or yes>","label":"<3 to 6 words>","tier":"<model and effort if the reply gave one, else empty>"}],"pick":"<key the methods favor>","why":"<one plain sentence>"}\n' +
   'A request to confirm before acting ("when you say yes I will...", "shall I go ahead") is a yes or no choice: use keys "yes" and "no", and add a third option when the reply names one. For a yes or no question use keys "yes" and "no". At most 6 options. If the turn does not ask for a choice, set isChoice false and leave out question, options, pick and why.\n\n' +
   `The turn's final reply:\n${answer.slice(-6000)}`
 
@@ -60,10 +63,10 @@ const tierColor = (tier: string) =>
   /fable/i.test(tier) ? C.indigo : /opus/i.test(tier) ? C.blue : /haiku/i.test(tier) ? C.gray : /sonnet/i.test(tier) ? C.green : C.slate
 
 // The decision card as a picture: one tile per option, the method's pick outlined.
-export const decisionSvg = (d: NonNullable<Decision>, m: AnyMethod) => {
+export const decisionSvg = (d: NonNullable<Decision>, ask: typeof ASK) => {
   let b = ''
   b += `<circle cx="26" cy="27" r="5" fill="${C.orange}"/>`
-  b += `<text x="38" y="31" font-size="12" font-weight="700" fill="${inkOf(C.orange)}" letter-spacing=".04em">${esc(m.ask.title.toUpperCase())}</text>`
+  b += `<text x="38" y="31" font-size="12" font-weight="700" fill="${inkOf(C.orange)}" letter-spacing=".04em">${esc(ask.title.toUpperCase())}</text>`
   const q = wrap(d.question, 44).slice(0, 2)
   b += lines(20, 56, 'ink', q, 22, ' font-size="18" font-weight="700" letter-spacing="-.02em"')
   let y = 56 + q.length * 22 - 4
@@ -74,7 +77,7 @@ export const decisionSvg = (d: NonNullable<Decision>, m: AnyMethod) => {
     b += `<circle cx="40" cy="${y + h / 2}" r="13" fill="${isPick ? C.blue : '#E5E5EA'}"/>`
     b += `<text x="40" y="${y + h / 2 + 4.5}" text-anchor="middle" font-size="12.5" font-weight="700" fill="${isPick ? '#fff' : '#1D1D1F'}">${esc(cut(o.key, 3))}</text>`
     b += `<text x="62" y="${y + h / 2 + (isPick ? -1 : 4.5)}" font-size="13.5" font-weight="${isPick ? 700 : 500}" class="ink">${esc(cut(o.label, o.tier ? 34 : 40))}</text>`
-    if (isPick) b += `<text x="62" y="${y + h / 2 + 14}" font-size="10.5" font-weight="700" fill="${inkOf(C.blue)}">★ ${esc(m.ask.pick)}</text>`
+    if (isPick) b += `<text x="62" y="${y + h / 2 + 14}" font-size="10.5" font-weight="700" fill="${inkOf(C.blue)}">★ ${esc(ask.pick)}</text>`
     if (o.tier) {
       const t = cut(o.tier, 18)
       const tw = Math.round(t.length * 6.2 + 16)

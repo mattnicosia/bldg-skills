@@ -5,8 +5,8 @@ import { all, COMPOSER, engine, md, PANE, PSTACK, settle, START } from './engine
 const PLAYBOOK = '/plugins/pstack/skills/poteto-mode/playbooks/bug-fix.md'
 const now = () => Math.floor(Date.now() / 1000)
 
-test('follows TaskCreate, advises on the running step and names the next move', async ($, on) => {
-  engine(on, { plugins: PSTACK })
+test('follows TaskCreate, advises on the running step in its column and names the next move, with no toast', async ($, on) => {
+  const { seen } = engine(on, { plugins: PSTACK })
   await $.session.start(START)
   await $.tool.call({ tool: 'Read', file_path: PLAYBOOK })
   await $.tool.call({ tool: 'TaskCreate', subject: 'Reproduce the duplicate write', description: 'x' })
@@ -22,11 +22,12 @@ test('follows TaskCreate, advises on the running step and names the next move', 
   expect(text).toContain('Bug fix playbook')
   expect(text).toContain('[x] Reproduce the duplicate write (Sonnet · Medium)')
   expect(text).toContain('[>] Decide what the invite token allows (Fable · High)')
-  expect(text).toContain("What's happening: It decides who may send a price.")
-  expect(text).toContain('Power: Needs Fable · High')
+  expect(text).toContain("**What's happening:** It decides who may send a price.")
+  expect(text).toContain('**Power:** Needs Fable · High')
+  expect(seen.toasts).toEqual([])
 
   await $.tool.call({ tool: 'TaskUpdate', taskId: '8', status: 'completed' })
-  expect(await md(pane)).toContain('/blast-radius')
+  expect(await all(pane)).toContain('/blast-radius')
   await settle()
 })
 
@@ -63,7 +64,7 @@ test('the skill text of /poteto-mode carries the task-tool note once', async ($,
   await settle()
 })
 
-test('a follow-on playbook read mid-run keeps the main playbook, and /poteto-mode counts as a skill', async ($, on) => {
+test('a follow-on playbook read mid-run keeps the main playbook', async ($, on) => {
   engine(on, { plugins: PSTACK })
   await $.session.start(START)
   await $.command.run({ command: 'pstack:poteto-mode', args: 'implement ticket 25', ...COMPOSER })
@@ -76,7 +77,6 @@ test('a follow-on playbook read mid-run keeps the main playbook, and /poteto-mod
   const text = await md(pane)
   expect(text).toContain('Feature playbook')
   expect(text).not.toContain('Opening a PR playbook')
-  expect(text).toContain('Seen: 0 commands, 1 skills')
 
   await $.tool.call({ tool: 'mcp__build-guide__task_update', taskId: '1', status: 'completed' })
   await $.tool.call({ tool: 'Read', file_path: '/plugins/pstack/skills/poteto-mode/playbooks/opening-a-pr.md' })

@@ -1,7 +1,7 @@
 {
   "name": "build-guide",
-  "version": "0.1.0",
-  "description": "A side pane that walks you through a build method, pstack or Matt Pocock's flow, from the first idea to a merged PR: /mod-guide",
+  "version": "0.2.0",
+  "description": "A side pane that shows the BLDG OS target map on top and pstack and Matt Pocock's flow side by side on the same work, from the first idea to a merged PR: /mod-guide",
   "author": {
     "name": "Matt Nicosia"
   },

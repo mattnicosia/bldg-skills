@@ -1,13 +1,14 @@
 // Matt Pocock's flow: grill, spec, tickets, build, review, PR, retro.
 
 import type { Flow, Nudge, PocockState, PullRequest, StepId } from '../../types'
-import { C, chip, chips, chipW, doc, down, esc, inkOf, lines, nextCard, noteCard, text, tick, W, wrap, type Item } from '../draw'
-import { fill, mergeAct, say, type Act, type GuidePage, type Method, type Out } from '../method'
+import { C, chip, chips, chipW, doc, down, esc, inkOf, lines, noteCard, text, W, wrap, type Item } from '../draw'
+import { fill, mergeAct, say, type Act, type Column, type GuidePage, type Method, type Move, type Out, type Section } from '../method'
 
 const EMPTY_FLOW: Flow = { root: '', done: [], current: null, last: '', isBugFix: false }
-const EMPTY: PocockState = { flow: EMPTY_FLOW, nudge: null, isNudgeOff: false }
+const EMPTY: PocockState = { flow: EMPTY_FLOW, nudge: null }
 
-type Step = { id: StepId; name: string; color: string; cmd: string; what: string; you: string; why: string }
+// `now` is what the flow would have you do while on the step, when Haiku has not said.
+type Step = { id: StepId; name: string; color: string; cmd: string; what: string; you: string; why: string; now: string }
 
 const STEPS: Step[] = [
   {
@@ -18,6 +19,7 @@ const STEPS: Step[] = [
     what: 'Claude asks you questions about the idea, one round at a time, until it has no gaps.',
     you: 'Answer each question. Say "I don\'t know" when you don\'t, and Claude will look it up.',
     why: 'Code built on a fuzzy idea gets rebuilt. Ten minutes of questions first is the cheapest fix there is.',
+    now: "Keep answering Claude's questions until the idea has no gaps left.",
   },
   {
     id: 'spec',
@@ -27,6 +29,7 @@ const STEPS: Step[] = [
     what: 'Claude turns the grilling into one written plan and files it on the issue tracker.',
     you: 'Read it. Ask for changes now, while they cost nothing.',
     why: 'Without a written plan, each new chat starts from a guess about what you meant.',
+    now: "Read the spec on the tracker and ask for changes before any code exists.",
   },
   {
     id: 'tickets',
@@ -36,6 +39,7 @@ const STEPS: Step[] = [
     what: 'Claude cuts the spec into small tickets. Each one works end to end and says which tickets go first.',
     you: 'Check the order makes sense, and that each ticket is small enough for one chat.',
     why: 'A big job in one chat runs out of room. Small tickets each get a fresh, sharp chat.',
+    now: "Check the tickets are small and in order, then clear the chat for the first one.",
   },
   {
     id: 'build',
@@ -45,6 +49,7 @@ const STEPS: Step[] = [
     what: 'Claude builds it test-first: a test that fails, then the code that makes it pass.',
     you: 'Watch the tests go red, then green. Clear the chat before each new ticket.',
     why: 'A test written first proves the code does the job, now and after every later change.',
+    now: "Watch the test fail, then pass. Stay on this one ticket.",
   },
   {
     id: 'review',
@@ -54,6 +59,7 @@ const STEPS: Step[] = [
     what: "Two reviewers check the change: does it follow the repo's rules, and does it do what was asked.",
     you: 'Read both lists. Ask Claude to fix the ones that matter.',
     why: 'Mistakes are cheap to fix before a pull request and expensive after it ships.',
+    now: "Read both review lists and have Claude fix the findings that matter.",
   },
   {
     id: 'pr',
@@ -63,6 +69,7 @@ const STEPS: Step[] = [
     what: 'Claude opens a pull request with a picture of the change and proof that it works.',
     you: 'Read it, then share the link with whoever reviews your work.',
     why: 'A pull request is how someone else checks the work before it joins the main code.',
+    now: "Read the pull request, then send the link to whoever reviews your work.",
   },
   {
     id: 'retro',
@@ -72,6 +79,7 @@ const STEPS: Step[] = [
     what: 'Claude looks back at the session and suggests changes to the setup, so the next build goes better.',
     you: 'Pick which suggestions to keep. Run it before you clear the chat.',
     why: 'Each retro turns a mistake into a check or a rule, so it does not happen twice.',
+    now: "Keep the setup changes worth keeping, then start the next idea.",
   },
 ]
 
@@ -119,14 +127,14 @@ const skippedOf = (f: Flow): StepId[] => {
   return out
 }
 
-type Move = Act & { why: string }
+type FlowMove = Act & { why: string }
 
-const NEXT_TICKET: Move = { key: 'move-next-ticket', label: 'Build the next ticket', text: '/implement ', why: 'Clear the chat first, then add the ticket number after /implement.' }
-const CLEAR: Move = { key: 'move-clear', label: 'Clear the chat', text: '/clear', why: 'Empties the chat so the next ticket starts fresh.' }
+const NEXT_TICKET: FlowMove = { key: 'move-next-ticket', label: 'Build the next ticket', text: '/implement ', why: 'Clear the chat first, then add the ticket number after /implement.' }
+const CLEAR: FlowMove = { key: 'move-clear', label: 'Clear the chat', text: '/clear', why: 'Empties the chat so the next ticket starts fresh.' }
 
 // Next step only offers what the flow allows from where you are. Each fills the
 // prompt, so Enter is the go.
-const nextFor = (f: Flow): { main: Move; others: Move[] } => {
+const nextFor = (f: Flow): { main: FlowMove; others: FlowMove[] } => {
   const hasTickets = f.done.includes('tickets')
   switch (f.current) {
     case null:
@@ -171,92 +179,44 @@ const hintFor = (f: Flow) => {
 
 // ---------- Now: where you are on the path ----------
 
-export const nowSvg = (f: Flow) => {
-  let b = ''
-  const at = f.current ? ORDER.indexOf(f.current) : -1
-  const skipped = skippedOf(f)
-  b += text(20, 34, 'h ink', 'You are here')
-  b += text(W - 20, 34, 'sm mut', at >= 0 ? `step ${at + 1} of 7` : 'not started', ' text-anchor="end"')
-  const x0 = 34
-  const gap = (W - 2 * x0) / (STEPS.length - 1)
-  const cy = 76
-  b += `<line class="ln" stroke-width="2" x1="${x0}" x2="${W - x0}" y1="${cy}" y2="${cy}"/>`
-  STEPS.forEach((s, i) => {
-    const x = x0 + i * gap
-    const isNow = i === at
-    const isDone = f.done.includes(s.id) && !isNow
-    const isSkipped = skipped.includes(s.id)
-    if (isNow) {
-      b += `<circle cx="${x}" cy="${cy}" r="19" fill="${s.color}" fill-opacity=".2"/>`
-      b += `<circle cx="${x}" cy="${cy}" r="14" fill="${s.color}"/>`
-      b += `<text x="${x}" y="${cy + 4.5}" text-anchor="middle" fill="#fff" font-size="12.5" font-weight="700">${i + 1}</text>`
-    } else if (isSkipped) {
-      b += `<circle cx="${x}" cy="${cy}" r="11" fill="#fff" stroke="${C.orange}" stroke-width="2" stroke-dasharray="3 2.5"/>`
-      b += `<text x="${x}" y="${cy + 4.5}" text-anchor="middle" fill="${inkOf(C.orange)}" font-size="13" font-weight="800">!</text>`
-    } else if (isDone) {
-      b += `<circle cx="${x}" cy="${cy}" r="11" fill="${s.color}"/>${tick(x, cy)}`
-    } else {
-      b += `<circle cx="${x}" cy="${cy}" r="10" fill="#E5E5EA"/>`
-      b += `<text x="${x}" y="${cy + 4}" text-anchor="middle" font-size="11" font-weight="600" class="mut">${i + 1}</text>`
-    }
-    const tone = isNow ? ` fill="${inkOf(s.color)}" font-weight="700"` : isSkipped ? ` fill="${inkOf(C.orange)}" font-weight="600"` : ' class="mut"'
-    b += `<text x="${x}" y="${cy + 36}" text-anchor="middle" font-size="11.5"${tone}>${s.name}</text>`
-  })
-  let y = 132
-  if (f.current) {
-    const s = stepOf(f.current)
-    const what = wrap(s.what, 56)
-    const you = wrap(s.you, 56)
-    const h = 106 + (what.length + you.length) * 16
-    b += `<rect class="card" x="16" y="${y}" width="${W - 32}" height="${h}" rx="12"/>`
-    b += `<rect x="16" y="${y + 14}" width="4" height="22" rx="2" fill="${s.color}"/>`
-    b += text(30, y + 31, 'ink', s.name, ' font-size="17" font-weight="700"')
-    b += chip(W - 28 - chipW({ label: s.cmd, tip: '' }), y + 13, { label: s.cmd, tip: `The skill for the ${s.name} step` }, s.color)
-    let ty = y + 58
-    b += `<text x="30" y="${ty}" font-size="11" font-weight="700" fill="${inkOf(s.color)}" letter-spacing=".04em">WHAT IT IS</text>`
-    b += lines(30, ty + 17, 'body ink', what, 16)
-    ty += 17 + what.length * 16 + 10
-    b += `<text x="30" y="${ty}" font-size="11" font-weight="700" fill="${inkOf(s.color)}" letter-spacing=".04em">WHAT YOU DO</text>`
-    b += lines(30, ty + 17, 'body ink', you, 16)
-    y += h + 12
-  } else {
-    const card = noteCard(y, 'Every job starts with an idea', 'Press Next step and type your idea in plain words. Claude will ask you questions until it is clear, then you build it step by step.', C.blue)
-    b += card.svg
-    y += card.h + 12
-  }
-  for (const id of skipped) {
-    const card = noteCard(y, `You skipped ${stepOf(id).name}`, stepOf(id).why, C.orange)
-    b += card.svg
-    y += card.h + 12
-  }
-  const hint = hintFor(f)
-  if (hint) {
-    const card = noteCard(y, 'Keep the chat clean', hint, C.blue)
-    b += card.svg
-    y += card.h + 12
-  }
-  const next = nextFor(f)
-  const card = nextCard(y, 'NEXT STEP', next.main.label, next.main.text ?? '', next.main.why)
-  b += card.svg
-  y += card.h + 8
-  return doc(y + 8, b)
+const NUDGE_TEXT: Record<NonNullable<Nudge>['kind'], Section> = {
+  grill: { title: 'Grill it first?', body: 'You asked for code before any grilling. A few minutes of questions now saves a rebuild later.', tone: 'warn' },
+  bug: { title: 'Sounds like something is broken', body: '/diagnosing-bugs finds a command that shows the bug failing, then fixes it with a test.', tone: 'warn' },
 }
 
-const nowMd = (f: Flow) => {
+const column = (s: PocockState, would: string | undefined): Column => {
+  const f = s.flow
+  const at = f.current ? ORDER.indexOf(f.current) : -1
   const skipped = skippedOf(f)
-  const strip = STEPS.map(s => (s.id === f.current ? `**[${s.name}]**` : skipped.includes(s.id) ? `!${s.name}` : f.done.includes(s.id) ? `✓${s.name}` : s.name)).join(' → ')
-  const s = f.current ? stepOf(f.current) : null
-  const next = nextFor(f)
-  return [
-    '### You are here',
-    strip,
-    s ? `**${s.name}** (\`${s.cmd}\`)\n\nWhat it is: ${s.what}\n\nWhat you do: ${s.you}` : 'Nothing started yet. Every job starts with an idea.',
-    ...skipped.map(id => `**You skipped ${stepOf(id).name}.** ${stepOf(id).why}`),
-    hintFor(f) ? `_${hintFor(f)}_` : '',
-    `**Next step:** ${next.main.label}: \`${(next.main.text ?? '').trim()}\`${next.main.why ? `\n\n${next.main.why}` : ''}`,
-  ]
-    .filter(Boolean)
-    .join('\n\n')
+  const step = f.current ? stepOf(f.current) : null
+  const sections: Section[] = []
+  if (s.nudge) sections.push(NUDGE_TEXT[s.nudge.kind])
+  if (step) sections.push({ title: 'What it is', body: step.what }, { title: 'What you do', body: step.you })
+  else sections.push({ title: 'Every job starts with an idea', body: 'Grill it in plain words. Claude asks questions until it is clear, then you build it step by step.' })
+  for (const id of skipped) sections.push({ title: `You skipped ${stepOf(id).name}`, body: stepOf(id).why, tone: 'warn' })
+  const hint = hintFor(f)
+  if (hint) sections.push({ title: 'Keep the chat clean', body: hint })
+  return {
+    stage: step ? `Step ${at + 1} of 7 · ${step.name}` : 'Not started',
+    title: step ? `${step.name} · ${step.cmd}` : 'No step yet',
+    rows: STEPS.map(x => ({
+      label: x.name,
+      mark: x.id === f.current ? 'now' : skipped.includes(x.id) ? 'skipped' : f.done.includes(x.id) ? 'done' : 'todo',
+      tag: x.id === f.current ? x.cmd : undefined,
+    })),
+    sections,
+    would: would ?? step?.now ?? 'Grill the idea with /grill-with-docs before any code is written.',
+  }
+}
+
+const nextOf = (s: PocockState): Move => {
+  // A request for code before any grilling makes grilling it the next move.
+  if (s.nudge) {
+    const cmd = s.nudge.kind === 'bug' ? '/diagnosing-bugs' : '/grill-with-docs'
+    return { label: s.nudge.kind === 'bug' ? 'Diagnose it first' : 'Grill it first', text: `${cmd} ${s.nudge.text}`, why: NUDGE_TEXT[s.nudge.kind].body }
+  }
+  const next = nextFor(s.flow).main
+  return { label: next.label, text: next.text ?? '', why: next.why }
 }
 
 // ---------- Guide pages ----------
@@ -518,7 +478,8 @@ const prActs = (pr: PullRequest, canMerge: boolean): Act[] => {
   }
 }
 
-// ---------- Guard rail: grill before building ----------
+// ---------- Grill before building ----------
+// Shown in this method's column as advice. Nothing is blocked or sent.
 
 const BUILD_ASK = /\b(build|add|implement|make|create|change|refactor|rewrite|update|wire up|hook up|code|feature|new (page|screen|button|endpoint|component))\b/i
 const BUG_ASK = /\b(bug|broken|error|crash(es|ed|ing)?|fails?|failing|doesn'?t work|not working|uncaught exception|(throws?|threw|raises?|raised) (an? )?exception|exception (is |was )?(thrown|raised)|stack trace)\b/i
@@ -532,17 +493,6 @@ export const nudgeFor = (prompt: string, f: Flow): Nudge => {
   if (BUG_ASK.test(said)) return { text: said, kind: 'bug' }
   if (BUILD_ASK.test(said)) return { text: said, kind: 'grill' }
   return null
-}
-
-const NUDGE_NOTE: Record<NonNullable<Nudge>['kind'], string> = {
-  grill:
-    "(build-guide: the person is new and follows Matt Pocock's flow: grill, spec, tickets, build test-first, review, PR, retro. " +
-    'They asked for a code change before any grilling. Start your reply with one plain sentence suggesting they run /grill-with-docs first, and why. ' +
-    'Then do what they asked. If the change is large, ask whether to grill first before you write code.)',
-  bug:
-    "(build-guide: the person is new and follows Matt Pocock's flow. They described something broken. " +
-    'Start your reply with one plain sentence suggesting /diagnosing-bugs, which finds a command that shows the bug failing before it fixes anything. ' +
-    'Then help with what they asked, and reproduce the bug before you change code.)',
 }
 
 // ---------- Following the flow ----------
@@ -585,7 +535,6 @@ export const pocock: Method<PocockState> = {
     who: "Matt Pocock's flow (grill the idea, write a spec, cut tickets, build test-first, review, open a PR, run a retro) with a beginner",
     favors: 'grill before building, a spec and tickets for anything bigger than one chat, a failing test before the fix, review before a PR, and finishing open work before starting new work.',
   },
-  ask: { title: 'Claude is asking you', pick: 'what the flow suggests' },
   guide: GUIDE,
 
   empty: EMPTY,
@@ -599,43 +548,17 @@ export const pocock: Method<PocockState> = {
       return { ...s, flow: f && Array.isArray(f.done) ? { ...EMPTY_FLOW, ...f, root } : { ...EMPTY_FLOW, root } }
     },
   },
-  knows: name => nameOf(name) in SKILL_STEP,
 
-  // A prompt that asks for code before any grilling gets this card and a note for
-  // the model. Nothing is blocked.
-  cards: s => {
-    const asked = s.nudge
-    if (asked === null) return []
-    const isBug = asked.kind === 'bug'
-    return [
-      {
-        key: 'nudge',
-        title: isBug ? 'Sounds like something is broken' : 'Grill it first?',
-        body: isBug
-          ? '/diagnosing-bugs finds a command that shows the bug failing, then fixes it with a test. Claude will still help with what you asked.'
-          : 'You asked for code before any grilling. A few minutes of questions now saves a rebuild later. Claude will still do what you asked.',
-        color: C.orange,
-        acts: [
-          { ...fill('nudge-go', isBug ? 'Diagnose it' : 'Grill it first', `${isBug ? '/diagnosing-bugs' : '/grill-with-docs'} ${asked.text}`), isPrimary: true },
-          { key: 'nudge-off', label: 'Not this time', apply: x => ({ ...x, nudge: null, isNudgeOff: true }) },
-        ],
-      },
-    ]
+  stageOf: s => s.flow.current,
+  moveTo: (s, stage) => {
+    const step = ORDER.find(x => x === stage)
+    return step ? { ...s, flow: { ...advance(s.flow, '', step), last: s.flow.last }, nudge: null } : s
   },
-
-  now: s => {
-    const next = nextFor(s.flow)
-    return {
-      svg: nowSvg(s.flow),
-      alt: 'Where you are on the path from idea to shipped, and the next step',
-      md: nowMd(s.flow),
-      next: { ...next.main, key: 'next-step', label: `Next step: ${next.main.label}`, isPrimary: true },
-      others: next.others,
-      note: 'Next step fills your prompt. Read it, add what it asks for, then press Enter.',
-      phase: s.flow.current !== null && s.flow.current !== 'retro' ? 'running' : 'idle',
-      reset: { key: 'reset', label: 'Start over', apply: x => ({ ...x, flow: { ...EMPTY_FLOW, root: x.flow.root } }) },
-    }
-  },
+  brief: s => (s.flow.current ? `step ${stepOf(s.flow.current).name} (${stepOf(s.flow.current).cmd})` : 'not started, no idea grilled yet'),
+  column,
+  next: nextOf,
+  phase: s => (s.flow.current !== null && s.flow.current !== 'retro' ? 'running' : 'idle'),
+  reset: s => ({ ...s, flow: { ...EMPTY_FLOW, root: s.flow.root }, nudge: null }),
   isBusy: s => s.flow.current !== null,
 
   hooks: {
@@ -647,14 +570,10 @@ export const pocock: Method<PocockState> = {
       if (tool === 'Bash' && typeof args.command === 'string' && /\bgh pr create\b/.test(args.command)) next = { ...next, flow: advance(next.flow, 'gh pr create', 'pr') }
       return { s: next }
     },
+    // A request for code before any grilling shows in this column and nowhere else.
     prompt: (s, said, isPerson, hasSkills) => {
-      const found = isPerson && !s.isNudgeOff && hasSkills ? nudgeFor(said, s.flow) : null
-      if (!found) return { s: s.nudge === null ? s : { ...s, nudge: null } }
-      return {
-        s: { ...s, nudge: found },
-        note: NUDGE_NOTE[found.kind],
-        toast: found.kind === 'bug' ? 'Build guide: try /diagnosing-bugs. The pane has a button.' : 'Build guide: grill it first? The pane has a button.',
-      }
+      const found = isPerson && hasSkills ? nudgeFor(said, s.flow) : null
+      return { s: found ? { ...s, nudge: found } : s.nudge === null ? s : { ...s, nudge: null } }
     },
   },
 }

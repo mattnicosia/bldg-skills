@@ -1,30 +1,31 @@
 import { expect, test } from 'claude-code/testing'
 
-import { all, COMPOSER, engine, md, PANE, POCOCK, settle, START } from './engine'
+import { all, col, COMPOSER, engine, PANE, POCOCK, settle, START } from './engine'
 
-test('the strip follows the skills, Next step offers only what the flow allows, and /implement covers review', async ($, on) => {
+test('the pocock column follows the skills, its next move offers only what the flow allows, and /implement covers review', async ($, on) => {
   engine(on)
   await $.session.start(START)
   const pane = await $.ui.mount(PANE())
   await pane.press({ key: 'tab-now' })
-  expect(await md(pane)).toContain('Nothing started yet')
-  expect(await md(pane)).toContain('**Next step:** Grill your idea: `/grill-with-docs`')
+  expect(await col(pane, 'pocock')).toContain('**pocock** · Not started')
+  expect(await all(pane)).toContain('Grill your idea')
 
   await $.skill.prompt({ skill: 'mattpocock-skills:grill-with-docs', text: 'x' })
-  expect(await md(pane)).toContain('**[Grill]** → Spec')
-  expect(await md(pane)).toContain('**Next step:** Write the spec: `/to-spec`')
-  expect(await md(pane)).toContain('Keep grilling, spec and tickets in this one chat')
+  expect(await col(pane, 'pocock')).toContain('**pocock** · Step 1 of 7 · Grill')
+  expect(await col(pane, 'pocock')).toContain('Keep grilling, spec and tickets in this one chat')
+  expect(await all(pane)).toContain('"source":"/to-spec"')
 
   await $.tool.call({ tool: 'Skill', skill: 'to-spec' })
   await $.command.run({ command: 'to-tickets', args: '', ...COMPOSER })
-  expect(await md(pane)).toContain('**Next step:** Build the first ticket')
-  expect(await md(pane)).toContain('Clear the chat before each ticket')
+  expect(await all(pane)).toContain('Build the first ticket')
+  expect(await col(pane, 'pocock')).toContain('Clear the chat before each ticket')
 
   await $.skill.prompt({ skill: 'implement', text: 'x' })
-  const built = await md(pane)
-  expect(built).toContain('✓Build → **[Review]**')
-  expect(built).toContain('**Next step:** Open the pull request')
-  // A step under way offers the shared quick replies, with /wait-what as the plain-words one.
+  const built = await col(pane, 'pocock')
+  expect(built).toContain('[x] Build')
+  expect(built).toContain('[>] Review (/code-review)')
+  expect(await all(pane)).toContain('Open the pull request')
+  // A step under way offers the shared quick replies.
   expect(await all(pane)).toContain('Show me the evidence')
   await settle()
 })
@@ -35,67 +36,61 @@ test('skipping the grill shows why it matters, and a bug fix does not count as a
   const pane = await $.ui.mount(PANE())
   await pane.press({ key: 'tab-now' })
   await $.skill.prompt({ skill: 'tdd', text: 'x' })
-  expect(await md(pane)).toContain('**You skipped Grill.** Code built on a fuzzy idea gets rebuilt.')
-  expect(await md(pane)).toContain('**Next step:** Review the change')
+  expect(await col(pane, 'pocock')).toContain('**You skipped Grill:** Code built on a fuzzy idea gets rebuilt.')
+  expect(await all(pane)).toContain('Review the change')
 
   await pane.press({ key: 'reset' })
   await $.skill.prompt({ skill: 'diagnosing-bugs', text: 'x' })
-  expect(await md(pane)).not.toContain('You skipped')
+  expect(await col(pane, 'pocock')).not.toContain('You skipped')
   await settle()
 })
 
-test('a build request before any grilling gets a nudge card and a note for the model, and nothing is blocked', async ($, on) => {
+test('a build request before any grilling shows in the pocock column only: no note for the model, no toast, nothing blocked', async ($, on) => {
   const { seen } = engine(on)
   await $.session.start(START)
   const pane = await $.ui.mount(PANE())
+  await pane.press({ key: 'tab-now' })
   await $.prompt.submit({ text: 'add a dark mode toggle to settings', wait: false, origin: { kind: 'composer' } })
   expect(seen.sent[0]).toBe('add a dark mode toggle to settings')
-  expect(seen.context.join(' ')).toContain('suggesting they run /grill-with-docs first')
-  expect(await all(pane)).toContain('Grill it first?')
-  await pane.press({ key: 'nudge-go' })
-  expect(seen.filled[0]).toBe('/grill-with-docs add a dark mode toggle to settings')
+  expect(seen.context).toEqual([])
+  expect(seen.toasts).toEqual([])
+  expect(await col(pane, 'pocock')).toContain('**Grill it first?:**')
+  await pane.press({ key: 'next-pocock' })
+  expect(seen.filled.at(-1)).toBe('/grill-with-docs add a dark mode toggle to settings')
+  expect(seen.sent).toEqual(['add a dark mode toggle to settings'])
 
   await $.prompt.submit({ text: 'the login page crashes on submit', wait: false, origin: { kind: 'composer' } })
-  expect(await all(pane)).toContain('Sounds like something is broken')
+  expect(await col(pane, 'pocock')).toContain('Sounds like something is broken')
 
   await $.prompt.submit({ text: 'how does the login page work?', wait: false, origin: { kind: 'composer' } })
-  expect(await all(pane)).not.toContain('Sounds like something is broken')
+  expect(await col(pane, 'pocock')).not.toContain('Sounds like something is broken')
 
   await $.skill.prompt({ skill: 'grill-with-docs', text: 'x' })
-  const before = seen.context.length
   await $.prompt.submit({ text: 'add the toggle now', wait: false, origin: { kind: 'composer' } })
-  expect(seen.context.length).toBe(before)
-  await settle()
-})
-
-test('Not this time turns the nudge off for the session', async ($, on) => {
-  const { seen } = engine(on)
-  await $.session.start(START)
-  const pane = await $.ui.mount(PANE())
-  await $.prompt.submit({ text: 'add a dark mode toggle to settings', wait: false, origin: { kind: 'composer' } })
-  await pane.press({ key: 'nudge-off' })
-  expect(await all(pane)).not.toContain('Grill it first?')
-  const before = seen.context.length
-  await $.prompt.submit({ text: 'add a light mode toggle too', wait: false, origin: { kind: 'composer' } })
-  expect(seen.context.length).toBe(before)
-  await settle()
-})
-
-test('the pstack method sends no beginner nudges', async ($, on) => {
-  const { seen } = engine(on, { plugins: ['pstack@pstack-claude', ...POCOCK] })
-  await $.session.start(START)
-  await $.prompt.submit({ text: 'add a dark mode toggle to settings', wait: false, origin: { kind: 'composer' } })
+  expect(await col(pane, 'pocock')).not.toContain('Grill it first?')
   expect(seen.context).toEqual([])
   await settle()
 })
 
-test('the word exception alone is not a bug report', async ($, on) => {
-  const { seen } = engine(on)
+test('no method adds a note to the prompt, with both installed', async ($, on) => {
+  const { seen } = engine(on, { plugins: ['pstack@pstack-claude', ...POCOCK] })
   await $.session.start(START)
+  await $.prompt.submit({ text: 'add a dark mode toggle to settings', wait: false, origin: { kind: 'composer' } })
+  await $.prompt.submit({ text: 'the login page crashes on submit', wait: false, origin: { kind: 'composer' } })
+  expect(seen.context).toEqual([])
+  expect(seen.toasts).toEqual([])
+  await settle()
+})
+
+test('the word exception alone is not a bug report', async ($, on) => {
+  engine(on)
+  await $.session.start(START)
+  const pane = await $.ui.mount(PANE())
+  await pane.press({ key: 'tab-now' })
   await $.prompt.submit({ text: 'yes add the exception line', wait: false, origin: { kind: 'composer' } })
-  expect(seen.context.join(' ')).not.toContain('/diagnosing-bugs')
+  expect(await col(pane, 'pocock')).not.toContain('Sounds like something is broken')
   await $.prompt.submit({ text: 'saving the form throws an exception', wait: false, origin: { kind: 'composer' } })
-  expect(seen.context.join(' ')).toContain('/diagnosing-bugs')
+  expect(await col(pane, 'pocock')).toContain('Sounds like something is broken')
   await settle()
 })
 
@@ -144,13 +139,16 @@ test('a repo that is not set up offers Set up this repo first', async ($, on) =>
 })
 
 test('the flow is saved per repo, so a new session picks up where the last one stopped', async ($, on) => {
-  const { store } = engine(on, {
+  const { store, stages } = engine(on, {
     store: { 'pocock:/Users/me/dev/app': { root: '/Users/me/dev/app', done: ['grill', 'spec', 'tickets'], current: 'tickets', last: 'to-tickets', isBugFix: false } },
   })
   await $.session.start(START)
   const pane = await $.ui.mount(PANE())
   await pane.press({ key: 'tab-now' })
-  expect(await md(pane)).toContain('**[Tickets]**')
+  expect(await col(pane, 'pocock')).toContain('Step 3 of 7 · Tickets')
+  // The loaded position moves pstack too, and a load is not a move.
+  expect(await col(pane, 'pstack')).toContain('**pstack** · Design')
+  expect(stages.at(-1)).toEqual({ at: 'design', by: 'pocock', moves: 0 })
   await $.skill.prompt({ skill: 'implement', text: 'x' })
   expect((store['pocock:/Users/me/dev/app'] as { current: string }).current).toBe('review')
   await settle()
