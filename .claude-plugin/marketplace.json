@@ -176,8 +176,8 @@
     },
     {
       "name": "build-guide",
-      "description": "A Claude Code mod: a side pane with the BLDG OS target map on top and two build methods side by side on the same work, pstack and Matt Pocock's flow (grill, spec, tickets, build, review, PR, retro), each with its next move, plus a repo dashboard, one-press starts, a summary after each turn and a card for each choice Claude asks you to make. Replaces pocock-guide.",
-      "version": "0.2.0",
+      "description": "A Claude Code mod: a side pane with the session repo's target map on top and two build methods side by side on the same work, pstack and Matt Pocock's flow (grill, spec, tickets, build, review, PR, retro), each with its next move, plus a repo dashboard, one-press starts, a summary after each turn and a card for each choice Claude asks you to make. Replaces pocock-guide.",
+      "version": "0.2.1",
       "author": {
         "name": "Matt Nicosia"
       },

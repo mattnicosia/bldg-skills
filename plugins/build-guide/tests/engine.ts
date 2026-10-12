@@ -28,6 +28,10 @@ type Setup = {
   model?: string
   // The target map status file, or null when there is none.
   target?: unknown
+  // The files in the repo's targets/ folder.
+  targets?: string[]
+  // What the target-map check script exits with.
+  scriptExit?: number
 }
 
 const now = () => Math.floor(Date.now() / 1000)
@@ -51,10 +55,20 @@ export const engine = (on: On, setup: Setup = {}) => {
   }
   on('session.start', async (_$, e) => ({ cwd: e.cwd }))
   on('session.cwd', async () => ({ value: '/Users/me/dev/app' }))
-  on('env.get', async () => ({ value: '/Users/me' }))
+  on('env.get', async (_$, e) => ({ value: e.name === 'HOME' ? '/Users/me' : undefined }))
+  const targets = setup.targets ?? ['bldg-os.json']
+  const product = (targets.filter(t => t.endsWith('.json')).sort()[0] ?? '').replace(/\.json$/, '')
+  on('fs.list', async (_$, e) => {
+    if (e.path !== '/Users/me/dev/app/targets' || targets.length === 0) throw new Error('ENOENT')
+    return { value: targets.map(name => ({ name, kind: 'file' as const, size: 1, mtimeMs: 0, isLink: false })) }
+  })
   on('fs.read', async (_$, e) => {
-    if (e.path.endsWith('installed_plugins.json')) return { value: JSON.stringify({ version: 2, plugins: Object.fromEntries(plugins.map(p => [p, []])) }) }
-    if (e.path === '/Users/me/.claude/target-map/bldg-os.status.json') {
+    if (e.path.endsWith('installed_plugins.json')) {
+      const all: Record<string, unknown> = Object.fromEntries(plugins.map(p => [p, []]))
+      all['target-map@matt-mods'] = [{ installPath: '/Users/me/.claude/plugins/cache/matt-mods/target-map/0.2.0' }]
+      return { value: JSON.stringify({ version: 2, plugins: all }) }
+    }
+    if (e.path === `/Users/me/.claude/target-map/${product}.status.json`) {
       if (setup.target === undefined || setup.target === null) throw new Error('ENOENT')
       return { value: JSON.stringify(setup.target) }
     }
@@ -69,6 +83,10 @@ export const engine = (on: On, setup: Setup = {}) => {
   on('process.run', async (_$, e) => {
     const [cmd, ...rest] = e.argv
     if (cmd === 'gh') return RUN(JSON.stringify(setup.prs ?? []))
+    if (cmd === 'node') {
+      seen.ran.push(e.argv.join(' '))
+      return RUN('', setup.scriptExit ?? 0)
+    }
     const key = rest.join(' ')
     return key in git ? RUN(git[key] ?? '') : RUN('', 1)
   })
