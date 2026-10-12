@@ -34,7 +34,14 @@ Nothing is copied into a second location, so nothing drifts.
 | [`bldg-website-design`](plugins/bldg-website-design) | 9 |  | Website design and build: frontend design, motion, cloning and upgrades. |
 | [`corey-ganim`](plugins/corey-ganim) | 3 | Corey Ganim | Corey Ganim's Build With AI set, v3.1.1, from Return My Time. Claude Cowork workspace onboarding, an AI readiness self-assessment on the Audit-Optimize-Automate framework, and a session context loader. The self-assessment is the paid, community-only version. |
 | [`matt-pocock`](plugins/matt-pocock) | 37 | Matt Pocock | Matt Pocock's skill collection, mirrored at 1.3.1. TypeScript, testing, code review and the productivity set. Mirror maintained by Matt Nicosia; upstream docs in upstream/. |
-| [`pocock-guide`](plugins/pocock-guide) | mod |  | A side pane for beginners on Matt Pocock's flow: it shows the step you are on, what it is for, and one Next step button. It nudges you to grill an idea before asking for code. Install it beside `matt-pocock`, the v1.3.1 mirror above. The official marketplace's `mattpocock-skills` is older and lacks `/implement-spec`, `/pr` and `/retro`. It also stops Claude from running destructive git (pushing to main, force pushing, `reset --hard`, `clean -f`, `branch -D`, `checkout .`, `restore .`, `gh pr merge`); turn that off with the `gitGuard` option on a reviewer's machine. Open it with `/mod-pocock`. |
+| [`build-guide`](plugins/build-guide) | mod |  | A side pane that walks you through a build method. Pick pstack or Matt Pocock's flow with the switch at the top; it starts on pstack when pstack is installed. Start shows the repo's open PRs, uncommitted files, stale branches and worktrees, each with a button, plus one-press starts. Now shows the step you are on and the next one. After each turn a card says what Claude did, and when Claude asks you to choose, a card puts a button on each option. Pocock's flow also needs `matt-pocock`, the v1.3.1 mirror above. It stops Claude from running destructive git (pushing to main, force pushing, `reset --hard`, `clean -f`, `branch -D`, `checkout .`, `restore .`, `gh pr merge`); turn that off with the `gitGuard` option on a reviewer's machine. Open it with `/mod-guide`, or `/mod-guide pocock` to switch. |
+
+`pocock-guide` is now `build-guide`. Install the new one and remove the old one:
+
+```bash
+claude plugin install build-guide@bldg-skills
+claude plugin uninstall pocock-guide
+```
 
 The plugins with a name in the **Whose** column are other people's work, mirrored here
 and named after their author so it is obvious at a glance whose thinking you are running.
