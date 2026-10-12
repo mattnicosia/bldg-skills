@@ -26,6 +26,8 @@ type Setup = {
   prs?: unknown[]
   // What Haiku answers.
   model?: string
+  // The target map status file, or null when there is none.
+  target?: unknown
 }
 
 const now = () => Math.floor(Date.now() / 1000)
@@ -34,7 +36,7 @@ const now = () => Math.floor(Date.now() / 1000)
 // plugins installed, and a store that keeps what the mod writes.
 export const engine = (on: On, setup: Setup = {}) => {
   const store: Record<string, unknown> = { ...setup.store }
-  const seen = { opened: 0, filled: [] as string[], sent: [] as string[], ran: [] as string[], args: [] as string[], context: [] as string[], tools: [] as string[] }
+  const seen = { opened: 0, filled: [] as string[], sent: [] as string[], ran: [] as string[], args: [] as string[], context: [] as string[], tools: [] as string[], toasts: [] as string[], asked: [] as string[] }
   const plugins = setup.plugins ?? POCOCK
   const git: Record<string, string> = {
     'rev-parse --show-toplevel': '/Users/me/dev/app',
@@ -52,6 +54,10 @@ export const engine = (on: On, setup: Setup = {}) => {
   on('env.get', async () => ({ value: '/Users/me' }))
   on('fs.read', async (_$, e) => {
     if (e.path.endsWith('installed_plugins.json')) return { value: JSON.stringify({ version: 2, plugins: Object.fromEntries(plugins.map(p => [p, []])) }) }
+    if (e.path === '/Users/me/.claude/target-map/bldg-os.status.json') {
+      if (setup.target === undefined || setup.target === null) throw new Error('ENOENT')
+      return { value: JSON.stringify(setup.target) }
+    }
     return { value: '1. Reproduce it yourself on the matching surface.\n2. Binary-search the cause. More words.\n' }
   })
   on('fs.exists', async (_$, e) => ({ value: e.path.endsWith('docs/agents/issue-tracker.md') ? setup.isSetUp !== false : false }))
@@ -75,7 +81,10 @@ export const engine = (on: On, setup: Setup = {}) => {
     seen.opened += 1
     return { value: { isPlaced: true as const } }
   })
-  on('ui.toast', async () => ({ value: undefined }))
+  on('ui.toast', async (_$, e) => {
+    seen.toasts.push(e.text)
+    return { value: undefined }
+  })
   let created = 6
   on('tool.call', async (_$, e) => {
     if (e.tool === 'TaskCreate') return { result: {}, text: `Task #${(created += 1)} created successfully` }
@@ -96,11 +105,26 @@ export const engine = (on: On, setup: Setup = {}) => {
     seen.context.push(...(e.context ?? []))
     return { text: e.text, context: e.context }
   })
-  on('model.complete', async () => ({
-    value: { isAnswered: true, text: setup.model ?? 'WHAT: It decides who may send a price.\nMOVE: Nothing yet. Check it names the forwarded link risk.', usage: USAGE },
-  }))
+  on('model.complete', async (_$, e) => {
+    seen.asked.push(e.prompt)
+    // An empty model answer stands for a session with no Haiku.
+    if (setup.model === '') return { value: { isAnswered: false as const, reason: 'empty-reply' as const, usage: USAGE } }
+    return {
+      value: {
+        isAnswered: true as const,
+        text: setup.model ?? 'WHAT: It decides who may send a price.\npstack: Nothing yet. Check it names the forwarded link risk.\npocock: Watch the failing test go green before review.',
+        usage: USAGE,
+      },
+    }
+  })
   on('turn.complete', async (_$, e) => ({ text: e.answer }))
-  return { store, seen }
+  // Every value the mod writes to its shared stage, in order.
+  const stages: { at: string | null; moves: number }[] = []
+  on('state.set', async (_$, e, next) => {
+    if (e.key === 'stage') stages.push(e.value as { at: string | null; moves: number })
+    return next(e)
+  })
+  return { store, seen, stages }
 }
 
 // The test runner has timers; the hooks module's type library does not name them.
@@ -115,3 +139,6 @@ export const settle = async () => {
 export const md = async (pane: { find: (q: { type: 'Markdown' }) => Promise<{ text: string } | undefined> }) => (await pane.find({ type: 'Markdown' }))?.text ?? ''
 
 export const all = async (pane: { find: (q: { type: 'Box' }) => Promise<unknown> }) => JSON.stringify(await pane.find({ type: 'Box' }))
+
+// One method's column on the Now tab, as the terminal draws it.
+export const col = async (pane: { find: (q: { key: string }) => Promise<unknown> }, id: string) => JSON.stringify(await pane.find({ key: `col-${id}` }))

@@ -1,10 +1,11 @@
 // pstack: say the goal and how to check it, and /poteto-mode picks the playbook.
 
-import type { Advice, Live, Power, PullRequest, Seen, Task, TaskStatus } from '../../types'
-import { C, chip, chips, chipW, cut, doc, down, esc, labelOf, lines, MONO, nextCard, text, tick, W, wrap, type Item } from '../draw'
-import { fill, mergeAct, say, type Act, type GuidePage, type Method, type Out } from '../method'
+import type { Advice, Live, Power, PullRequest, SharedId, Task } from '../../types'
+import { C, chip, chips, chipW, cut, doc, down, esc, labelOf, lines, MONO, text, W, wrap, type Item } from '../draw'
+import { fill, mergeAct, say, type Act, type Column, type GuidePage, type Method, type Out, type Row, type Section } from '../method'
+import { SHARED } from '../stages'
 
-const EMPTY_LIVE: Live = { playbook: null, advice: {}, power: { model: '', effort: '' }, steps: [], tasks: [], skills: [], prOpened: false, prMerged: false }
+const EMPTY_LIVE: Live = { playbook: null, stage: null, advice: {}, power: { model: '', effort: '' }, steps: [], tasks: [], skills: [], prOpened: false, prMerged: false }
 
 // ---------- Map ----------
 
@@ -529,16 +530,23 @@ const parseSteps = (md: string) =>
     .map(s => s.replace(/[*`]/g, '').split(/(?<=[a-z)])[.;:]\s/)[0] ?? s)
     .map(s => cut(s.split(' ').slice(0, 8).join(' '), 48))
 
-const stageNow = (l: Live) => {
-  const fromPlaybook = l.playbook ? PLAYBOOK_STAGE[l.playbook] : undefined
-  if (fromPlaybook !== undefined) return fromPlaybook
-  const skill = [...l.skills].reverse().find(s => s in SKILL_STAGE)
-  return skill ? (SKILL_STAGE[skill] ?? -1) : -1
-}
+const stageAt = (n: number | undefined): SharedId | null => (n === undefined ? null : (SHARED[n]?.id ?? null))
 
-type Move = { label: string; prompt: string; why: string }
+// A step that starts moves the stage when its words name one. Matched in order,
+// so "Reproduce the duplicate write" is reading, not building.
+const TASK_STAGE: [RegExp, SharedId][] = [
+  [/\b(open (the|a) pr|pull request|push|land|babysit|ship it)\b/i, 'ship'],
+  [/\b(verify|review|prove|blast[- ]radius|interrogate|audit|evidence)\b/i, 'verify'],
+  [/\b(design|architect|spec|plan|decide|ticket|tickets)\b/i, 'design'],
+  [/\b(read|explore|map|trace|investigate|reproduce|repro|understand|recall|find)\b/i, 'understand'],
+  [/\b(implement|build|fix|write|add|refactor|code|test)\b/i, 'build'],
+]
 
-const nextMove = (l: Live): { now: Move; then: string[] } => {
+export const taskStage = (subject: string): SharedId | null => TASK_STAGE.find(([re]) => re.test(subject))?.[1] ?? null
+
+type Next = { label: string; prompt: string; why: string }
+
+const nextMove = (l: Live): { now: Next; then: string[] } => {
   const open = l.tasks.filter(t => t.status !== 'completed')
   const pb = l.playbook ?? ''
   const used = new Set(l.skills)
@@ -631,24 +639,27 @@ const powerFit = (need: Tier, power: Power): Fit => {
 const ADVICE_PROMPT = (l: Live, step: string) =>
   'You coach the user, who runs AI coding agents but does not write code. ' +
   'An agent is working through a pstack playbook, a checklist it follows step by step. ' +
-  'Write two lines about the step it is on now.\n' +
+  'Write about the step it is on now.\n' +
   'Line 1 starts with "WHAT:" and says in plain words what the agent is doing in this step and why it matters.\n' +
-  'Line 2 starts with "MOVE:" and says what the user should do during it: often "Nothing yet." followed by what to watch for, ' +
-  'or the question they will be asked to rule on.\n' +
   'Each line is one sentence under 22 words. Use short everyday words. No dashes, no markdown, no lists.\n\n' +
   `Playbook: ${l.playbook ? playbookName(l.playbook) : 'none named'}\n` +
   `All steps:\n${l.tasks.map(t => `- ${t.subject}`).join('\n')}\n` +
   `Step now: ${step}`
 
-const parseAdvice = (said: string): Advice | null => {
+// WHAT is the step; every other "name: line" is one method's line.
+export const parseAdvice = (said: string): Advice | null => {
   const what = /WHAT:\s*(.+)/i.exec(said)?.[1]?.trim()
-  const move = /MOVE:\s*(.+)/i.exec(said)?.[1]?.trim()
-  return what && move ? { what, move, isReady: true } : null
+  if (!what) return null
+  const would: Record<string, string> = {}
+  for (const line of said.split('\n')) {
+    const found = /^[\s*-]*([a-z][\w-]*)\s*:\s*(.+)$/i.exec(line)
+    const name = found?.[1]?.toLowerCase()
+    if (found && name && name !== 'what' && name !== 'move') would[name] = (found[2] ?? '').trim()
+  }
+  return { what, would, isReady: true }
 }
 
-const norm = (l: Live): Live => ({ ...EMPTY_LIVE, ...l, advice: l.advice ?? {}, power: l.power ?? EMPTY_LIVE.power })
-
-const done = (cx: number, cy: number) => `<circle cx="${cx}" cy="${cy}" r="9" fill="${C.green}"/>${tick(cx, cy)}`
+const norm = (l: Live): Live => ({ ...EMPTY_LIVE, ...l, stage: l.stage ?? null, advice: l.advice ?? {}, power: l.power ?? EMPTY_LIVE.power })
 
 // A step the agent is under-powered for turns the next move into a switch.
 const moveFor = (l: Live) => {
@@ -661,109 +672,53 @@ const moveFor = (l: Live) => {
   return base
 }
 
-export const liveSvg = (l: Live) => {
-  let b = ''
-  const stage = stageNow(l)
-  b += text(20, 34, 'h ink', 'You are here')
-  const sw = (W - 32 - 5 * 6) / 6
-  STAGES.forEach((s, i) => {
-    const x = 16 + i * (sw + 6)
-    const isNow = i === stage
-    const isPast = stage >= 0 && i < stage
-    const tint = isNow || isPast ? s.color : '#E5E5EA'
-    b += `<rect x="${x}" y="56" width="${sw}" height="${isNow ? 14 : 10}" rx="5" fill="${tint}" fill-opacity="${isPast ? 0.4 : 1}"/>`
-    b += `<text x="${x + sw / 2}" y="90" text-anchor="middle" font-size="11" class="${isNow ? 'ink' : 'mut'}"${isNow ? ' font-weight="700"' : ''}>${s.name}</text>`
-    if (isNow) b += `<path d="M${x + sw / 2 - 7} 42 h14 l-7 9 z" fill="${s.color}"/>`
-  })
-  let y = 116
-  const color = STAGES[stage]?.color ?? C.gray
-  const rows: { label: string; status: TaskStatus | 'listed' }[] =
-    l.tasks.length > 0 ? l.tasks.map(t => ({ label: t.subject, status: t.status })) : l.steps.map(s => ({ label: s, status: 'listed' as const }))
+// What pstack would do at each stage when Haiku has not said, or cannot.
+const WOULD: Record<SharedId, string> = {
+  understand: 'Map how the code works with /how and /why before changing anything.',
+  design: 'Settle the types and boundaries with /architect, and /arena for one hard call.',
+  build: 'Follow the playbook: a repro or failing test first, then the smallest fix.',
+  verify: 'Prove it on the real app or output, and run /blast-radius on the change.',
+  ship: 'Open small ordered commits as a PR with the evidence, and babysit it green.',
+  overnight: 'Give it a finish line it can check, then audit the night with /show-me-your-work.',
+}
+const WOULD_IDLE = 'Say the goal and how to check it to /poteto-mode, and let it pick the playbook.'
+
+const running = (l: Live) => l.tasks.find(t => t.status === 'in_progress')
+
+const column = (raw: Live, would: string | undefined): Column => {
+  const l = norm(raw)
+  const stage = SHARED.find(x => x.id === l.stage)
+  const rows: Row[] =
+    l.tasks.length > 0
+      ? l.tasks.slice(0, 10).map(t => {
+          const need = tierFor(t.subject)
+          return { label: t.subject, mark: t.status === 'completed' ? 'done' : t.status === 'in_progress' ? 'now' : 'todo', tag: `${need.model} · ${need.effort}` }
+        })
+      : l.steps.slice(0, 10).map(x => ({ label: x, mark: 'todo' as const }))
+  const sections: Section[] = []
+  const task = running(l)
+  if (task) {
+    const advice = l.advice[task.id]
+    sections.push({ title: "What's happening", body: advice?.what ?? 'Working out advice for this step…' })
+    const fit = powerFit(tierFor(task.subject), l.power)
+    sections.push({ title: 'Power', body: fit.text, tone: fit.kind === 'under' ? 'bad' : fit.kind === 'match' ? 'good' : undefined })
+  } else if (rows.length === 0) {
+    sections.push({ title: 'Nothing running yet', body: l.playbook ? 'Waiting for its task list.' : 'Start a task with /poteto-mode and this fills in.' })
+  }
   const finished = l.tasks.filter(t => t.status === 'completed').length
-  const heading = l.playbook ? `${playbookName(l.playbook)} playbook` : l.tasks.length ? 'Task list' : 'Nothing running yet'
-  b += `<rect x="16" y="${y}" width="5" height="18" rx="2" fill="${color}"/>`
-  b += text(28, y + 14, 'lab ink', heading)
-  if (l.tasks.length > 0) b += text(W - 20, y + 14, 'sm mut', `${finished} of ${l.tasks.length} done`, ' text-anchor="end"')
-  y += 30
-  if (rows.length === 0) {
-    b += text(20, y + 8, 'body mut', l.playbook ? 'Waiting for its task list.' : 'Start a task with /poteto-mode and this fills in.')
-    y += 26
+  return {
+    stage: stage?.name ?? 'Not started',
+    title: l.playbook ? `${playbookName(l.playbook)} playbook` : l.tasks.length ? `Task list · ${finished} of ${l.tasks.length} done` : 'No playbook yet',
+    rows,
+    sections,
+    would: would ?? (l.stage ? WOULD[l.stage] : WOULD_IDLE),
   }
-  const shown = l.tasks.length > 0 ? l.tasks.slice(0, 12) : []
-  rows.slice(0, 12).forEach((r, i) => {
-    const isNow = r.status === 'in_progress'
-    const need = tierFor(r.label)
-    const cy = y + 11
-    let cardH = 30
-    let card = ''
-    if (isNow) {
-      const task = shown[i]
-      const advice = task ? l.advice[task.id] : undefined
-      const fit = powerFit(need, l.power)
-      const fitColor = fit.kind === 'under' ? C.red : fit.kind === 'match' ? C.green : C.gray
-      const sections: [string, string, string][] = [
-        ["What's happening", advice?.what ?? 'Working out advice for this step…', advice ? '' : 'mut'],
-        ['Your move', advice?.move ?? 'Hold on a moment.', advice ? '' : 'mut'],
-        ['Power', fit.text, fitColor],
-      ]
-      let ay = y + 34
-      for (const [title, body, tone] of sections) {
-        card += `<text x="50" y="${ay}" font-size="11" font-weight="700" fill="${tone.startsWith('#') ? tone : C.gray}">${esc(title)}</text>`
-        ay += 16
-        for (const line of wrap(body, 52)) {
-          card += `<text x="50" y="${ay}" font-size="12.5"${tone.startsWith('#') ? ` fill="${tone}"` : ` class="${tone || 'ink'}"`}>${esc(line)}</text>`
-          ay += 16
-        }
-        ay += 6
-      }
-      cardH = ay - y
-      b += `<rect x="16" y="${y - 4}" width="${W - 32}" height="${cardH}" rx="10" fill="${C.orange}" fill-opacity=".12" stroke="${C.orange}" stroke-opacity=".55"/>`
-    }
-    if (r.status === 'completed') b += done(32, cy)
-    else if (isNow) b += `<circle cx="32" cy="${cy}" r="8" fill="none" stroke="${C.orange}" stroke-width="2.5"/><circle cx="32" cy="${cy}" r="3.5" fill="${C.orange}"/>`
-    else b += `<circle cx="32" cy="${cy}" r="8" fill="none" class="ln" stroke-width="2"/>`
-    b += `<text x="50" y="${cy + 4.5}" font-size="13"${isNow ? ' font-weight="700"' : ''} class="${r.status === 'pending' || r.status === 'listed' ? 'mut' : 'ink'}">${esc(cut(r.label, 40))}</text>`
-    b += `<text x="${W - 26}" y="${cy + 4}" text-anchor="end" font-size="10.5" font-family="${MONO}" class="mut"><title>${esc(`${need.model} at ${need.effort.toLowerCase()} effort: ${need.why}`)}</title>${need.model} · ${need.effort}</text>`
-    b += card
-    y += isNow ? cardH + 8 : 32
-  })
-  if (rows.length > 12) {
-    b += text(50, y + 6, 'sm mut', `and ${rows.length - 12} more`)
-    y += 22
-  }
-  const trail = l.skills.filter(s => s !== 'poteto-mode').slice(-5)
-  if (trail.length > 0) {
-    y += 6
-    b += text(20, y + 8, 'sm mut', 'Skills used')
-    const f = chips(96, y - 8, W - 16, trail.map(s => ({ label: `/${s}`, tip: `pstack ran /${s}` })), C.slate)
-    b += f.svg
-    y = f.bottom + 14
-  }
-  const next = moveFor(l)
-  y += 8
-  const card = nextCard(y, 'NEXT', next.now.label, next.now.prompt, next.now.why)
-  b += card.svg
-  y += card.h + 24
-  if (next.then.length > 0) {
-    b += text(20, y, 'sm mut', 'Then')
-    b += text(56, y, 'body ink', cut(next.then.join('  →  '), 58))
-    y += 14
-  }
-  return doc(y + 26, b)
 }
 
-const liveMd = (l: Live, count: Seen) => {
-  const next = nextMove(l)
-  const rows = l.tasks.length
-    ? l.tasks.map(t => {
-        const need = tierFor(t.subject)
-        const row = `${t.status === 'completed' ? '[x]' : t.status === 'in_progress' ? '[>]' : '[ ]'} ${t.subject} (${need.model} · ${need.effort})`
-        if (t.status !== 'in_progress') return row
-        const advice = l.advice[t.id]
-        return `${row}\n    What's happening: ${advice?.what ?? 'working it out'}\n    Your move: ${advice?.move ?? 'hold on'}\n    Power: ${powerFit(need, l.power).text}`
-      })
-    : l.steps.map(s => `[ ] ${s}`)
-  return `### You are here\n\n**${l.playbook ? `${playbookName(l.playbook)} playbook` : 'Nothing running yet'}**\n\n${rows.join('\n')}\n\n**Next:** ${next.now.label}: \`${next.now.prompt}\`\n\nSeen: ${count.commands} commands, ${count.skills} skills, ${count.tools} tool calls${count.last.length ? `. Last: ${count.last.join(', ')}` : ''}`
+const brief = (raw: Live) => {
+  const l = norm(raw)
+  const task = running(l)
+  return `stage ${l.stage ?? 'not started'}${l.playbook ? `, ${playbookName(l.playbook)} playbook` : ''}${task ? `, step "${task.subject}"` : ''}`
 }
 
 // ---------- Guide pages ----------
@@ -921,10 +876,13 @@ const nameOf = (raw: string) => raw.split(':').pop() ?? raw
 // that follows does not repeat it.
 let isNoted = false
 
+// A skill moves the stage only when no playbook names one: the playbook leads.
 const useSkill = (l: Live, raw: string): Live => {
   const name = nameOf(raw)
   if (!TRACKED.has(name) || l.skills.at(-1) === name) return l
-  return { ...l, skills: [...l.skills.filter(s => s !== name), name].slice(-8) }
+  const isLed = l.playbook !== null && l.playbook in PLAYBOOK_STAGE
+  const stage = isLed ? l.stage : (stageAt(SKILL_STAGE[name]) ?? l.stage)
+  return { ...l, stage, skills: [...l.skills.filter(s => s !== name), name].slice(-8) }
 }
 
 // The first playbook a run opens is the main one. Playbooks it opens later (Feature
@@ -941,10 +899,12 @@ const addTask = (l: Live, subject: string, id?: string): Live => {
   return { ...l, tasks: [...tasks, { id: id ?? String(tasks.length + 1), subject, status: 'pending' as const }] }
 }
 
-// A step that starts gets two lines of advice from Haiku, once.
+// A step that starts moves the stage its words name, and gets advice from Haiku, once.
 const updateTask = (l: Live, id: string, status: unknown, subject: string | undefined): Out<Live> => {
+  const started = status === 'in_progress' ? l.tasks.find(t => t.id === id) : undefined
   const next: Live = {
     ...l,
+    stage: started ? (taskStage(subject ?? started.subject) ?? l.stage) : l.stage,
     tasks: l.tasks
       .filter(t => !(t.id === id && status === 'deleted'))
       .map((t): Task => (t.id !== id ? t : { ...t, subject: subject ?? t.subject, status: status === 'in_progress' || status === 'completed' || status === 'pending' ? status : t.status })),
@@ -976,27 +936,33 @@ export const pstack: Method<Live> = {
     who: 'the pstack method',
     favors: 'finish open work before starting new work, reproduce before fixing, the smallest change that can be verified, proof over claims, and the cheapest model tier that does the job.',
   },
-  ask: { title: 'Decision waiting', pick: 'pstack pick' },
   guide: GUIDE,
 
   empty: EMPTY_LIVE,
-  knows: name => TRACKED.has(nameOf(name)),
 
-  now: (raw, tally) => {
+  stageOf: raw => norm(raw).stage,
+  moveTo: (raw, stage) => ({ ...norm(raw), stage: SHARED.find(x => x.id === stage)?.id ?? norm(raw).stage }),
+  brief,
+  would: raw => {
     const l = norm(raw)
-    const next = moveFor(l)
-    const isAllDone = l.tasks.length > 0 && l.tasks.every(t => t.status === 'completed')
-    return {
-      svg: liveSvg(l),
-      alt: 'Where pstack is in the current task, and the next move',
-      md: liveMd(l, tally),
-      next: { ...fill('next-step', `Next: ${next.now.label}`, next.now.prompt), isPrimary: true },
-      others: [],
-      note: '',
-      phase: l.tasks.length === 0 ? 'idle' : isAllDone ? 'done' : 'running',
-      reset: { key: 'reset', label: 'Reset', apply: x => ({ ...EMPTY_LIVE, power: norm(x).power }) },
-    }
+    const task = running(l)
+    return task ? l.advice[task.id]?.would : undefined
   },
+  focus: raw => {
+    const l = norm(raw)
+    const task = running(l) ?? l.tasks.at(-1)
+    return [task?.subject ?? '', l.playbook ? playbookName(l.playbook) : ''].filter(Boolean)
+  },
+  column,
+  next: raw => {
+    const next = moveFor(norm(raw)).now
+    return { label: next.label, text: next.prompt, why: next.why }
+  },
+  phase: raw => {
+    const l = norm(raw)
+    return l.tasks.length === 0 ? 'idle' : l.tasks.every(t => t.status === 'completed') ? 'done' : 'running'
+  },
+  reset: raw => ({ ...EMPTY_LIVE, power: norm(raw).power }),
   isBusy: l => norm(l).tasks.some(t => t.status !== 'completed'),
 
   hooks: {
@@ -1029,8 +995,8 @@ export const pstack: Method<Live> = {
         }
       }
       if (tool === 'Bash' && typeof args.command === 'string') {
-        if (/\bgh pr create\b/.test(args.command)) l = { ...l, prOpened: true }
-        if (/\bgh pr merge\b/.test(args.command)) l = { ...l, prMerged: true }
+        if (/\bgh pr create\b/.test(args.command)) l = { ...l, prOpened: true, stage: 'ship' }
+        if (/\bgh pr merge\b/.test(args.command)) l = { ...l, prMerged: true, stage: 'ship' }
       }
       if (tool === 'TaskUpdate' && args.taskId !== undefined) {
         return { ...updateTask(l, String(args.taskId), args.status, typeof args.subject === 'string' ? args.subject : undefined), read }
@@ -1041,11 +1007,11 @@ export const pstack: Method<Live> = {
       const l = norm(raw)
       const slug = PLAYBOOK_PATH.exec(path)?.[2]
       if (!slug || !opensPlaybook(l, slug)) return { s: l }
-      return { s: { ...l, playbook: slug, steps: content === null ? [] : parseSteps(content) }, toast: `Build guide: ${playbookName(slug)} playbook started. /mod-guide shows where you are.` }
+      return { s: { ...l, playbook: slug, stage: stageAt(PLAYBOOK_STAGE[slug]) ?? l.stage, steps: content === null ? [] : parseSteps(content) } }
     },
     answer: (raw, id, said) => {
       const l = norm(raw)
-      const advice = (said === null ? null : parseAdvice(said)) ?? { what: 'No advice came back for this step.', move: 'Watch it as usual.', isReady: false }
+      const advice = (said === null ? null : parseAdvice(said)) ?? { what: 'No advice came back for this step.', would: {}, isReady: false }
       return { ...l, advice: { ...l.advice, [id]: advice } }
     },
     step: (raw, model, effort) => {

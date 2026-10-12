@@ -1,21 +1,29 @@
 // The build guide pane. Everything a method needs done (a read, a write, a
 // model call, a toast) happens here: the engine follows `$` only into functions
 // of this file, so the methods stay data and pure functions.
+//
+// Every method hears every signal and keeps its own state. When one method's
+// own move changes the shared stage, the others move to match (stages.ts), and
+// that counts as one move. No method toasts or adds a note to a prompt: its
+// advice shows in its own column on the Now tab.
 
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
-import type { Decision, Env, MethodId, Seen, States, Summary } from '../types'
+import type { Decision, Env, MethodId, SharedId, Stage, States, Summary, Target } from '../types'
 import { fit } from './draw'
 import { guardBlock } from './guard'
 import { during, skillsOf, type Act, type AnyMethod, type Card, type Out } from './method'
 import { detect, isMethod, methodOf, METHODS } from './methods'
+import { barLines, columnMd, nextCards, pairSvg, type Side } from './pair'
 import { NO_REPO, openWork, prsOf, staleOf, startSvg, treesOf } from './repo'
-import { decidePrompt, decisionSvg, linksIn, looksLikeChoice, parseDecision, parseSummary } from './turn'
+import { ownOf, sharedOf, SHARED } from './stages'
+import { crossesOff, mapLines, mapSvg, MISSING, parseStatus, STATUS_FILE, stripLines, stripSvg } from './target'
+import { ASK, decidePrompt, decisionSvg, linksIn, looksLikeChoice, parseDecision, parseSummary } from './turn'
 
 const PANE = 'build-guide'
 const TITLE = 'Build guide'
-// The method the person last picked, kept across sessions.
+// The method the person last picked in the Guide tab, kept across sessions.
 const PICKED = 'method'
 
 const method = atom({ plugin: 'build-guide', key: 'method' } as const, null as MethodId | null)
@@ -25,45 +33,90 @@ const repo = atom({ plugin: 'build-guide', key: 'repo' } as const, NO_REPO)
 const summary = atom({ plugin: 'build-guide', key: 'summary' } as const, null as Summary)
 const decision = atom({ plugin: 'build-guide', key: 'decision' } as const, null as Decision)
 const states = atom({ plugin: 'build-guide', key: 'states' } as const, {} as States)
-// The tally changes on every tool call, so it lives apart from the methods'
-// states: only the terminal text reads it, and the desktop picture does not redraw for it.
-const seen = atom({ plugin: 'build-guide', key: 'seen' } as const, { commands: 0, skills: 0, tools: 0, last: [] } as Seen)
+const stage = atom({ plugin: 'build-guide', key: 'stage' } as const, { at: null, by: null, moves: 0 } as Stage)
+const target = atom({ plugin: 'build-guide', key: 'target' } as const, { phase: 'unread' } as Target)
+const isTargetOpen = atom({ plugin: 'build-guide', key: 'isTargetOpen' } as const, false)
 
-const active = async ($: EngineInterface) => methodOf(await read($, method))
+const picked = async ($: EngineInterface) => methodOf(await read($, method))
 
 const stateIn = (all: States, m: AnyMethod): unknown => (all as Record<string, unknown>)[m.id] ?? m.empty
 
-// Runs a method's reducer on its state, keeps the result, and does the work it asks for.
-async function step($: EngineInterface, m: AnyMethod, reduce: (s: unknown) => Out<unknown> | undefined) {
-  let out: Out<unknown> | undefined
+type Moved = { by: MethodId; at: SharedId }
+
+// Runs a reducer on each method's state (or only one's), keeps the results, moves
+// the other methods when one changed the shared stage, and does the work asked for.
+async function step($: EngineInterface, reduce: (m: AnyMethod, s: unknown) => Out<unknown> | undefined, only?: AnyMethod) {
+  const outs = new Map<MethodId, Out<unknown>>()
+  const event: { moved: Moved | null } = { moved: null }
   const all = await update($, states, a => {
-    out = reduce(stateIn(a, m))
-    return out ? { ...a, [m.id]: out.s } : a
-  })
-  if (!out) return out
-  if (m.persist) {
-    const root = m.persist.rootOf(stateIn(all, m))
-    if (root) await $.store.set(`${m.id}:${root}`, m.persist.save(stateIn(all, m)))
-  }
-  if (out.toast) $.ui.toast(out.toast)
-  const path = out.read
-  if (path && m.hooks.file) {
-    let content: string | null = null
-    try {
-      content = String(await $.fs.read(path))
-    } catch {
-      content = null
+    outs.clear()
+    event.moved = null
+    const next: Record<string, unknown> = { ...a }
+    for (const m of only ? [only] : METHODS) {
+      const was = stateIn(next as States, m)
+      const out = reduce(m, was)
+      if (!out) continue
+      outs.set(m.id, out)
+      next[m.id] = out.s
+      const before = sharedOf(m.id, m.stageOf(was))
+      const after = sharedOf(m.id, m.stageOf(out.s))
+      if (!event.moved && after !== null && after !== before) event.moved = { by: m.id, at: after }
     }
-    await step($, m, s => m.hooks.file?.(s, path, content))
+    const moved = event.moved
+    if (moved) {
+      for (const o of METHODS) {
+        const s = stateIn(next as States, o)
+        const own = ownOf(o.id, moved.at)
+        if (o.id !== moved.by && own && sharedOf(o.id, o.stageOf(s)) !== moved.at) next[o.id] = o.moveTo(s, own)
+      }
+    }
+    return next as States
+  })
+  const moved = event.moved
+  if (moved) await update($, stage, s => ({ at: moved.at, by: moved.by, moves: s.moves + 1 }))
+  if (outs.size > 0) await save($, all)
+  for (const [id, out] of outs) {
+    const m = methodOf(id)
+    const path = out.read
+    if (path && m.hooks.file) {
+      let content: string | null = null
+      try {
+        content = String(await $.fs.read(path))
+      } catch {
+        content = null
+      }
+      await step($, (x, s) => x.hooks.file?.(s, path, content), m)
+    }
+    const ask = out.ask
+    if (ask && m.hooks.answer) void advise($, m, ask)
   }
-  const ask = out.ask
-  if (ask && m.hooks.answer) {
-    void (async () => {
-      const said = await $.model.complete({ model: 'haiku', prompt: ask.prompt, timeoutMs: 20000 })
-      await step($, m, s => ({ s: m.hooks.answer?.(s, ask.key, said.isAnswered ? said.text : null) ?? s }))
-    })()
+  return outs
+}
+
+// One Haiku call per step: the method's own question, and a line from every
+// method on what it would have the person do now.
+async function advise($: EngineInterface, m: AnyMethod, ask: { key: string; prompt: string }) {
+  const all = await read($, states)
+  const prompt =
+    `${ask.prompt}\n\nThen write one line for each method below. Start the line with the method name and a colon, ` +
+    'and say in under 18 plain words what that method would have the user do now. No dashes, no markdown.\n' +
+    METHODS.map(x => `${x.label}: ${x.brief(stateIn(all, x))}`).join('\n')
+  let said: string | null = null
+  try {
+    const r = await $.model.complete({ model: 'haiku', prompt, timeoutMs: 20000 })
+    said = r.isAnswered ? r.text : null
+  } catch {
+    said = null
   }
-  return out
+  await step($, (x, s) => ({ s: x.hooks.answer?.(s, ask.key, said) ?? s }), m)
+}
+
+async function save($: EngineInterface, all: States) {
+  for (const m of METHODS) {
+    const keep = m.persist
+    const root = keep?.rootOf(stateIn(all, m))
+    if (keep && root) await $.store.set(`${m.id}:${root}`, keep.save(stateIn(all, m)))
+  }
 }
 
 const git = async ($: EngineInterface, args: string[]) => {
@@ -84,7 +137,6 @@ async function mainCheckout($: EngineInterface) {
 
 // Reads the repo once per press, never while drawing, so the pane stays still.
 async function readRepo($: EngineInterface) {
-  const setupFile = (await active($)).setup?.file
   const top = await git($, ['rev-parse', '--show-toplevel'])
   if (top === null) {
     await update($, repo, () => ({ ...NO_REPO, isRead: true, error: 'This session is not in a git repo.' }))
@@ -101,13 +153,18 @@ async function readRepo($: EngineInterface) {
   let prs: ReturnType<typeof prsOf> = []
   let error: string | null = null
   try {
-    const r = await $.process.run(['gh', 'pr', 'list', '--author', '@me', '--state', 'open', '--limit', '8', '--json', 'number,title,isDraft,statusCheckRollup,mergeable,reviewDecision'], { timeoutMs: 15000 })
+    const r = await $.process.run(['gh', 'pr', 'list', '--author', '@me', '--state', 'open', '--limit', '8', '--json', 'number,title,headRefName,isDraft,statusCheckRollup,mergeable,reviewDecision'], { timeoutMs: 15000 })
     if (r.exitCode === 0) prs = prsOf(r.stdout)
     else error = 'Could not read pull requests with gh.'
   } catch {
     error = 'Could not read pull requests with gh.'
   }
-  const isSetUp = setupFile ? await $.fs.exists(`${top}/${setupFile}`).catch(() => true) : true
+  // Set up when every method that names a setup file finds it.
+  let isSetUp = true
+  for (const m of METHODS) {
+    const file = m.setup?.file
+    if (file && !(await $.fs.exists(`${top}/${file}`).catch(() => true))) isSetUp = false
+  }
   const name = ((await mainCheckout($)) ?? top).split('/').pop() ?? top
   await update($, repo, () => ({ isRead: true, error, name, branch, dirty: status ? status.split('\n').length : 0, stale, worktrees: others.length, prs, isSetUp }))
 }
@@ -134,40 +191,71 @@ async function readEnv($: EngineInterface) {
   return value
 }
 
+// The BLDG OS target map, read at the start, on /mod-guide, after each turn and on a press.
+async function readTarget($: EngineInterface) {
+  const home = (await $.env.get('HOME')) ?? ''
+  let text: string | null = null
+  try {
+    text = String(await $.fs.read(`${home}/${STATUS_FILE}`))
+  } catch {
+    text = null
+  }
+  await update($, target, () => (text === null ? { phase: 'missing' } : parseStatus(text)))
+}
+
 // A method that keeps progress per repo loads it once its state names no repo:
-// at the start, and after /clear starts the session's state over.
-async function loadSaved($: EngineInterface, m: AnyMethod) {
-  const keep = m.persist
-  if (!keep || keep.rootOf(stateIn(await read($, states), m))) return
-  const root = (await mainCheckout($)) ?? (await $.session.cwd())
-  const saved = await $.store.get(`${m.id}:${root}`)
-  await update($, states, a => ({ ...a, [m.id]: keep.load(stateIn(a, m), saved, root) }))
+// at the start, and after /clear starts the session's state over. The shared
+// stage then takes the loaded position, and the other methods follow it; a
+// load is not a move.
+async function loadSaved($: EngineInterface) {
+  for (const m of METHODS) {
+    const keep = m.persist
+    if (!keep || keep.rootOf(stateIn(await read($, states), m))) continue
+    const root = (await mainCheckout($)) ?? (await $.session.cwd())
+    const saved = await $.store.get(`${m.id}:${root}`)
+    await update($, states, a => ({ ...a, [m.id]: keep.load(stateIn(a, m), saved, root) }))
+  }
+  if ((await read($, stage)).at !== null) return
+  const all = await read($, states)
+  const from = METHODS.find(m => sharedOf(m.id, m.stageOf(stateIn(all, m))) !== null)
+  const at = from ? sharedOf(from.id, from.stageOf(stateIn(all, from))) : null
+  if (!from || !at) return
+  await update($, states, a => {
+    const next: Record<string, unknown> = { ...a }
+    for (const o of METHODS) {
+      const own = ownOf(o.id, at)
+      if (o.id !== from.id && own) next[o.id] = o.moveTo(stateIn(a, o), own)
+    }
+    return next as States
+  })
+  await update($, stage, s => ({ ...s, at, by: from.id }))
+}
+
+async function startOver($: EngineInterface) {
+  const all = await update($, states, a => Object.fromEntries(METHODS.map(m => [m.id, m.reset(stateIn(a, m))])) as States)
+  await update($, stage, s => ({ ...s, at: null, by: null }))
+  await save($, all)
 }
 
 const registered = new Set<string>()
 
-// Makes `id` the active method: its tab, its saved progress and its tools.
-async function enter($: EngineInterface, id: MethodId) {
-  const m = methodOf(id)
-  await update($, method, () => m.id)
-  // A guide page of the old method becomes the new method's first page.
-  await update($, tab, t => (t === 'start' || t === 'now' || m.guide.some(g => g.id === t) ? t : (m.guide[0]?.id ?? 'start')))
-  await loadSaved($, m)
-  for (const t of m.tools ?? []) {
-    if (registered.has(t.name)) continue
-    registered.add(t.name)
-    await $.tool.register({ name: t.name, description: t.description, inputSchema: t.inputSchema as never })
+async function registerTools($: EngineInterface) {
+  for (const m of METHODS) {
+    for (const t of m.tools ?? []) {
+      if (registered.has(t.name)) continue
+      registered.add(t.name)
+      await $.tool.register({ name: t.name, description: t.description, inputSchema: t.inputSchema as never })
+    }
   }
 }
 
+// Makes `id` the method the Guide tab shows.
 async function pick($: EngineInterface, id: MethodId) {
-  await $.store.set(PICKED, id)
-  await enter($, id)
-  void readRepo($)
-}
-
-function tally($: EngineInterface, kind: keyof Omit<Seen, 'last'>, label: string) {
-  return update($, seen, s => ({ ...s, [kind]: s[kind] + 1, last: [...s.last, label].slice(-4) }))
+  const m = methodOf(id)
+  await $.store.set(PICKED, m.id)
+  await update($, method, () => m.id)
+  // A guide page of the old method becomes the new method's first page.
+  await update($, tab, t => (t === 'start' || t === 'now' || m.guide.some(g => g.id === t) ? t : (m.guide[0]?.id ?? 'start')))
 }
 
 // The engine refuses a submitted prompt that starts with a slash, so a slash
@@ -177,9 +265,7 @@ function send($: EngineInterface, text: string) {
   return slash ? $.command.run({ command: slash[1] ?? '', args: slash[2] ?? '' }) : $.prompt.submit({ text, asUser: true })
 }
 
-async function press($: EngineInterface, a: Act) {
-  const change = a.apply
-  if (change) return step($, await active($), s => ({ s: change(s) }))
+function press($: EngineInterface, a: Act) {
   return a.isSend ? send($, a.text ?? '') : $.prompt.fill({ text: a.text ?? '' })
 }
 
@@ -193,10 +279,13 @@ function installCard(m: AnyMethod, e: Env): Card | null {
     body: `${isOld ? `${m.requires.outdatedNote ?? ''} ` : `The buttons here run ${m.requires.name}, so install it first. `}Run this in a terminal, then start a new session:`,
     color: '#E5342C',
     code: m.requires.install,
-    note: isOld ? (m.requires.removeOld ? `Then remove the old copy with: ${m.requires.removeOld}` : undefined) : 'Or pick another method above.',
+    note: isOld ? (m.requires.removeOld ? `Then remove the old copy with: ${m.requires.removeOld}` : undefined) : undefined,
     acts: [],
   }
 }
+
+// The plain-words reply of the first method whose skills are installed.
+const explainOf = (e: Env) => (METHODS.find(m => skillsOf(m, e) !== 'missing') ?? METHODS[0]!).explain
 
 // Every pressable element of the pane's last drawing, by key, so a focus that
 // lands on one can run it.
@@ -222,11 +311,14 @@ export const register: Register = (on, options) => {
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: 'mod-guide',
-      description: "Open the build guide for pstack or Matt Pocock's flow. Add pstack or pocock to switch.",
+      description: "Open the build guide: pstack and Matt Pocock's flow side by side, under the BLDG OS target map. Add pstack or pocock to pick the one the Guide tab shows.",
     })
     const found = await readEnv($)
     const saved = await $.store.get(PICKED)
-    await enter($, (await read($, method)) ?? (isMethod(saved) ? saved : detect(found)))
+    await update($, method, m => m ?? (isMethod(saved) ? saved : detect(found)))
+    await registerTools($)
+    await loadSaved($)
+    await readTarget($)
     // Opens on its own at session start, so the Start tab is the first thing seen.
     void $.ui.open({ id: PANE, title: TITLE, focus: true })
     void readRepo($)
@@ -238,40 +330,37 @@ export const register: Register = (on, options) => {
     const asked = e.args.trim().toLowerCase()
     if (isMethod(asked)) await pick($, asked)
     else await readEnv($)
-    const m = await active($)
-    const isBusy = m.isBusy(stateIn(await read($, states), m))
+    await readTarget($)
+    const all = await read($, states)
+    const isBusy = METHODS.some(m => m.isBusy(stateIn(all, m)))
     await update($, tab, t => (isBusy && t === 'start' ? 'now' : t))
     await $.ui.open({ id: PANE, title: TITLE })
     void readRepo($)
 
-    return { text: `Build guide opened on ${m.label}.` }
+    return { text: isMethod(asked) ? `Build guide opened. The Guide tab shows ${asked}.` : 'Build guide opened.' }
   })
 
   on('command.run', async ($, e, next) => {
-    const m = await active($)
-    await tally($, m.knows(e.command) ? 'skills' : 'commands', `/${e.command}`)
-    const out = await step($, m, s => m.hooks.command?.(s, e.command, e.args))
-    const args = (out as { args?: string } | undefined)?.args ?? e.args
+    const outs = await step($, (m, s) => m.hooks.command?.(s, e.command, e.args))
+    const args = [...outs.values()].map(o => (o as { args?: string }).args).find(a => a !== undefined && a !== e.args) ?? e.args
     const result = await next(args === e.args ? e : { ...e, args })
-    if (e.command === 'clear') await loadSaved($, m)
+    if (e.command === 'clear') await loadSaved($)
     return result
   })
 
   on('skill.prompt', async ($, e, next) => {
-    const m = await active($)
-    await tally($, 'skills', e.skill)
     const result = await next(e)
-    const out = await step($, m, s => m.hooks.skill?.(s, e.skill, result.text))
-    const said = (out as { text?: string } | undefined)?.text ?? result.text
+    const outs = await step($, (m, s) => m.hooks.skill?.(s, e.skill, result.text))
+    const said = [...outs.values()].map(o => (o as { text?: string }).text).find(t => t !== undefined && t !== result.text) ?? result.text
     return said === result.text ? result : { ...result, text: said }
   })
 
-  // The methods' own tools, served whichever method is active.
+  // The methods' own tools, served whatever the Guide tab shows.
   for (const m of METHODS) {
     for (const t of m.tools ?? []) {
       on('tool.call', { tool: `mcp__build-guide__${t.name}` }, async ($, e) => {
-        const out = await step($, m, s => t.run(s, e as unknown as Record<string, unknown>))
-        return { result: (out as { result?: string } | undefined)?.result ?? '' }
+        const outs = await step($, (_x, s) => t.run(s, e as unknown as Record<string, unknown>), m)
+        return { result: (outs.get(m.id) as { result?: string } | undefined)?.result ?? '' }
       })
     }
   }
@@ -279,10 +368,8 @@ export const register: Register = (on, options) => {
   on('tool.call', async ($, e, next) => {
     const result = await next(e)
     if (e.agentId) return result
-    const m = await active($)
-    await tally($, 'tools', e.tool.split('__').pop() ?? e.tool)
     const said = (result as { text?: unknown }).text
-    await step($, m, s => m.hooks.tool?.(s, e.tool, e as unknown as Record<string, unknown>, typeof said === 'string' ? said : ''))
+    await step($, (m, s) => m.hooks.tool?.(s, e.tool, e as unknown as Record<string, unknown>, typeof said === 'string' ? said : ''))
     return result
   })
 
@@ -297,25 +384,25 @@ export const register: Register = (on, options) => {
 
   on('turn.step', async function* ($, e, next) {
     if ((e as { agentId?: string }).agentId === undefined) {
-      const m = await active($)
       const effort = e.effort === undefined ? '' : String(e.effort)
-      const change = m.hooks.step
-      if (change) await step($, m, s => ({ s: change(s, e.model, effort) }))
+      await step($, (m, s) => {
+        const change = m.hooks.step
+        return change ? { s: change(s, e.model, effort) } : undefined
+      })
     }
 
     return yield* next(e)
   })
 
-  // Anything the person sends answers or replaces the open decision.
+  // Anything the person sends answers or replaces the open decision. The
+  // methods see the prompt; none of them changes it.
   on('prompt.submit', async ($, e, next) => {
     await update($, decision, () => null)
     await update($, summary, s => (s ? { ...s, isWaiting: false } : s))
-    const m = await active($)
     const isPerson = e.origin.kind === 'composer' || e.origin.kind === 'bridge'
-    const hasSkills = skillsOf(m, await read($, env)) !== 'missing'
-    const out = await step($, m, s => m.hooks.prompt?.(s, e.text, isPerson, hasSkills))
-    const note = (out as { note?: string } | undefined)?.note
-    return next(note ? { ...e, context: [...(e.context ?? []), note] } : e)
+    const setup = await read($, env)
+    await step($, (m, s) => m.hooks.prompt?.(s, e.text, isPerson, skillsOf(m, setup) !== 'missing'))
+    return next(e)
   })
 
   // The desktop spends the first click on an unfocused pane on focus, so a
@@ -325,8 +412,8 @@ export const register: Register = (on, options) => {
     const result = await next(e)
     if ((e as { agentId?: string }).agentId !== undefined) return result
     void $.ui.open({ id: PANE, title: TITLE, focus: true })
-    const m = await active($)
-    await loadSaved($, m)
+    await loadSaved($)
+    await readTarget($)
     const answer = e.answer.trim()
     if (e.isAborted || !answer) {
       await update($, decision, () => null)
@@ -339,7 +426,7 @@ export const register: Register = (on, options) => {
       return result
     }
     void (async () => {
-      const ask = await $.model.complete({ model: 'haiku', prompt: decidePrompt(m, answer), timeoutMs: 20000 })
+      const ask = await $.model.complete({ model: 'haiku', prompt: decidePrompt(METHODS, answer), timeoutMs: 20000 })
       const found = ask.isAnswered && looksLikeChoice(answer) ? parseDecision(ask.text) : null
       const said = ask.isAnswered ? parseSummary(ask.text, answer) : null
       await update($, decision, () => found)
@@ -351,9 +438,11 @@ export const register: Register = (on, options) => {
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
-    const m = await active($)
-    const s = stateIn(await read($, states), m)
+    const pm = await picked($)
+    const all = await read($, states)
     const current = await read($, tab)
+    const setup = await read($, env)
+    const r = await read($, repo)
     const ui = $.ui.resolve(e)
     const { Box, Button, Markdown, Text, Code } = ui
     const isDesktop = e.surface !== 'terminal' && 'Svg' in ui
@@ -379,44 +468,67 @@ export const register: Register = (on, options) => {
         {acts.map(a => button(a))}
       </Box>
     )
+    const lines = (key: string, rows: string[], color?: string) => (
+      <Box key={key} flexDirection="column">
+        {rows.map((t, i) => (
+          <Text key={`${key}-${i}`} color={color}>
+            {t}
+          </Text>
+        ))}
+      </Box>
+    )
 
-    const page = m.guide.find(g => g.id === current)
+    // ---------- Band 1: the target strip ----------
+
+    const map = await read($, target)
+    const isOpen = await read($, isTargetOpen)
+    const pr = r.prs.find(p => p.branch !== '' && p.branch === r.branch)
+    const work = [...METHODS.flatMap(m => m.focus?.(stateIn(all, m)) ?? []), pr?.title ?? '', r.branch].filter(Boolean)
+    const toggle = (
+      <Box key="target-row" flexDirection="row" gap={1}>
+        <Button
+          key="target-toggle"
+          label={isOpen ? 'Hide the full map' : 'Show the full map'}
+          plain
+          onPress={() => {
+            void readTarget($)
+            void update($, isTargetOpen, o => !o)
+          }}
+        />
+      </Box>
+    )
+    const strip = (() => {
+      if (map.phase === 'unread') return null
+      if (map.phase === 'missing') return <Text key="target">{MISSING}</Text>
+      if (map.phase === 'bad') return <Text key="target">{`The target map file could not be read: ${map.reason}.`}</Text>
+      const s = map.data
+      const matched = crossesOff(s, work)
+      const alt = `${s.goal}: ${s.flags.map(f => `${f.name} ${f.jobs.length ? `${f.jobs.filter(j => j.state !== 'moved').length} left` : (f.note ?? '')}`).join(', ')}`
+      return (
+        <Box key="target" flexDirection="column">
+          {isDesktop
+            ? picture(isOpen ? 'target-map' : 'target-strip', isOpen ? mapSvg(s, Date.now()) : stripSvg(s, matched), alt)
+            : lines('target-lines', isOpen ? mapLines(s, Date.now()) : stripLines(s, matched))}
+          {toggle}
+        </Box>
+      )
+    })()
+
     const go = (id: string) => () => {
       void update($, tab, () => id)
       if (id === 'start') void readRepo($)
     }
+    const page = pm.guide.find(g => g.id === current)
     const top: { id: string; label: string; key: string; isOn: boolean }[] = [
       { id: 'start', label: 'Start', key: 'tab-start', isOn: current === 'start' },
       { id: 'now', label: 'Now', key: 'tab-now', isOn: current === 'now' },
-      { id: page ? current : (m.guide[0]?.id ?? 'start'), label: 'Guide', key: 'tab-guide', isOn: page !== undefined },
+      { id: page ? current : (pm.guide[0]?.id ?? 'start'), label: 'Guide', key: 'tab-guide', isOn: page !== undefined },
     ]
     const nav = (
-      <Box flexDirection="column" gap={1}>
-        <Box flexDirection="row" flexWrap="wrap" gap={1} alignItems="center">
-          <Text dimColor>Method</Text>
-          {METHODS.map(x => (
-            <Button
-              key={`method-${x.id}`}
-              label={x.label}
-              variant={x.id === m.id ? 'primary' : 'secondary'}
-              onPress={() => {
-                void pick($, x.id)
-              }}
-            />
-          ))}
-        </Box>
-        <Box flexDirection="row" flexWrap="wrap" gap={1}>
-          {top.map(t => (
-            <Button key={t.key} label={t.label} variant={t.isOn ? 'primary' : 'secondary'} onPress={go(t.id)} />
-          ))}
-        </Box>
-        {page ? (
-          <Box flexDirection="row" flexWrap="wrap" gap={1}>
-            {m.guide.map(g => (
-              <Button key={`tab-${g.id}`} label={g.id === current ? `• ${g.label}` : g.label} plain onPress={go(g.id)} />
-            ))}
-          </Box>
-        ) : null}
+      <Box flexDirection="row" flexWrap="wrap" gap={1}>
+        {top.map(t => (
+          <Button key={t.key} label={t.label} variant={t.isOn ? 'primary' : 'secondary'} onPress={go(t.id)} />
+        ))}
       </Box>
     )
 
@@ -432,15 +544,15 @@ export const register: Register = (on, options) => {
         {extra ?? null}
       </Box>
     )
-    const cards = m.cards?.(s) ?? []
 
     const open = await read($, decision)
     const said = await read($, summary)
+    const explain = explainOf(setup)
     // A waiting turn with no options read from it still gets one-press answers.
     const fallback: Act[] = [
       { key: 'reply-yes', label: 'Yes, go ahead', text: 'yes, go ahead', isSend: true, isPrimary: true },
       { key: 'reply-no', label: 'Not yet', text: 'no, hold off for now', isSend: true },
-      { ...m.explain, key: 'reply-plain' },
+      { ...explain, key: 'reply-plain' },
     ]
     const summaryCard =
       said === null ? null : (
@@ -466,7 +578,7 @@ export const register: Register = (on, options) => {
     const decisionCard =
       open === null ? null : isDesktop ? (
         <Box key="decision" flexDirection="column" gap={1}>
-          {picture('decision-svg', decisionSvg(open, m), `${m.ask.title}: ${open.question}`)}
+          {picture('decision-svg', decisionSvg(open, ASK), `${ASK.title}: ${open.question}`)}
           <Box flexDirection="row" flexWrap="wrap" gap={1}>
             {open.options.map(o => choose(o.key, o.key === open.pick ? `★ ${o.key}` : o.key))}
           </Box>
@@ -474,11 +586,11 @@ export const register: Register = (on, options) => {
       ) : (
         <Box key="decision" flexDirection="column" gap={1} borderStyle="round" paddingX={1}>
           <Text bold>
-            {m.ask.title}: {open.question}
+            {ASK.title}: {open.question}
           </Text>
           {open.pick ? (
             <Text>
-              {m.ask.pick}: {open.options.find(o => o.key === open.pick)?.label ?? open.pick}. {open.why}
+              {ASK.pick}: {open.options.find(o => o.key === open.pick)?.label ?? open.pick}. {open.why}
             </Text>
           ) : open.why ? (
             <Text dimColor>{open.why}</Text>
@@ -491,26 +603,32 @@ export const register: Register = (on, options) => {
 
     const tree = await (async () => {
       if (current === 'start') {
-        const r = await read($, repo)
-        const setup = await read($, env)
-        const install = installCard(m, setup)
-        const isMissing = skillsOf(m, setup) === 'missing'
-        const needsSetup = m.setup !== undefined && r.isRead && !r.isSetUp && install === null
-        const usable = m.starts.filter(a => !a.needs || setup.plugins.some(k => k.startsWith(a.needs!)))
-        const starts = isMissing ? m.plainStarts : needsSetup && m.setup ? [{ ...m.setup.act, isPrimary: true }, ...usable.map(a => ({ ...a, isPrimary: false }))] : usable
-        const rows = openWork(r, m, !isGuarded)
+        // Both methods' starts, one labelled group each. A key carries its
+        // method's id, since both methods name a start-ticket.
+        const own = (m: AnyMethod, a: Act): Act => ({ ...a, key: `${m.id}:${a.key}` })
+        const groups = METHODS.map(m => {
+          const install = installCard(m, setup)
+          const isMissing = skillsOf(m, setup) === 'missing'
+          const needsSetup = m.setup !== undefined && r.isRead && !r.isSetUp && install === null
+          const usable = m.starts.filter(a => !a.needs || setup.plugins.some(k => k.startsWith(a.needs!)))
+          const starts = isMissing ? m.plainStarts : needsSetup && m.setup ? [{ ...m.setup.act, isPrimary: true }, ...usable.map(a => ({ ...a, isPrimary: false }))] : usable
+          return { m, install: install ? { ...install, key: `install-${m.id}` } : null, needsSetup, starts: starts.map(a => own(m, a)) }
+        })
+        // Open work: one row per item. Where the methods' buttons differ, pstack's
+        // set comes first and pocock's after, each labelled; a method whose skills
+        // are missing offers none.
+        const usable = METHODS.filter(m => skillsOf(m, setup) !== 'missing')
+        const offering = usable.length > 0 ? usable : METHODS.slice(0, 1)
+        const perMethod = offering.map(m => ({ m, rows: openWork(r, m, !isGuarded) }))
+        const work = (perMethod[0]?.rows ?? []).map(w => {
+          const sets = perMethod.map(x => ({ m: x.m, acts: x.rows.find(y => y.key === w.key)?.acts ?? [] }))
+          const isSame = sets.every(x => JSON.stringify(x.acts.map(a => a.text)) === JSON.stringify(sets[0]?.acts.map(a => a.text)))
+          return { key: w.key, label: w.label, sets: isSame ? sets.slice(0, 1).map(x => ({ ...x, isLabelled: false })) : sets.map(x => ({ ...x, isLabelled: true })) }
+        })
         return (
           <Box flexDirection="column" gap={1}>
             {nav}
-            {install
-              ? drawCard(
-                  install,
-                  <Box flexDirection="row" gap={1}>
-                    <Button key="check-again" label="Check again" onPress={() => readEnv($)} />
-                  </Box>,
-                )
-              : null}
-            {cards.map(c => drawCard(c))}
+            {strip}
             {summaryCard}
             {decisionCard}
             {isDesktop && r.isRead && r.name ? (
@@ -519,17 +637,37 @@ export const register: Register = (on, options) => {
               <Text bold>{r.isRead ? (r.name ? `${r.name} · ${r.branch}` : 'No repo') : 'Reading the repo…'}</Text>
             )}
             {r.error ? <Text dimColor>{r.error}</Text> : null}
-            {rows.length > 0 ? <Text bold>Open work</Text> : null}
-            {rows.map(w => (
-              <Box key={w.key} flexDirection="row" flexWrap="wrap" gap={1} alignItems="center">
+            {work.length > 0 ? <Text bold>Open work</Text> : null}
+            {work.map(w => (
+              <Box key={w.key} flexDirection="column">
                 <Text>{w.label}</Text>
-                {w.acts.map(a => button(a))}
+                {w.sets.map(x => (
+                  <Box key={`${w.key}-${x.m.id}`} flexDirection="row" flexWrap="wrap" gap={1} alignItems="center">
+                    {x.isLabelled ? <Text dimColor>{x.m.label}</Text> : null}
+                    {x.acts.map(a => button(x.isLabelled ? own(x.m, a) : a))}
+                  </Box>
+                ))}
               </Box>
             ))}
             <Text bold>Start something</Text>
-            {needsSetup && m.setup ? <Text color="#E5342C">{m.setup.warn}</Text> : null}
-            {row(starts)}
-            <Text dimColor>{m.startNote}</Text>
+            {groups.map(g => (
+              <Box key={`starts-${g.m.id}`} flexDirection="column" gap={1}>
+                <Text bold color="#6E6E73">
+                  {g.m.label}
+                </Text>
+                {g.install
+                  ? drawCard(
+                      g.install,
+                      <Box flexDirection="row" gap={1}>
+                        <Button key={`check-again-${g.m.id}`} label="Check again" onPress={() => readEnv($)} />
+                      </Box>,
+                    )
+                  : null}
+                {g.needsSetup && g.m.setup ? <Text color="#E5342C">{g.m.setup.warn}</Text> : null}
+                {row(g.starts)}
+                <Text dimColor>{g.m.startNote}</Text>
+              </Box>
+            ))}
             <Box flexDirection="row" gap={1}>
               <Button key="refresh" label="Refresh" onPress={() => readRepo($)} />
             </Box>
@@ -538,46 +676,127 @@ export const register: Register = (on, options) => {
       }
 
       if (current === 'now') {
-        const view = m.now(s, await read($, seen))
-        const replies = view.phase === 'running' ? during(m.explain) : view.phase === 'done' ? m.after : []
+        const at = (await read($, stage)).at
+        const shared = at ?? METHODS.map(m => sharedOf(m.id, m.stageOf(stateIn(all, m)))).find(x => x !== null) ?? null
+        // Haiku's lines for the running step, from whichever method asked for them.
+        const would: Record<string, string> = Object.assign({}, ...METHODS.map(m => m.would?.(stateIn(all, m)) ?? {}))
+        const sides: Side[] = METHODS.map(m => {
+          const s = stateIn(all, m)
+          return { id: m.id, label: m.label, own: m.stageOf(s), view: m.column(s, would[m.id]) }
+        })
+        const where = SHARED.find(x => x.id === shared)?.name ?? 'not started'
+        const pair = isDesktop ? (
+          picture('now', pairSvg(shared, sides), `Stage: ${where}. ${sides.map(x => `${x.label}: ${x.view.stage}. ${x.view.would}`).join(' ')}`)
+        ) : (
+          <Box key="now" flexDirection="column" gap={1}>
+            {lines('bar', barLines(sides))}
+            <Box flexDirection="row" gap={1}>
+              {sides.map(x => (
+                <Box key={`col-${x.id}`} flexDirection="column" width={`${Math.floor(100 / sides.length)}%`}>
+                  <Markdown text={columnMd(x)} />
+                </Box>
+              ))}
+            </Box>
+          </Box>
+        )
+
+        // ---------- Band 3: next move ----------
+        const cards = nextCards(METHODS.map(m => ({ id: m.id, label: m.label, move: m.next(stateIn(all, m)) })))
+        const moveCards = (
+          <Box key="next" flexDirection="row" flexWrap="wrap" gap={1}>
+            {cards.map(c => {
+              const missing = c.ids.map(methodOf).filter(m => skillsOf(m, setup) === 'missing')
+              return (
+                <Box key={`next-card-${c.key}`} flexDirection="column" borderStyle="round" borderColor="#1DA851" paddingX={1} flexGrow={1} width={cards.length > 1 ? '48%' : '100%'}>
+                  <Text bold color="#137A3A">
+                    {c.title}
+                  </Text>
+                  <Text bold>{c.move.label}</Text>
+                  <Code source={c.move.text.trim() || ' '} />
+                  {c.move.why ? <Text dimColor>{c.move.why}</Text> : null}
+                  {missing.length > 0 ? (
+                    <Box flexDirection="column">
+                      <Text color="#E5342C">{`${missing.map(m => m.requires.name).join(' and ')} not installed. Run:`}</Text>
+                      <Code source={missing.map(m => m.requires.install).join('\n')} />
+                    </Box>
+                  ) : (
+                    button({ key: `next-${c.key}`, label: 'Put in prompt', text: c.move.text, isPrimary: true })
+                  )}
+                </Box>
+              )
+            })}
+          </Box>
+        )
+        // A finished task list outranks a flow position: its next moves replace the quick replies.
+        const phases = METHODS.map(m => m.phase(stateIn(all, m)))
+        const isDone = phases.includes('done')
+        const replies = isDone ? METHODS.filter((_, i) => phases[i] === 'done').flatMap(m => m.after) : phases.includes('running') ? during(explain) : []
+        const owned = map.phase === 'ok' ? map.data.decisions : []
         return (
           <Box flexDirection="column" gap={1}>
             {nav}
-            {cards.map(c => drawCard(c))}
+            {strip}
+            {pair}
+            <Text bold>Next move</Text>
+            {moveCards}
             {summaryCard}
             {decisionCard}
-            {isDesktop ? picture('now', view.svg, view.alt) : <Markdown text={view.md} />}
-            {row([view.next, ...view.others])}
-            {view.note ? <Text dimColor>{view.note}</Text> : null}
-            {replies.length > 0 ? <Text dimColor>{view.phase === 'done' ? 'Steps done. Pick what comes next.' : 'These send at once and wait their turn.'}</Text> : null}
+            {replies.length > 0 ? <Text dimColor>{isDone ? 'Steps done. Pick what comes next.' : 'These send at once and wait their turn.'}</Text> : null}
             {replies.length > 0 ? row(replies) : null}
+            {owned.length > 0 ? <Text bold>Decisions you own</Text> : null}
+            {owned.length > 0 ? lines('owned', owned.map(d => `• ${d.length > 110 ? `${d.slice(0, 109).trimEnd()}…` : d}`)) : null}
             <Box flexDirection="row" gap={1}>
-              {button(view.reset)}
+              <Button key="reset" label="Start over" onPress={() => startOver($)} />
             </Box>
           </Box>
         )
       }
 
-      const shown = page ?? m.guide[0]
+      const picker = (
+        <Box flexDirection="row" flexWrap="wrap" gap={1} alignItems="center">
+          <Text dimColor>Method</Text>
+          {METHODS.map(x => (
+            <Button
+              key={`pick-${x.id}`}
+              label={x.label}
+              variant={x.id === pm.id ? 'primary' : 'secondary'}
+              onPress={() => {
+                void pick($, x.id)
+              }}
+            />
+          ))}
+        </Box>
+      )
+      const pages = (
+        <Box flexDirection="row" flexWrap="wrap" gap={1}>
+          {pm.guide.map(g => (
+            <Button key={`tab-${g.id}`} label={g.id === current ? `• ${g.label}` : g.label} plain onPress={go(g.id)} />
+          ))}
+        </Box>
+      )
+      const shown = page ?? pm.guide[0]
       if (!shown) return <Box flexDirection="column">{nav}</Box>
       const drawing = isDesktop && shown.svg ? picture(`guide-${shown.id}`, shown.svg, shown.alt) : <Markdown text={shown.md} />
       return (
         <Box flexDirection="column" gap={1}>
           {nav}
+          {strip}
+          {picker}
+          {pages}
           {shown.recipes ? null : drawing}
           {shown.note ? <Text dimColor>{shown.note}</Text> : null}
-          {(shown.rows ?? []).map((r, i) => (
+          {(shown.rows ?? []).map((x, i) => (
             <Box key={`row-${i}`} flexDirection="row" flexWrap="wrap" gap={1} alignItems="center">
-              {r.label ? <Text bold>{r.label}</Text> : null}
-              {r.acts.map(a => button(a))}
+              {x.label ? <Text bold>{x.label}</Text> : null}
+              {x.acts.map(a => button(a))}
             </Box>
           ))}
           {shown.recipes ? <Text bold>Recipes: press one to put it in your prompt</Text> : null}
-          {(shown.recipes ?? []).map(r => (
-            <Box key={`recipe-${r.title}`} flexDirection="column">
-              <Text bold>{r.title}</Text>
-              <Code source={r.prompt} />
-              {button({ key: `use-${r.title}`, label: 'Put in prompt', text: r.prompt })}
+          {(shown.recipes ?? []).map(x => (
+            <Box key={`recipe-${x.title}`} flexDirection="column">
+              <Text bold>{x.title}</Text>
+              <Code source={x.prompt} />
+              {button({ key: `use-${x.title}`, label: 'Put in prompt', text: x.prompt })}
             </Box>
           ))}
           {shown.recipes ? drawing : null}

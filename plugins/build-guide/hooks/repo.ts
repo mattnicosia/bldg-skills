@@ -66,10 +66,10 @@ export const staleOf = (heads: string, merged: string, trees: { branch: string }
 }
 
 export const prsOf = (json: string): PullRequest[] => {
-  type Raw = { number: number; title: string; isDraft: boolean; statusCheckRollup?: { status?: string; conclusion?: string; state?: string }[]; mergeable?: string; reviewDecision?: string }
+  type Raw = { number: number; title: string; headRefName?: string; isDraft: boolean; statusCheckRollup?: { status?: string; conclusion?: string; state?: string }[]; mergeable?: string; reviewDecision?: string }
   return (JSON.parse(json) as Raw[]).map(p => {
     const ci = ciOf(p.statusCheckRollup ?? [])
-    return { number: p.number, title: p.title, isDraft: p.isDraft, ci, stage: stageOf(ci, p.isDraft, p.mergeable, p.reviewDecision) }
+    return { number: p.number, title: p.title, branch: p.headRefName ?? '', isDraft: p.isDraft, ci, stage: stageOf(ci, p.isDraft, p.mergeable, p.reviewDecision) }
   })
 }
 
