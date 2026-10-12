@@ -41,7 +41,7 @@ export type Decision = { question: string; options: Choice[]; pick: string; why:
 export type Summary = { done: string; next: string; links: string[]; isWaiting: boolean } | null
 
 // ---------- Target map ----------
-// The shape BLDG OS's scripts/target-map-status.mjs writes.
+// The shape the target-map mod's bin/target-map-status.mjs writes.
 
 export type JobState = 'moved' | 'not_yet' | 'gray'
 
@@ -65,11 +65,15 @@ export type Road = { id: string; name: string; from: string; crossesOff: string[
 
 export type Status = { product: string; goal: string; targetSetOn: string; checkedAt: string; flags: Flag[]; roads: Road[]; decisions: string[] }
 
+// none: the repo has no targets file; ask fills the prompt to start one.
+// missing: a targets file but no status file; command writes it.
+// note: says which file shows when the repo has several.
 export type Target =
   | { phase: 'unread' }
-  | { phase: 'missing' }
+  | { phase: 'none'; ask: string }
+  | { phase: 'missing'; command: string }
   | { phase: 'bad'; reason: string }
-  | { phase: 'ok'; data: Status }
+  | { phase: 'ok'; data: Status; note: string }
 
 // ---------- pocock ----------
 

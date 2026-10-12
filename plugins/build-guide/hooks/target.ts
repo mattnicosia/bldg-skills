@@ -1,19 +1,65 @@
-// The target strip: the BLDG OS target map at a glance, above every tab. The
-// pane reads ~/.claude/target-map/bldg-os.status.json; this file parses and draws it.
+// The target strip: the session repo's target map at a glance, above every tab.
+// The repo keeps targets/<product>.json and the check script writes
+// ~/.claude/target-map/<product>.status.json; this file finds, parses and draws it.
 // statusSvg, effect, ago and the dot are copied from matt-mods/target-map
 // (hooks/register.tsx) so this public repo does not depend on a private one.
 
 import type { Flag, Job, Road, Status, Target } from '../types'
 import { C, cut, esc, inkOf, SANS, W, wrap } from './draw'
 
-export const STATUS_FILE = '.claude/target-map/bldg-os.status.json'
-export const MISSING = 'No target map yet. Run node scripts/target-map-status.mjs in BLDG OS.'
+export const STATUS_DIR = '.claude/target-map'
+export const SCRIPT = 'bin/target-map-status.mjs'
+// The target-map mod as matt-mods installs it, which ships the check script.
+export const TARGET_MAP_PLUGIN = 'target-map@matt-mods'
+export const SCRIPT_UNKNOWN = '~/.claude/plugins/cache/matt-mods/target-map/<version>/bin/target-map-status.mjs'
 
-export const parseStatus = (text: string): Target => {
+// ---------- Which map: the per-repo lookup, copied from matt-mods/target-map (hooks/lookup.ts) ----------
+
+// The product is the targets file's name. With several, the first by name.
+export const pickTargets = (names: string[]) => {
+  const files = names.filter(n => n.endsWith('.json')).sort()
+  return { file: files[0] ?? null, others: files.slice(1) }
+}
+
+export const productOf = (file: string) => file.replace(/\.json$/, '')
+
+// A product name for a repo with no targets file yet: "BLDG OS" is bldg-os.
+export const slug = (name: string) =>
+  name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'product'
+
+export const startPrompt = (product: string) =>
+  `Start a target map for this repo: ask me what finished means for this product and which tools or outcomes measure it, then write targets/${product}.json in the shape of BLDG OS's targets/bldg-os.json and run the target-map check.`
+
+export const EMPTY = 'No target map for this project yet.'
+
+const q = (s: string) => (/^[\w./~<>-]+$/.test(s) ? s : `"${s}"`)
+
+export const commandFor = (script: string, root: string) => `node ${q(script)} --repo ${q(root)}`
+
+export const missingText = (command: string) => `No target map status yet. Run ${command}`
+
+export const severalText = (file: string, others: string[]) =>
+  others.length ? `Several targets files: showing ${file}, not ${others.join(', ')}.` : ''
+
+// The script's path in the plugin cache, from installed_plugins.json.
+export const scriptFrom = (installed: string) => {
+  try {
+    const raw = JSON.parse(installed) as { plugins?: Record<string, { installPath?: string }[]> }
+    const path = raw.plugins?.[TARGET_MAP_PLUGIN]?.[0]?.installPath
+    return path ? `${path}/${SCRIPT}` : null
+  } catch {
+    return null
+  }
+}
+
+export const parseStatus = (text: string, note = ''): Target => {
   try {
     const data = JSON.parse(text) as Status
     if (!Array.isArray(data.flags)) return { phase: 'bad', reason: 'it has no flags list' }
-    return { phase: 'ok', data: { ...data, roads: data.roads ?? [], decisions: data.decisions ?? [] } }
+    return { phase: 'ok', data: { ...data, roads: data.roads ?? [], decisions: data.decisions ?? [] }, note }
   } catch (err) {
     return { phase: 'bad', reason: err instanceof Error ? err.message : String(err) }
   }

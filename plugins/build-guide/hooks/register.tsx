@@ -18,7 +18,7 @@ import { detect, isMethod, methodOf, METHODS } from './methods'
 import { barLines, columnMd, nextCards, pairSvg, type Side } from './pair'
 import { NO_REPO, openWork, prsOf, staleOf, startSvg, treesOf } from './repo'
 import { ownOf, sharedOf, SHARED } from './stages'
-import { crossesOff, mapLines, mapSvg, MISSING, parseStatus, STATUS_FILE, stripLines, stripSvg } from './target'
+import { commandFor, crossesOff, EMPTY, mapLines, mapSvg, missingText, parseStatus, pickTargets, productOf, SCRIPT_UNKNOWN, scriptFrom, severalText, slug, startPrompt, STATUS_DIR, stripLines, stripSvg } from './target'
 import { ASK, decidePrompt, decisionSvg, linksIn, looksLikeChoice, parseDecision, parseSummary } from './turn'
 
 const PANE = 'build-guide'
@@ -191,16 +191,54 @@ async function readEnv($: EngineInterface) {
   return value
 }
 
-// The BLDG OS target map, read at the start, on /mod-guide, after each turn and on a press.
+// The check script: $TARGET_MAP_SCRIPT, else the one the installed target-map mod ships.
+async function targetScript($: EngineInterface) {
+  const set = await $.env.get('TARGET_MAP_SCRIPT')
+  if (set) return set
+  const home = (await $.env.get('HOME')) ?? ''
+  const installed = await $.fs.read(`${home}/.claude/plugins/installed_plugins.json`).then(String, () => '')
+  return scriptFrom(installed)
+}
+
+// The session repo's targets file: the repo root, the product and the files.
+async function targetsOf($: EngineInterface) {
+  const root = await git($, ['rev-parse', '--show-toplevel'])
+  if (root === null) return null
+  const names = await $.fs.list(`${root}/targets`).then(es => es.filter(x => x.kind === 'file').map(x => x.name), () => [] as string[])
+  const { file, others } = pickTargets(names)
+  return { root, file, others }
+}
+
+// The session repo's target map, read at the start, on /mod-guide, after each turn and on a press.
 async function readTarget($: EngineInterface) {
+  const found = await targetsOf($)
+  if (!found || !found.file) {
+    const name = found ? ((await mainCheckout($)) ?? found.root).split('/').pop() ?? found.root : 'product'
+    await update($, target, () => ({ phase: 'none', ask: startPrompt(slug(name)) }) as Target)
+    return
+  }
+  const { root, file, others } = found
   const home = (await $.env.get('HOME')) ?? ''
   let text: string | null = null
   try {
-    text = String(await $.fs.read(`${home}/${STATUS_FILE}`))
+    text = String(await $.fs.read(`${home}/${STATUS_DIR}/${productOf(file)}.status.json`))
   } catch {
     text = null
   }
-  await update($, target, () => (text === null ? { phase: 'missing' } : parseStatus(text)))
+  const command = commandFor((await targetScript($)) ?? SCRIPT_UNKNOWN, root)
+  await update($, target, () => (text === null ? { phase: 'missing', command } : parseStatus(text, severalText(file, others))))
+}
+
+// Runs the check script for the session's repo, then rereads the map. When the
+// script is not found or fails, the prompt gets the command instead.
+async function refreshTarget($: EngineInterface) {
+  const found = await targetsOf($)
+  if (!found || !found.file) return readTarget($)
+  const script = await targetScript($)
+  const command = commandFor(script ?? SCRIPT_UNKNOWN, found.root)
+  const r = script ? await $.process.run(['node', script, '--repo', found.root], { cwd: found.root, timeoutMs: 120000 }).catch(() => null) : null
+  if (!r || r.exitCode !== 0) await $.prompt.fill({ text: `Run ${command}, then reopen the build guide.` })
+  await readTarget($)
 }
 
 // A method that keeps progress per repo loads it once its state names no repo:
@@ -311,7 +349,7 @@ export const register: Register = (on, options) => {
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: 'mod-guide',
-      description: "Open the build guide: pstack and Matt Pocock's flow side by side, under the BLDG OS target map. Add pstack or pocock to pick the one the Guide tab shows.",
+      description: "Open the build guide: pstack and Matt Pocock's flow side by side, under the target map of this repo. Add pstack or pocock to pick the one the Guide tab shows.",
     })
     const found = await readEnv($)
     const saved = await $.store.get(PICKED)
@@ -484,6 +522,7 @@ export const register: Register = (on, options) => {
     const isOpen = await read($, isTargetOpen)
     const pr = r.prs.find(p => p.branch !== '' && p.branch === r.branch)
     const work = [...METHODS.flatMap(m => m.focus?.(stateIn(all, m)) ?? []), pr?.title ?? '', r.branch].filter(Boolean)
+    const refreshMap = <Button key="target-refresh" label="Refresh the map" plain onPress={() => void refreshTarget($)} />
     const toggle = (
       <Box key="target-row" flexDirection="row" gap={1}>
         <Button
@@ -495,11 +534,25 @@ export const register: Register = (on, options) => {
             void update($, isTargetOpen, o => !o)
           }}
         />
+        {refreshMap}
       </Box>
     )
     const strip = (() => {
       if (map.phase === 'unread') return null
-      if (map.phase === 'missing') return <Text key="target">{MISSING}</Text>
+      if (map.phase === 'none')
+        return (
+          <Box key="target" flexDirection="row" flexWrap="wrap" gap={1}>
+            <Text>{EMPTY}</Text>
+            <Button key="start-target-map" label="Start the target map" onPress={() => void $.prompt.fill({ text: map.ask })} />
+          </Box>
+        )
+      if (map.phase === 'missing')
+        return (
+          <Box key="target" flexDirection="column">
+            <Text>{missingText(map.command)}</Text>
+            <Box key="target-row" flexDirection="row" gap={1}>{refreshMap}</Box>
+          </Box>
+        )
       if (map.phase === 'bad') return <Text key="target">{`The target map file could not be read: ${map.reason}.`}</Text>
       const s = map.data
       const matched = crossesOff(s, work)
@@ -509,6 +562,7 @@ export const register: Register = (on, options) => {
           {isDesktop
             ? picture(isOpen ? 'target-map' : 'target-strip', isOpen ? mapSvg(s, Date.now()) : stripSvg(s, matched), alt)
             : lines('target-lines', isOpen ? mapLines(s, Date.now()) : stripLines(s, matched))}
+          {map.note ? <Text key="target-note" dimColor>{map.note}</Text> : null}
           {toggle}
         </Box>
       )

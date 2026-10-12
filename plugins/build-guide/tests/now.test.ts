@@ -2,7 +2,7 @@ import { expect, test } from 'claude-code/testing'
 
 import { nextCards } from '../hooks/pair'
 import { ownOf, sharedOf, STAGE_MAP } from '../hooks/stages'
-import { crossesOff, MISSING } from '../hooks/target'
+import { commandFor, crossesOff, EMPTY, pickTargets, productOf, scriptFrom, slug } from '../hooks/target'
 import { all, col, engine, PANE, POCOCK, PSTACK, settle, START } from './engine'
 import { fixture } from './fixture'
 
@@ -166,14 +166,68 @@ test('pressing the strip opens the full map in place, and again closes it', asyn
   await settle()
 })
 
-test('a missing status file is one line', async ($, on) => {
+test('a targets file with no status file shows the command to run for this repo', async ($, on) => {
   engine(on, { plugins: BOTH })
   await $.session.start(START)
   const pane = await $.ui.mount(PANE())
   const text = await all(pane)
-  expect(MISSING).toBe('No target map yet. Run node scripts/target-map-status.mjs in BLDG OS.')
-  expect(text).toContain(MISSING)
+  expect(text).toContain('No target map status yet. Run node /Users/me/.claude/plugins/cache/matt-mods/target-map/0.2.0/bin/target-map-status.mjs --repo /Users/me/dev/app')
   expect(text).not.toContain('target-toggle')
+  await settle()
+})
+
+for (const surface of ['terminal', 'desktop'] as const) {
+  test(`${surface}: a repo with no targets shows the empty state, and its button fills the start prompt without sending`, async ($, on) => {
+    const { seen } = engine(on, { plugins: BOTH, target: fixture, targets: [] })
+    await $.session.start(START)
+    const pane = await $.ui.mount(PANE(surface) as never)
+    const text = await all(pane as never)
+    expect(text).toContain(EMPTY)
+    expect(EMPTY).toBe('No target map for this project yet.')
+    expect(text).not.toContain('Montana runs on BLDG OS alone')
+    await (pane as any).press({ key: 'start-target-map' })
+    expect(seen.filled).toEqual([
+      "Start a target map for this repo: ask me what finished means for this product and which tools or outcomes measure it, then write targets/app.json in the shape of BLDG OS's targets/bldg-os.json and run the target-map check.",
+    ])
+    expect(seen.sent).toEqual([])
+    await settle()
+  })
+}
+
+test('the product is the targets file name, the first by name when there are several, and the strip says so', async ($, on) => {
+  expect(pickTargets(['README.md', 'zeta.json', 'alpha.json'])).toEqual({ file: 'alpha.json', others: ['zeta.json'] })
+  expect(pickTargets([])).toEqual({ file: null, others: [] })
+  expect(productOf('bldg-os.json')).toBe('bldg-os')
+  expect(slug('BLDG OS')).toBe('bldg-os')
+  expect(commandFor('/s/bin/x.mjs', '/Users/me/dev/BLDG OS')).toBe('node /s/bin/x.mjs --repo "/Users/me/dev/BLDG OS"')
+  expect(scriptFrom(JSON.stringify({ plugins: { 'target-map@matt-mods': [{ installPath: '/c/target-map/0.2.0' }] } }))).toBe('/c/target-map/0.2.0/bin/target-map-status.mjs')
+  expect(scriptFrom('{}')).toBe(null)
+
+  engine(on, { plugins: BOTH, target: fixture, targets: ['bldg-os.json', 'zz.json', 'README.md'] })
+  await $.session.start(START)
+  const pane = await $.ui.mount(PANE())
+  const text = await all(pane)
+  expect(text).toContain('Target: Montana runs on BLDG OS alone')
+  expect(text).toContain('Several targets files: showing bldg-os.json, not zz.json.')
+  await settle()
+})
+
+test('Refresh the map runs the mod script for this repo; when it fails the prompt gets the command', async ($, on) => {
+  const { seen } = engine(on, { plugins: BOTH, target: fixture })
+  await $.session.start(START)
+  const pane = await $.ui.mount(PANE())
+  await pane.press({ key: 'target-refresh' })
+  expect(seen.ran).toContain('node /Users/me/.claude/plugins/cache/matt-mods/target-map/0.2.0/bin/target-map-status.mjs --repo /Users/me/dev/app')
+  expect(seen.filled).toEqual([])
+  await settle()
+})
+
+test('a failed Refresh fills the prompt with the command', async ($, on) => {
+  const { seen } = engine(on, { plugins: BOTH, target: fixture, scriptExit: 1 })
+  await $.session.start(START)
+  const pane = await $.ui.mount(PANE())
+  await pane.press({ key: 'target-refresh' })
+  expect(seen.filled).toEqual(['Run node /Users/me/.claude/plugins/cache/matt-mods/target-map/0.2.0/bin/target-map-status.mjs --repo /Users/me/dev/app, then reopen the build guide.'])
   await settle()
 })
 
