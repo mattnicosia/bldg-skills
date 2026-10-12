@@ -1,0 +1,17 @@
+{
+  "name": "build-guide",
+  "version": "0.1.0",
+  "description": "A side pane that walks you through a build method, pstack or Matt Pocock's flow, from the first idea to a merged PR: /mod-guide",
+  "author": {
+    "name": "Matt Nicosia"
+  },
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "gitGuard": {
+      "type": "boolean",
+      "title": "Block destructive git",
+      "description": "Stops Claude from pushing to main, force pushing, reset --hard, clean -f, branch -D, checkout . or restore ., and gh pr merge. Turn it off on a reviewer's own machine. With it off, the pane offers Merge it on a PR that is ready.",
+      "default": true
+    }
+  }
+}
