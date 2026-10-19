@@ -1,117 +1,544 @@
 {
  "job": "E26049",
- "revision": {"id": "DD-1", "label": "Design Development set, Addendum 1", "date": "2026-10-12", "sheets": ["A-101", "A-102", "A-201", "A-301"]},
- "north": {"source": "A-101 north arrow", "confirmedBy": null},
+ "revision": {
+  "id": "DD-1",
+  "label": "Design Development set, Addendum 1",
+  "date": "2026-10-12",
+  "sheets": [
+   "A-101",
+   "A-102",
+   "A-201",
+   "A-301"
+  ]
+ },
+ "north": {
+  "source": "A-101 north arrow",
+  "confirmedBy": null
+ },
  "wallTolFt": 1.0,
  "_note": "Worked example of an addendum. Against SD-1: the bedroom splits into a bedroom and a study, the great room grows two feet east, the mechanical room is gone, the primary suite gets an outline on L2, everything else carries.",
  "levels": [
-  {"id": "L1", "elevationFt": {"value": 0, "source": "A-301 level marker"}, "ceilingFt": {"value": 11.6, "source": "A-301 section", "confidence": "MEDIUM"}, "storyFt": {"value": 13.2, "source": "A-301 section", "confidence": "MEDIUM"}},
-  {"id": "L2", "elevationFt": {"value": 12.4, "source": "A-301 level marker", "confidence": "MEDIUM"}, "storyFt": {"value": 11.6, "source": "A-301 section", "confidence": "MEDIUM"}, "ceilingFt": {"value": 9.0, "source": "A-102 RCP", "confidence": "MEDIUM"}},
-  {"id": "RF", "elevationFt": {"value": 24.0, "source": "A-301 level marker", "confidence": "MEDIUM"}}
+  {
+   "id": "L1",
+   "elevationFt": {
+    "value": 0,
+    "source": "A-301 level marker"
+   },
+   "ceilingFt": {
+    "value": 11.6,
+    "source": "A-301 section",
+    "confidence": "MEDIUM"
+   },
+   "storyFt": {
+    "value": 13.2,
+    "source": "A-301 section",
+    "confidence": "MEDIUM"
+   }
+  },
+  {
+   "id": "L2",
+   "elevationFt": {
+    "value": 12.4,
+    "source": "A-301 level marker",
+    "confidence": "MEDIUM"
+   },
+   "storyFt": {
+    "value": 11.6,
+    "source": "A-301 section",
+    "confidence": "MEDIUM"
+   },
+   "ceilingFt": {
+    "value": 9.0,
+    "source": "A-102 RCP",
+    "confidence": "MEDIUM"
+   }
+  },
+  {
+   "id": "RF",
+   "elevationFt": {
+    "value": 24.0,
+    "source": "A-301 level marker",
+    "confidence": "MEDIUM"
+   }
+  }
  ],
  "exterior": [
-  {"level": "L1", "anchor": [0, 32.17], "anchorSource": "origin at the north-west corner of the first floor",
+  {
+   "level": "L1",
+   "anchor": [
+    0,
+    32.17
+   ],
+   "anchorSource": "origin at the north-west corner of the first floor",
    "edges": [
-    {"heading": "E", "length": "54'-0\"", "source": "A-101"},
-    {"heading": "S", "length": "32'-2\"", "source": "A-101"},
-    {"heading": "W", "length": "54'-0\"", "source": "A-101"},
-    {"heading": "N", "length": "32'-2\"", "source": "A-101"}
-   ]},
-  {"level": "L2", "anchor": [13.34, 39.0], "anchorSource": "approximated from the model; confirm on A-102",
+    {
+     "heading": "E",
+     "length": "54'-0\"",
+     "source": "A-101"
+    },
+    {
+     "heading": "S",
+     "length": "32'-2\"",
+     "source": "A-101"
+    },
+    {
+     "heading": "W",
+     "length": "54'-0\"",
+     "source": "A-101"
+    },
+    {
+     "heading": "N",
+     "length": "32'-2\"",
+     "source": "A-101"
+    }
+   ]
+  },
+  {
+   "level": "L2",
+   "anchor": [
+    13.34,
+    39.0
+   ],
+   "anchorSource": "approximated from the model; confirm on A-102",
    "edges": [
-    {"heading": "E", "length": "22'-0\"", "source": "A-102"},
-    {"heading": "S", "length": "44'-7\"", "source": "A-102"},
-    {"heading": "W", "length": "22'-0\"", "source": "A-102"},
-    {"heading": "N", "length": "44'-7\"", "source": "A-102"}
-   ]}
+    {
+     "heading": "E",
+     "length": "22'-0\"",
+     "source": "A-102"
+    },
+    {
+     "heading": "S",
+     "length": "44'-7\"",
+     "source": "A-102"
+    },
+    {
+     "heading": "W",
+     "length": "22'-0\"",
+     "source": "A-102"
+    },
+    {
+     "heading": "N",
+     "length": "44'-7\"",
+     "source": "A-102"
+    }
+   ]
+  }
  ],
  "spaces": [
-  {"level": "L1", "handle": "GREAT", "name": "GREAT ROOM", "anchor": [0.5, 31.67], "anchorSource": "approximated",
-   "edges": [
-    {"heading": "E", "length": "35'-0\"", "source": "A-101 dimension string"},
-    {"heading": "S", "length": "22'-0\"", "source": "A-101 dimension string"},
-    {"heading": "W", "length": "35'-0\"", "source": "A-101 dimension string"},
-    {"heading": "N", "length": "22'-0\"", "source": "A-101 dimension string"}
+  {
+   "level": "L1",
+   "handle": "GREAT",
+   "name": "GREAT ROOM",
+   "anchor": [
+    0.5,
+    31.67
    ],
-   "runs": [{"face": "N", "assembly": {"value": "GL-1", "source": "A-201 glass wall"}, "from": 0, "to": 35}],
-   "finishes": {"FLR": {"value": "WD-1", "source": "A-601"}}},
-  {"level": "L1", "handle": "KITCHEN", "name": "KITCHEN", "anchor": [36.5, 31.67], "anchorSource": "approximated",
+   "anchorSource": "approximated",
    "edges": [
-    {"heading": "E", "length": "15'-6\"", "source": "A-101 dimension string"},
-    {"heading": "S", "length": "16'-6\"", "source": "A-101 dimension string"},
-    {"heading": "W", "length": "15'-6\"", "source": "A-101 dimension string"},
-    {"heading": "N", "length": "16'-6\"", "source": "A-101 dimension string"}
+    {
+     "heading": "E",
+     "length": "35'-0\"",
+     "source": "A-101 dimension string"
+    },
+    {
+     "heading": "S",
+     "length": "22'-0\"",
+     "source": "A-101 dimension string"
+    },
+    {
+     "heading": "W",
+     "length": "35'-0\"",
+     "source": "A-101 dimension string"
+    },
+    {
+     "heading": "N",
+     "length": "22'-0\"",
+     "source": "A-101 dimension string"
+    }
    ],
-   "finishes": {"FLR": {"value": "WD-1", "source": "A-601"}}},
-  {"level": "L1", "handle": "BEDROOM", "name": "BEDROOM", "anchor": [36.5, 14.67], "anchorSource": "approximated",
-   "edges": [
-    {"heading": "E", "length": "10'-0\"", "source": "A-101 dimension string"},
-    {"heading": "S", "length": "13'-0\"", "source": "A-101 dimension string"},
-    {"heading": "W", "length": "10'-0\"", "source": "A-101 dimension string"},
-    {"heading": "N", "length": "13'-0\"", "source": "A-101 dimension string"}
-   ]},
-  {"level": "L1", "handle": "STUDY", "name": "STUDY", "anchor": [47.0, 14.67], "anchorSource": "approximated",
-   "edges": [
-    {"heading": "E", "length": "5'-6\"", "source": "A-101 dimension string"},
-    {"heading": "S", "length": "13'-0\"", "source": "A-101 dimension string"},
-    {"heading": "W", "length": "5'-6\"", "source": "A-101 dimension string"},
-    {"heading": "N", "length": "13'-0\"", "source": "A-101 dimension string"}
-   ]},
-  {"level": "L1", "name": "BATH", "anchor": [0.5, 8.67], "anchorSource": "approximated",
-   "edges": [
-    {"heading": "E", "length": "10'-6\"", "source": "A-101 dimension string"},
-    {"heading": "S", "length": "7'-0\"", "source": "A-101 dimension string"},
-    {"heading": "W", "length": "10'-6\"", "source": "A-101 dimension string"},
-    {"heading": "N", "length": "7'-0\"", "source": "A-101 dimension string"}
+   "runs": [
+    {
+     "face": "N",
+     "assembly": {
+      "value": "GL-1",
+      "source": "A-201 glass wall"
+     },
+     "from": 0,
+     "to": 35
+    }
    ],
-   "finishes": {"FLR": {"value": "T-1", "source": "A-601"}}},
-  {"level": "L1", "handle": "ENTRY", "name": "ENTRY", "anchor": [23.0, 8.17], "anchorSource": "approximated",
-   "edges": [
-    {"heading": "E", "length": "13'-0\"", "source": "A-101 dimension string"},
-    {"heading": "S", "length": "5'-6\"", "source": "A-101 dimension string"},
-    {"heading": "W", "length": "13'-0\"", "source": "A-101 dimension string"},
-    {"heading": "N", "length": "5'-6\"", "source": "A-101 dimension string"}
-   ]},
-  {"level": "L1", "handle": "DECK", "name": "SCREENED DECK", "anchor": [-20.5, 27.0], "anchorSource": "approximated; west of the house",
-   "edges": [
-    {"heading": "E", "length": "20'-0\"", "source": "A-101 dimension string"},
-    {"heading": "S", "length": "16'-0\"", "source": "A-101 dimension string"},
-    {"heading": "W", "length": "20'-0\"", "source": "A-101 dimension string"},
-    {"heading": "N", "length": "16'-0\"", "source": "A-101 dimension string"}
+   "finishes": {
+    "FLR": {
+     "value": "WD-1",
+     "source": "A-601"
+    }
+   }
+  },
+  {
+   "level": "L1",
+   "handle": "KITCHEN",
+   "name": "KITCHEN",
+   "anchor": [
+    36.5,
+    31.67
    ],
-   "ceilingFt": {"value": 11.6, "source": "A-301 section", "confidence": "LOW"}},
-  {"level": "L2", "handle": "PRIMARY", "name": "PRIMARY SUITE", "anchor": [13.84, 38.5], "anchorSource": "approximated",
+   "anchorSource": "approximated",
    "edges": [
-    {"heading": "E", "length": "21'-0\"", "source": "A-102 dimension string"},
-    {"heading": "S", "length": "20'-0\"", "source": "A-102 dimension string"},
-    {"heading": "W", "length": "21'-0\"", "source": "A-102 dimension string"},
-    {"heading": "N", "length": "20'-0\"", "source": "A-102 dimension string"}
-   ]}
+    {
+     "heading": "E",
+     "length": "15'-6\"",
+     "source": "A-101 dimension string"
+    },
+    {
+     "heading": "S",
+     "length": "16'-6\"",
+     "source": "A-101 dimension string"
+    },
+    {
+     "heading": "W",
+     "length": "15'-6\"",
+     "source": "A-101 dimension string"
+    },
+    {
+     "heading": "N",
+     "length": "16'-6\"",
+     "source": "A-101 dimension string"
+    }
+   ],
+   "finishes": {
+    "FLR": {
+     "value": "WD-1",
+     "source": "A-601"
+    }
+   }
+  },
+  {
+   "level": "L1",
+   "handle": "BEDROOM",
+   "name": "BEDROOM",
+   "anchor": [
+    36.5,
+    14.67
+   ],
+   "anchorSource": "approximated",
+   "edges": [
+    {
+     "heading": "E",
+     "length": "10'-0\"",
+     "source": "A-101 dimension string"
+    },
+    {
+     "heading": "S",
+     "length": "13'-0\"",
+     "source": "A-101 dimension string"
+    },
+    {
+     "heading": "W",
+     "length": "10'-0\"",
+     "source": "A-101 dimension string"
+    },
+    {
+     "heading": "N",
+     "length": "13'-0\"",
+     "source": "A-101 dimension string"
+    }
+   ]
+  },
+  {
+   "level": "L1",
+   "handle": "STUDY",
+   "name": "STUDY",
+   "anchor": [
+    47.0,
+    14.67
+   ],
+   "anchorSource": "approximated",
+   "edges": [
+    {
+     "heading": "E",
+     "length": "5'-6\"",
+     "source": "A-101 dimension string"
+    },
+    {
+     "heading": "S",
+     "length": "13'-0\"",
+     "source": "A-101 dimension string"
+    },
+    {
+     "heading": "W",
+     "length": "5'-6\"",
+     "source": "A-101 dimension string"
+    },
+    {
+     "heading": "N",
+     "length": "13'-0\"",
+     "source": "A-101 dimension string"
+    }
+   ]
+  },
+  {
+   "level": "L1",
+   "name": "BATH",
+   "anchor": [
+    0.5,
+    8.67
+   ],
+   "anchorSource": "approximated",
+   "edges": [
+    {
+     "heading": "E",
+     "length": "10'-6\"",
+     "source": "A-101 dimension string"
+    },
+    {
+     "heading": "S",
+     "length": "7'-0\"",
+     "source": "A-101 dimension string"
+    },
+    {
+     "heading": "W",
+     "length": "10'-6\"",
+     "source": "A-101 dimension string"
+    },
+    {
+     "heading": "N",
+     "length": "7'-0\"",
+     "source": "A-101 dimension string"
+    }
+   ],
+   "finishes": {
+    "FLR": {
+     "value": "T-1",
+     "source": "A-601"
+    }
+   }
+  },
+  {
+   "level": "L1",
+   "handle": "ENTRY",
+   "name": "ENTRY",
+   "anchor": [
+    23.0,
+    8.17
+   ],
+   "anchorSource": "approximated",
+   "edges": [
+    {
+     "heading": "E",
+     "length": "13'-0\"",
+     "source": "A-101 dimension string"
+    },
+    {
+     "heading": "S",
+     "length": "5'-6\"",
+     "source": "A-101 dimension string"
+    },
+    {
+     "heading": "W",
+     "length": "13'-0\"",
+     "source": "A-101 dimension string"
+    },
+    {
+     "heading": "N",
+     "length": "5'-6\"",
+     "source": "A-101 dimension string"
+    }
+   ]
+  },
+  {
+   "level": "L1",
+   "handle": "DECK",
+   "name": "SCREENED DECK",
+   "anchor": [
+    -20.5,
+    27.0
+   ],
+   "anchorSource": "approximated; west of the house",
+   "edges": [
+    {
+     "heading": "E",
+     "length": "20'-0\"",
+     "source": "A-101 dimension string"
+    },
+    {
+     "heading": "S",
+     "length": "16'-0\"",
+     "source": "A-101 dimension string"
+    },
+    {
+     "heading": "W",
+     "length": "20'-0\"",
+     "source": "A-101 dimension string"
+    },
+    {
+     "heading": "N",
+     "length": "16'-0\"",
+     "source": "A-101 dimension string"
+    }
+   ],
+   "ceilingFt": {
+    "value": 11.6,
+    "source": "A-301 section",
+    "confidence": "LOW"
+   }
+  },
+  {
+   "level": "L2",
+   "handle": "PRIMARY",
+   "name": "PRIMARY SUITE",
+   "anchor": [
+    13.84,
+    38.5
+   ],
+   "anchorSource": "approximated",
+   "edges": [
+    {
+     "heading": "E",
+     "length": "21'-0\"",
+     "source": "A-102 dimension string"
+    },
+    {
+     "heading": "S",
+     "length": "20'-0\"",
+     "source": "A-102 dimension string"
+    },
+    {
+     "heading": "W",
+     "length": "21'-0\"",
+     "source": "A-102 dimension string"
+    },
+    {
+     "heading": "N",
+     "length": "20'-0\"",
+     "source": "A-102 dimension string"
+    }
+   ]
+  }
  ],
  "roofs": [
-  {"level": "RF", "handle": "MAIN", "name": "FIRST FLOOR ROOF", "anchor": [0, 32.17], "anchorSource": "same outline as L1/EXT",
+  {
+   "level": "RF",
+   "handle": "MAIN",
+   "name": "FIRST FLOOR ROOF",
+   "anchor": [
+    0,
+    32.17
+   ],
+   "anchorSource": "same outline as L1/EXT",
    "edges": [
-    {"heading": "E", "length": "54'-0\"", "source": "A-103 roof plan"},
-    {"heading": "S", "length": "32'-2\"", "source": "A-103 roof plan"},
-    {"heading": "W", "length": "54'-0\"", "source": "A-103 roof plan"},
-    {"heading": "N", "length": "32'-2\"", "source": "A-103 roof plan"}
-   ]},
-  {"level": "RF", "handle": "BOX", "name": "UPPER ROOF", "anchor": [13.34, 39.0], "anchorSource": "same outline as L2/EXT",
+    {
+     "heading": "E",
+     "length": "54'-0\"",
+     "source": "A-103 roof plan"
+    },
+    {
+     "heading": "S",
+     "length": "32'-2\"",
+     "source": "A-103 roof plan"
+    },
+    {
+     "heading": "W",
+     "length": "54'-0\"",
+     "source": "A-103 roof plan"
+    },
+    {
+     "heading": "N",
+     "length": "32'-2\"",
+     "source": "A-103 roof plan"
+    }
+   ],
+   "elevationFt": {
+    "value": 13.2,
+    "source": "A-301 level marker, first floor roof",
+    "confidence": "MEDIUM"
+   }
+  },
+  {
+   "level": "RF",
+   "handle": "BOX",
+   "name": "UPPER ROOF",
+   "anchor": [
+    13.34,
+    39.0
+   ],
+   "anchorSource": "same outline as L2/EXT",
    "edges": [
-    {"heading": "E", "length": "22'-0\"", "source": "A-103 roof plan"},
-    {"heading": "S", "length": "44'-7\"", "source": "A-103 roof plan"},
-    {"heading": "W", "length": "22'-0\"", "source": "A-103 roof plan"},
-    {"heading": "N", "length": "44'-7\"", "source": "A-103 roof plan"}
-   ]}
+    {
+     "heading": "E",
+     "length": "22'-0\"",
+     "source": "A-103 roof plan"
+    },
+    {
+     "heading": "S",
+     "length": "44'-7\"",
+     "source": "A-103 roof plan"
+    },
+    {
+     "heading": "W",
+     "length": "22'-0\"",
+     "source": "A-103 roof plan"
+    },
+    {
+     "heading": "N",
+     "length": "44'-7\"",
+     "source": "A-103 roof plan"
+    }
+   ],
+   "elevationFt": {
+    "value": 24.0,
+    "source": "A-301 level marker",
+    "confidence": "MEDIUM"
+   }
+  }
  ],
  "hosts": [
-  {"level": "L2", "handle": "BATH-2", "name": "PRIMARY BATH", "source": "A-102; no dimensions on the DD set"},
-  {"level": "L2", "handle": "CLOSET-1", "name": "WALK-IN CLOSET", "source": "A-102; no dimensions on the DD set"},
-  {"level": "L2", "handle": "STUDY", "name": "STUDY", "source": "A-102; no dimensions on the DD set"},
-  {"level": "SITE", "handle": "DRIVE", "name": "DRIVEWAY", "source": "C-101"},
-  {"level": "SITE", "handle": "PATIO", "name": "STONE PATIO", "source": "A-101 printed room size 8'-0\" x 22'-0\""},
-  {"level": "SITE", "handle": "SEPTIC", "name": "SEPTIC SYSTEM", "source": "C-102"},
-  {"level": "SITE", "handle": "WELL", "name": "WELL", "source": "C-102"},
-  {"level": "SITE", "handle": "UTIL", "name": "UTILITIES", "source": "C-102"}
+  {
+   "level": "L2",
+   "handle": "BATH-2",
+   "name": "PRIMARY BATH",
+   "source": "A-102; no dimensions on the DD set"
+  },
+  {
+   "level": "L2",
+   "handle": "CLOSET-1",
+   "name": "WALK-IN CLOSET",
+   "source": "A-102; no dimensions on the DD set"
+  },
+  {
+   "level": "L2",
+   "handle": "STUDY",
+   "name": "STUDY",
+   "source": "A-102; no dimensions on the DD set"
+  },
+  {
+   "level": "SITE",
+   "handle": "DRIVE",
+   "name": "DRIVEWAY",
+   "source": "C-101"
+  },
+  {
+   "level": "SITE",
+   "handle": "PATIO",
+   "name": "STONE PATIO",
+   "source": "A-101 printed room size 8'-0\" x 22'-0\""
+  },
+  {
+   "level": "SITE",
+   "handle": "SEPTIC",
+   "name": "SEPTIC SYSTEM",
+   "source": "C-102"
+  },
+  {
+   "level": "SITE",
+   "handle": "WELL",
+   "name": "WELL",
+   "source": "C-102"
+  },
+  {
+   "level": "SITE",
+   "handle": "UTIL",
+   "name": "UTILITIES",
+   "source": "C-102"
+  }
  ]
 }

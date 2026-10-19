@@ -16,7 +16,7 @@ the plans, or confirms a draft `prefill.py` made from the text layer. `build.py`
  ],
  "exterior": [ { "level": "L1", "anchor": [0, 32.17], "edges": [ ... ], "heightFt": {...} } ],
  "spaces":   [ { "level": "L1", "number": "101", "name": "GREAT ROOM", "anchor": [0.5, 31.67], "edges": [ ... ] } ],
- "roofs":    [ { "level": "RF", "handle": "MAIN", "anchor": [0, 32.17], "edges": [ ... ] } ],
+ "roofs":    [ { "level": "RF", "handle": "MAIN", "elevationFt": {"value": 13.2, "source": "A-301 level marker"}, "anchor": [0, 32.17], "edges": [ ... ] } ],
  "hosts":    [ { "level": "SITE", "handle": "DRIVE", "name": "DRIVEWAY", "source": "C-101" } ]
 }
 ```
@@ -50,8 +50,10 @@ and N2 in walk order.
 `levels[].elevationFt` from the level markers on the sections. `levels[].ceilingFt` is
 the default ceiling height for spaces on that level; a space can carry its own
 `ceilingFt` from the RCP or the finish schedule. `levels[].storyFt` or an exterior's
-`heightFt` sets exterior face height. A space with no height anywhere gets
-`NOT_MEASURED` and its faces carry a length and no area.
+`heightFt` sets exterior face height. A roof plane carries its own `elevationFt`, since
+every roof sits on the one `RF` level and a lower roof is not at the level's elevation.
+A space with no height anywhere gets `NOT_MEASURED` and its faces carry a length and no
+area.
 
 ## Spaces, exterior, roofs, hosts
 
@@ -59,7 +61,7 @@ the default ceiling height for spaces on that level; a space can carry its own
 |---|---|---|
 | `spaces` | a room, corridor, shaft, deck | wall faces, FLR, CLG |
 | `exterior` | the building outline on a level, host `EXT` | exterior faces |
-| `roofs` | a roof plane, level `RF` | one TOP surface |
+| `roofs` | a roof plane, level `RF`, with its own `elevationFt` from the level markers | one TOP surface |
 | `hosts` | a thing with no faces: a site element, a room the set has not laid out yet | a space key only, so pins can land on it |
 
 A host that gets an outline in a later issue carries its key; the faces are minted then.

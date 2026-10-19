@@ -189,14 +189,21 @@ def change_list(model: dict, rev_a: str, rev_b: str) -> dict:
                      "note": ("split" if len(as_) > 1 and len(bs) == 1 else "merged" if len(bs) > 1 and len(as_) == 1 else None)})
     order = {"changed": 0, "removed": 1, "added": 2, "now measured": 3}
     rows.sort(key=lambda r: (order[r["change"]], r["before"] or r["after"]))
-    events = [e for e in model["lineage"] if ia < rev_index(model, e["rev"]) <= ib and e["kind"] != "carry" and e["from"].__class__ is str and e["from"].startswith("sp") or
-              (ia < rev_index(model, e["rev"]) <= ib and e["kind"] == "merge" and any(f.startswith("sp") for f in e["from"]))]
+    events = [e for e in model["lineage"] if _space_event_between(model, e, ia, ib)]
     return {"from": rev_a, "to": rev_b, "surfaces": rows, "events": events,
             "totals": {"changed": sum(1 for r in rows if r["change"] == "changed"),
                        "added": sum(1 for r in rows if r["change"] == "added"),
                        "removed": sum(1 for r in rows if r["change"] == "removed"),
                        "nowMeasured": sum(1 for r in rows if r["change"] == "now measured"),
                        "deltaAreaSf": round(sum(r["deltaAreaSf"] or 0 for r in rows), 2)}}
+
+
+def _space_event_between(model: dict, e: dict, ia: int, ib: int) -> bool:
+    """A split, merge or retire of a space, in the revisions after a and up to b."""
+    if not (ia < rev_index(model, e["rev"]) <= ib) or e["kind"] == "carry":
+        return False
+    froms = e["from"] if isinstance(e["from"], list) else [e["from"]]
+    return any(f.startswith("sp") for f in froms)
 
 
 def _sum_len(rows):

@@ -11,7 +11,7 @@ sm.py -- the surface model command line.
   sm.py touches   <model.json> "L1/GREAT/N" [--rev DD-1]
   sm.py review    <model.json> [--rev DD-1]
   sm.py changes   <model.json> --from SD-1 --to DD-1 [--md out.md] [--rates rates.json]
-  sm.py export    <model.json> --what surfaces|massing --out file.json [--rev DD-1]
+  sm.py export    <model.json> --what surfaces --out file.json [--rev DD-1]
   sm.py report    <model.json> [--rev DD-1]
   sm.py speak     "L2/204/N/W3 @6-12"
   sm.py summary   <model.json>
@@ -72,7 +72,7 @@ def main(argv=None):
     p = sub.add_parser("touches"); p.add_argument("model"); p.add_argument("address"); p.add_argument("--rev")
     p = sub.add_parser("review"); p.add_argument("model"); p.add_argument("--rev")
     p = sub.add_parser("changes"); p.add_argument("model"); p.add_argument("--from", dest="rev_a", required=True); p.add_argument("--to", dest="rev_b", required=True); p.add_argument("--md"); p.add_argument("--rates"); p.add_argument("--out")
-    p = sub.add_parser("export"); p.add_argument("model"); p.add_argument("--what", choices=["surfaces", "massing"], required=True); p.add_argument("--out", required=True); p.add_argument("--rev")
+    p = sub.add_parser("export"); p.add_argument("model"); p.add_argument("--what", choices=["surfaces"], required=True); p.add_argument("--out", required=True); p.add_argument("--rev")
     p = sub.add_parser("report"); p.add_argument("model"); p.add_argument("--rev"); p.add_argument("--proposal")
     p = sub.add_parser("speak"); p.add_argument("address")
     p = sub.add_parser("summary"); p.add_argument("model")
@@ -168,7 +168,7 @@ def main(argv=None):
         return 0
 
     if a.cmd == "export":
-        data = X.surfaces_export(m, rev) if a.what == "surfaces" else X.massing_export(m, rev)
+        data = X.surfaces_export(m, rev)
         out(data, a.out)
         return 0
 

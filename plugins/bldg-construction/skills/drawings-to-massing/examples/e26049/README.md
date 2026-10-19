@@ -13,15 +13,14 @@ What came out:
 |---|---|---|
 | `L1/EXT` volume, 0 to 13.2 ft | `sp_8`, faces `sk_43` to `sk_46` | L1 level marker (A-301, HIGH); the exterior faces' height (MEDIUM) |
 | `L2/EXT` volume, 12.4 to 24.0 ft | `sp_9`, faces `sk_47` to `sk_50` | L2 level marker (A-301, MEDIUM); the exterior faces' height (MEDIUM) |
-| `RF/MAIN` roof flat at 13.2 ft | `sp_10`, surface `sk_51` | drawn on `L1/EXT`'s top, see below |
+| `RF/MAIN` roof flat at 13.2 ft | `sp_10`, surface `sk_51` | the roof's own level marker (A-301, MEDIUM) |
 | `RF/BOX` roof flat at 24.0 ft | `sp_11`, surface `sk_52` | the RF level marker (A-301, MEDIUM) |
 | `L1/DECK` cedar flat at grade | `sp_7`, floor `sk_41` | its outline sits outside `L1/EXT` |
 | seven interior footprints in `spaces` | `sp_1` ... | the rooms' outlines and ceiling heights |
 
-The notes in the file say what to check. The one that matters: the model puts both roof
-planes on the single `RF` level at 24.0 ft, and `RF/MAIN` has the first floor's outline, so
-the script drew it on `L1/EXT`'s top at 13.2 ft and said so. The address grammar has one roof
-level, so a lower roof plane has no elevation of its own in the model yet. Eight hosts have
+The notes in the file say what to check. Each roof plane carries its own elevation in the
+readings, so `RF/MAIN` sits at 13.2 ft and `RF/BOX` at 24.0 ft from the level markers. A roof
+whose elevation disagrees with the top of the volume it covers gets a note. Eight hosts have
 keys and no outline (three second-floor rooms the set has not laid out, five site elements);
 the picture needs none of them, and each keeps its key for the day it gets a shape.
 

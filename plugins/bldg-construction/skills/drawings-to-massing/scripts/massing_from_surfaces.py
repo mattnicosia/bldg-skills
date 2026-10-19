@@ -230,8 +230,7 @@ def build(sx: dict, keep: dict | None = None, src_name: str = "surfaces.json") -
             if y is None or abs(match["top"] - y) > MATCH_TOL_FT:
                 notes.append(
                     f"{sp['address']}: same outline as {match['name']}, whose top is {match['top']} ft, but the model puts it at "
-                    f"{y} ft ({sp['level']}). Drawn on {match['name']}'s top. The address grammar has one roof level, so a lower roof "
-                    "plane has no elevation of its own; confirm which is right on the sections.")
+                    f"{y} ft. Drawn on {match['name']}'s top. Check the roof's elevationFt in the readings against the sections.")
                 y, placed = match["top"], f"the top of {match['name']} (outline match)"
         if y is None:
             y, placed = (volumes[-1]["top"] if volumes else DEFAULT_STORY_FT), "assumed: no roof elevation in the model"
