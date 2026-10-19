@@ -1,0 +1,489 @@
+{
+ "units": "ft",
+ "volumes": [
+  {
+   "name": "L1/EXT",
+   "el": "sp_8",
+   "footprint": [
+    [
+     0.0,
+     32.17
+    ],
+    [
+     54.0,
+     32.17
+    ],
+    [
+     54.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0
+    ]
+   ],
+   "base": 0.0,
+   "top": 13.2,
+   "phase": "house",
+   "material": "paper",
+   "roof": {
+    "type": "flat"
+   },
+   "surfaces": {
+    "N": "sk_43",
+    "E": "sk_44",
+    "S": "sk_45",
+    "W": "sk_46"
+   },
+   "_confidence": "MEDIUM"
+  },
+  {
+   "name": "L2/EXT",
+   "el": "sp_9",
+   "footprint": [
+    [
+     13.34,
+     39.0
+    ],
+    [
+     35.34,
+     39.0
+    ],
+    [
+     35.34,
+     -5.58
+    ],
+    [
+     13.34,
+     -5.58
+    ]
+   ],
+   "base": 12.4,
+   "top": 24.0,
+   "phase": "house",
+   "material": "paper",
+   "roof": {
+    "type": "flat"
+   },
+   "surfaces": {
+    "N": "sk_47",
+    "E": "sk_48",
+    "S": "sk_49",
+    "W": "sk_50"
+   },
+   "_confidence": "MEDIUM"
+  }
+ ],
+ "flats": [
+  {
+   "name": "RF/MAIN",
+   "el": "sp_10",
+   "polygon": [
+    [
+     0.0,
+     32.17
+    ],
+    [
+     54.0,
+     32.17
+    ],
+    [
+     54.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0
+    ]
+   ],
+   "y": 13.22,
+   "material": "roof",
+   "phase": "roof",
+   "_confidence": "MEDIUM",
+   "surface": "sk_51"
+  },
+  {
+   "name": "RF/BOX",
+   "el": "sp_11",
+   "polygon": [
+    [
+     13.34,
+     39.0
+    ],
+    [
+     35.34,
+     39.0
+    ],
+    [
+     35.34,
+     -5.58
+    ],
+    [
+     13.34,
+     -5.58
+    ]
+   ],
+   "y": 24.02,
+   "material": "roof",
+   "phase": "roof",
+   "_confidence": "MEDIUM",
+   "surface": "sk_52"
+  },
+  {
+   "name": "L1/DECK",
+   "el": "sp_7",
+   "polygon": [
+    [
+     -20.5,
+     27.0
+    ],
+    [
+     -0.5,
+     27.0
+    ],
+    [
+     -0.5,
+     11.0
+    ],
+    [
+     -20.5,
+     11.0
+    ]
+   ],
+   "y": 0.02,
+   "material": "cedar",
+   "phase": "house",
+   "_confidence": "HIGH",
+   "surface": "sk_41"
+  }
+ ],
+ "trees": [],
+ "spaces": [
+  {
+   "key": "sp_1",
+   "address": "L1/GREAT",
+   "name": "GREAT ROOM",
+   "level": "L1",
+   "footprint": [
+    [
+     0.5,
+     31.67
+    ],
+    [
+     35.5,
+     31.67
+    ],
+    [
+     35.5,
+     9.67
+    ],
+    [
+     0.5,
+     9.67
+    ]
+   ],
+   "base": 0.0,
+   "top": 11.6,
+   "phase": "house",
+   "surfaces": {
+    "N": "sk_1",
+    "E": "sk_2",
+    "S": "sk_3",
+    "W": "sk_4",
+    "FLR": "sk_5",
+    "CLG": "sk_6"
+   }
+  },
+  {
+   "key": "sp_2",
+   "address": "L1/KITCHEN",
+   "name": "KITCHEN",
+   "level": "L1",
+   "footprint": [
+    [
+     36.5,
+     31.67
+    ],
+    [
+     52.0,
+     31.67
+    ],
+    [
+     52.0,
+     15.17
+    ],
+    [
+     36.5,
+     15.17
+    ]
+   ],
+   "base": 0.0,
+   "top": 11.6,
+   "phase": "house",
+   "surfaces": {
+    "N": "sk_7",
+    "E": "sk_8",
+    "S": "sk_9",
+    "W": "sk_10",
+    "FLR": "sk_11",
+    "CLG": "sk_12"
+   }
+  },
+  {
+   "key": "sp_4",
+   "address": "L1/BATH-1",
+   "name": "BATH",
+   "level": "L1",
+   "footprint": [
+    [
+     0.5,
+     8.67
+    ],
+    [
+     11.0,
+     8.67
+    ],
+    [
+     11.0,
+     1.67
+    ],
+    [
+     0.5,
+     1.67
+    ]
+   ],
+   "base": 0.0,
+   "top": 11.6,
+   "phase": "house",
+   "surfaces": {
+    "N": "sk_19",
+    "E": "sk_20",
+    "S": "sk_21",
+    "W": "sk_22",
+    "FLR": "sk_23",
+    "CLG": "sk_24"
+   }
+  },
+  {
+   "key": "sp_6",
+   "address": "L1/ENTRY",
+   "name": "ENTRY",
+   "level": "L1",
+   "footprint": [
+    [
+     23.0,
+     8.17
+    ],
+    [
+     36.0,
+     8.17
+    ],
+    [
+     36.0,
+     2.67
+    ],
+    [
+     23.0,
+     2.67
+    ]
+   ],
+   "base": 0.0,
+   "top": 11.6,
+   "phase": "house",
+   "surfaces": {
+    "N": "sk_31",
+    "E": "sk_32",
+    "S": "sk_33",
+    "W": "sk_34",
+    "FLR": "sk_35",
+    "CLG": "sk_36"
+   }
+  },
+  {
+   "key": "sp_12",
+   "address": "L2/PRIMARY",
+   "name": "PRIMARY SUITE",
+   "level": "L2",
+   "footprint": [
+    [
+     13.84,
+     38.5
+    ],
+    [
+     34.84,
+     38.5
+    ],
+    [
+     34.84,
+     18.5
+    ],
+    [
+     13.84,
+     18.5
+    ]
+   ],
+   "base": 12.4,
+   "top": 21.4,
+   "phase": "house",
+   "surfaces": {
+    "N": "sk_65",
+    "E": "sk_66",
+    "S": "sk_67",
+    "W": "sk_68",
+    "FLR": "sk_69",
+    "CLG": "sk_70"
+   }
+  },
+  {
+   "key": "sp_21",
+   "address": "L1/BEDROOM",
+   "name": "BEDROOM",
+   "level": "L1",
+   "footprint": [
+    [
+     36.5,
+     14.67
+    ],
+    [
+     46.5,
+     14.67
+    ],
+    [
+     46.5,
+     1.67
+    ],
+    [
+     36.5,
+     1.67
+    ]
+   ],
+   "base": 0.0,
+   "top": 11.6,
+   "phase": "house",
+   "surfaces": {
+    "N": "sk_53",
+    "E": "sk_54",
+    "S": "sk_55",
+    "W": "sk_56",
+    "FLR": "sk_57",
+    "CLG": "sk_58"
+   }
+  },
+  {
+   "key": "sp_22",
+   "address": "L1/STUDY",
+   "name": "STUDY",
+   "level": "L1",
+   "footprint": [
+    [
+     47.0,
+     14.67
+    ],
+    [
+     52.5,
+     14.67
+    ],
+    [
+     52.5,
+     1.67
+    ],
+    [
+     47.0,
+     1.67
+    ]
+   ],
+   "base": 0.0,
+   "top": 11.6,
+   "phase": "house",
+   "surfaces": {
+    "N": "sk_59",
+    "E": "sk_60",
+    "S": "sk_61",
+    "W": "sk_62",
+    "FLR": "sk_63",
+    "CLG": "sk_64"
+   }
+  }
+ ],
+ "_unplaced": [
+  {
+   "key": "sp_13",
+   "address": "L2/BATH-2",
+   "name": "PRIMARY BATH",
+   "level": "L2",
+   "kind": "host"
+  },
+  {
+   "key": "sp_14",
+   "address": "L2/CLOSET-1",
+   "name": "WALK-IN CLOSET",
+   "level": "L2",
+   "kind": "host"
+  },
+  {
+   "key": "sp_15",
+   "address": "L2/STUDY",
+   "name": "STUDY",
+   "level": "L2",
+   "kind": "host"
+  },
+  {
+   "key": "sp_16",
+   "address": "SITE/DRIVE",
+   "name": "DRIVEWAY",
+   "level": "SITE",
+   "kind": "host"
+  },
+  {
+   "key": "sp_17",
+   "address": "SITE/PATIO",
+   "name": "STONE PATIO",
+   "level": "SITE",
+   "kind": "host"
+  },
+  {
+   "key": "sp_18",
+   "address": "SITE/SEPTIC",
+   "name": "SEPTIC SYSTEM",
+   "level": "SITE",
+   "kind": "host"
+  },
+  {
+   "key": "sp_19",
+   "address": "SITE/WELL",
+   "name": "WELL",
+   "level": "SITE",
+   "kind": "host"
+  },
+  {
+   "key": "sp_20",
+   "address": "SITE/UTIL",
+   "name": "UTILITIES",
+   "level": "SITE",
+   "kind": "host"
+  }
+ ],
+ "_phases": [
+  {
+   "id": "house",
+   "label": "House"
+  },
+  {
+   "id": "roof",
+   "label": "Roof"
+  }
+ ],
+ "_notes": [
+  "RF/MAIN: same outline as L1/EXT, whose top is 13.2 ft, but the model puts it at 24.0 ft (RF). Drawn on L1/EXT's top. The address grammar has one roof level, so a lower roof plane has no elevation of its own; confirm which is right on the sections.",
+  "8 host(s) have a key and no outline (L2/BATH-2, L2/CLOSET-1, L2/STUDY, SITE/DRIVE, SITE/PATIO, SITE/SEPTIC, SITE/WELL, SITE/UTIL). Add each by hand as a flat or volume if the picture needs it, and keep its key as \"el\".",
+  "No level below grade in the model, so there is no foundation phase. Add one by hand if the reveal should start below grade.",
+  "Roofs are drawn flat. A gable, shed or hip is a hand edit to the volume's \"roof\" (kit README, massing.json).",
+  "This file is for a picture. It carries no areas and no lengths; never pull a quantity from it."
+ ],
+ "_from": {
+  "job": "E26049",
+  "rev": "DD-1",
+  "surfaces": "surfaces.json",
+  "script": "drawings-to-massing/scripts/massing_from_surfaces.py"
+ }
+}
