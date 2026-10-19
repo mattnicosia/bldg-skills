@@ -50,7 +50,7 @@ that has one.
    - Take dimensions from the dimension strings, never from scaling the image, unless no dimension exists. If you scale, compute pixels per foot from the longest dimension you can read, and note that the value was scaled.
 4. **Heights.** Take finished floor, plate, parapet and ridge elevations from the elevation level markers or the sections. Grade is 0. Basement or exposed foundation goes below 0.
 5. **Roofs.**
-   From the surface model, every roof comes out flat. Change the volume's `roof` here for a gable, shed or hip read off the elevations.
+   From the surface model, every roof comes out flat, but a roof with a `pitch` or `spotFt` in the readings keeps them (`pitch`, `spotFt` on the flat, plus `pitch`, `spotFt`, `riseFt` on the volume's `roof`). Read the type from them. Change the volume's `roof` here for a gable, shed or hip read off the elevations.
    - `flat`: gets a thin coping automatically.
    - `gable`: `ridge` height and `axis` along the ridge.
    - `shed`: `ridge` and `high` side N/S/E/W.

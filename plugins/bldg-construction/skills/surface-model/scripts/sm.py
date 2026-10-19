@@ -8,10 +8,14 @@ sm.py -- the surface model command line.
   sm.py accept    <model.json> proposal.json --by matt [--all | --decide 3,5,7] [--accept-pairs by]
   sm.py resolve   <model.json> "L1/*/FLR" [--rev SD-1]
   sm.py pin       <model.json> "L1/GREAT/N" --system estimate --ref "08 54 00" --by matt [--label ..]
+  sm.py pin-accept   <model.json> pin_3 --by matt
+  sm.py pin-withdraw <model.json> pin_3 --by matt
+  sm.py pin-move     <model.json> pin_3 --to "L1/KITCHEN-B" --by matt
+  sm.py pair-reject  <model.json> "L1/A/N" "L1/B/S" --by matt [--reason ".."]
   sm.py touches   <model.json> "L1/GREAT/N" [--rev DD-1]
   sm.py review    <model.json> [--rev DD-1]
   sm.py changes   <model.json> --from SD-1 --to DD-1 [--md out.md] [--rates rates.json]
-  sm.py export    <model.json> --what surfaces --out file.json [--rev DD-1]
+  sm.py export    <model.json> --what surfaces|roofs --out file.json [--rev DD-1]
   sm.py report    <model.json> [--rev DD-1]
   sm.py speak     "L2/204/N/W3 @6-12"
   sm.py summary   <model.json>
@@ -69,10 +73,15 @@ def main(argv=None):
     p = sub.add_parser("accept"); p.add_argument("model"); p.add_argument("proposal"); p.add_argument("--by", required=True); p.add_argument("--all", action="store_true"); p.add_argument("--decide"); p.add_argument("--accept-pairs")
     p = sub.add_parser("resolve"); p.add_argument("model"); p.add_argument("query"); p.add_argument("--rev")
     p = sub.add_parser("pin"); p.add_argument("model"); p.add_argument("target"); p.add_argument("--system", required=True); p.add_argument("--ref", required=True); p.add_argument("--by", required=True); p.add_argument("--label"); p.add_argument("--state", default="proposed"); p.add_argument("--evidence", action="append")
+    for name in ("pin-accept", "pin-withdraw", "pin-move"):
+        p = sub.add_parser(name); p.add_argument("model"); p.add_argument("pin"); p.add_argument("--by", required=True)
+        if name == "pin-move":
+            p.add_argument("--to", required=True)
+    p = sub.add_parser("pair-reject"); p.add_argument("model"); p.add_argument("a"); p.add_argument("b"); p.add_argument("--by", required=True); p.add_argument("--reason")
     p = sub.add_parser("touches"); p.add_argument("model"); p.add_argument("address"); p.add_argument("--rev")
     p = sub.add_parser("review"); p.add_argument("model"); p.add_argument("--rev")
     p = sub.add_parser("changes"); p.add_argument("model"); p.add_argument("--from", dest="rev_a", required=True); p.add_argument("--to", dest="rev_b", required=True); p.add_argument("--md"); p.add_argument("--rates"); p.add_argument("--out")
-    p = sub.add_parser("export"); p.add_argument("model"); p.add_argument("--what", choices=["surfaces"], required=True); p.add_argument("--out", required=True); p.add_argument("--rev")
+    p = sub.add_parser("export"); p.add_argument("model"); p.add_argument("--what", choices=["surfaces", "roofs"], required=True); p.add_argument("--out", required=True); p.add_argument("--rev")
     p = sub.add_parser("report"); p.add_argument("model"); p.add_argument("--rev"); p.add_argument("--proposal")
     p = sub.add_parser("speak"); p.add_argument("address")
     p = sub.add_parser("summary"); p.add_argument("model")
@@ -138,6 +147,18 @@ def main(argv=None):
         print(f"{p['id']}: {p['source']['system']} {p['source']['ref']} -> {p['addressSnapshot']} ({p['target']['kind']}, {len(p['target'].get('members', [p['target'].get('key')]))} keys)")
         return 0
 
+    if a.cmd in ("pin-accept", "pin-withdraw", "pin-move"):
+        p = P.decide(m, a.pin, a.cmd.split("-")[1], actor(a.by), getattr(a, "to", None))
+        S.save(m, a.model)
+        print(f"{p['id']}: {p['state']} ({p['source']['system']} {p['source']['ref']})" + (f" -> {p['movedTo']}" if p["state"] == "moved" else ""))
+        return 0
+
+    if a.cmd == "pair-reject":
+        res = B.reject_pair(m, rev, A.parse(a.a).surface_key_text(), A.parse(a.b).surface_key_text(), actor(a.by), a.reason)
+        S.save(m, a.model)
+        print(f"rejected {res['keys'][0]} | {res['keys'][1]}; {res['adjacencyDropped']} adjacency rows dropped")
+        return 0
+
     if a.cmd == "touches":
         key = S.key_for_address(m, A.parse(a.address).surface_key_text(), rev)
         if not key:
@@ -168,7 +189,7 @@ def main(argv=None):
         return 0
 
     if a.cmd == "export":
-        data = X.surfaces_export(m, rev)
+        data = X.roofs_export(m, rev) if a.what == "roofs" else X.surfaces_export(m, rev)
         out(data, a.out)
         return 0
 

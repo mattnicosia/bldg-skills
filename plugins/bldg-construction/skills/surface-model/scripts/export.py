@@ -1,6 +1,7 @@
 """
 export.py -- what other skills and BLDG OS read.
 
+  roofs.json      the roof planes alone: elevation, spot height, pitch, outline.
   surfaces.json   every live space and surface at a revision, with keys, addresses,
                   level elevations, outlines and face segments in plan feet. The
                   proposal kit's click layer and the OS Model tab read this. The key is
@@ -33,6 +34,7 @@ def surfaces_export(model: dict, rev: str) -> dict:
                        "elevationSource": (s.get("elevationFt") or {}).get("source") or f"{s['level']} level marker",
                        "outline": (s.get("outline") or {}).get("points"), "areaSf": s.get("areaSf"),
                        "ceilingFt": (s.get("ceilingFt") or {}).get("value"), "phase": s.get("phase"),
+                       "spotFt": (s.get("spotFt") or {}).get("value"), "pitch": (s.get("pitch") or {}).get("value"),
                        "wasAddress": _was(model, s["space"], rev)})
     surfaces = []
     for s in live_surfaces(model, rev):
@@ -47,6 +49,18 @@ def surfaces_export(model: dict, rev: str) -> dict:
     return {"job": model["job"], "rev": rev, "north": model.get("north"),
             "levels": model["revisions"][rev_index(model, rev)].get("levels", {}),
             "spaces": spaces, "surfaces": surfaces}
+
+
+def roofs_export(model: dict, rev: str) -> dict:
+    """Roof planes only: elevation, spot height and pitch with their sources, and the outline."""
+    out = []
+    for s in surfaces_export(model, rev)["spaces"]:
+        if s["kind"] != "roof":
+            continue
+        row = next(r for r in live_spaces(model, rev) if r["space"] == s["key"])
+        out.append({**{k: s[k] for k in ("key", "address", "level", "elevationFt", "elevationSource", "spotFt", "pitch", "outline", "areaSf", "wasAddress")},
+                    "spotSource": (row.get("spotFt") or {}).get("source"), "pitchSource": (row.get("pitch") or {}).get("source")})
+    return {"job": model["job"], "rev": rev, "roofs": out}
 
 
 def _conf(s: dict) -> str:

@@ -14,12 +14,16 @@ Status at a revision:
   retired       the key is gone; drawn as a ghost on its last geometry
   span_invalid  the wall moved and the pin's span runs past the end
   set_drift     a selector pin's members changed
+  renamed       the key is live under a new space name on the same outline; a person
+                confirms the pin still fits (a bath that became a kitchen)
+  moved         a person moved the pin to another address (state "moved")
+  withdrawn     a person withdrew the pin (state "withdrawn")
 """
 from __future__ import annotations
 
 import address as A
 from store import (address_map, current_rev, is_live, live_spaces, live_surfaces,
-                   now, space_at, surface_at)
+                   now, rev_index, space_at, surface_at)
 
 SYSTEMS = ("estimate", "proest", "procore_rfi", "procore_co", "sow", "selection", "allowance", "field_figure", "note")
 
@@ -91,6 +95,11 @@ def pin(model: dict, target: str, system: str, ref: str, by: dict, label: str | 
 
 def status(model: dict, p: dict, rev: str) -> dict:
     t = p["target"]
+    # a person's decision beats anything derived, from the revision it was made in
+    if p.get("state") == "moved" and _reached(model, p.get("movedRev"), rev):
+        return {"status": "moved", "to": p.get("movedTo"), "rev": p.get("movedRev")}
+    if p.get("state") == "withdrawn" and _reached(model, p.get("withdrawnRev"), rev):
+        return {"status": "withdrawn", "rev": p.get("withdrawnRev")}
     if t["kind"] == "set":
         res = resolve(model, t["query"], rev)
         added = [k for k in res["keys"] if k not in t["members"]]
@@ -120,8 +129,36 @@ def status(model: dict, p: dict, rev: str) -> dict:
         if length.get("value") is not None and t["span"][1] > float(length["value"]) + 1e-6:
             return {"status": "span_invalid", "lengthNow": length["value"]}
     if now_addr and now_addr != _strip(p["addressSnapshot"]):
+        renamed = _renamed(model, p, key, rev)
+        if renamed:
+            return {"status": "renamed", "was": p["addressSnapshot"], "now": now_addr, "spaceWas": renamed[0], "spaceNow": renamed[1]}
         return {"status": "readdressed", "was": p["addressSnapshot"], "now": now_addr}
     return {"status": "exact"}
+
+
+def _reached(model: dict, decided_rev: str | None, rev: str) -> bool:
+    """True when `rev` is the revision a person decided in, or later. No revision: always."""
+    return decided_rev is None or rev_index(model, rev) >= rev_index(model, decided_rev)
+
+
+def _renamed(model: dict, p: dict, key: str, rev: str) -> tuple[str, str] | None:
+    """(old name, new name) when the pin's space changed name, not just number or face.
+    Compares the printed names; with none, the handles, unless both are plain numbers.
+    A person who accepted the pin at or after `rev` has already looked at it."""
+    if p.get("state") == "accepted" and p.get("acceptedRev") and rev_index(model, p["acceptedRev"]) >= rev_index(model, rev):
+        return None
+    host = model["surfaces"][key]["host"] if key.startswith("sk") else key
+    old, new = space_at(model, host, p["pinnedAt"]), space_at(model, host, rev)
+    if not old or not new:
+        return None
+    nm = lambda s: ((s.get("name") or {}).get("value") or "").strip().upper()  # noqa: E731
+    if nm(old) and nm(new):
+        return (nm(old), nm(new)) if nm(old) != nm(new) else None
+    handle = lambda s: s["address"].split("/")[1] if s["address"].count("/") >= 1 else s["address"]  # noqa: E731
+    ho, hn = handle(old), handle(new)
+    if ho != hn and not (ho.isdigit() and hn.isdigit()):
+        return (ho, hn)
+    return None
 
 
 def _strip(addr: str) -> str:
@@ -185,6 +222,8 @@ def what_touches(model: dict, key: str, rev: str) -> list[dict]:
         hit = t.get("key") in keys or (t["kind"] == "set" and bool(keys & set(t.get("members", []))))
         if not hit and t["kind"] == "set":
             hit = key in resolve(model, t["query"], rev)["keys"]
+        if not hit and p.get("state") == "moved" and p.get("movedTo"):
+            hit = key in resolve(model, p["movedTo"], rev)["keys"]
         if hit:
             out.append({**p, "status": status(model, p, rev)})
     return out
@@ -194,6 +233,34 @@ def review_queue(model: dict, rev: str) -> list[dict]:
     out = []
     for p in model["pins"]:
         st = status(model, p, rev)
-        if st["status"] not in ("exact", "readdressed"):
+        if st["status"] not in ("exact", "readdressed", "moved", "withdrawn"):
             out.append({**p, "status": st})
     return out
+
+
+def decide(model: dict, pin_id: str, action: str, by: dict, to: str | None = None) -> dict:
+    """
+    A person decides on a pin. Writes the fields a hand edit used to:
+      accept    state accepted, acceptedBy, acceptedAt, acceptedRev
+      withdraw  state withdrawn, withdrawnBy, withdrawnAt, withdrawnRev
+      move      state moved, movedTo (an address), movedBy, movedAt, movedRev
+    The target, source and address snapshot stay as they were; the pin is never deleted.
+    """
+    rev = current_rev(model)
+    p = next((x for x in model["pins"] if x["id"] == pin_id), None)
+    if p is None:
+        raise SystemExit(f"{pin_id} is not a pin in this model")
+    if action == "accept":
+        p.update({"state": "accepted", "acceptedBy": by, "acceptedAt": now(), "acceptedRev": rev})
+    elif action == "withdraw":
+        p.update({"state": "withdrawn", "withdrawnBy": by, "withdrawnAt": now(), "withdrawnRev": rev})
+    elif action == "move":
+        if not to:
+            raise SystemExit("move needs --to <address>")
+        res = resolve(model, to, rev)
+        if not res["keys"]:
+            raise SystemExit(f"{to} resolves to nothing at {rev}")
+        p.update({"state": "moved", "movedTo": A.parse(to).canonical(), "movedBy": by, "movedAt": now(), "movedRev": rev})
+    else:
+        raise SystemExit(f"unknown pin action {action!r}")
+    return p

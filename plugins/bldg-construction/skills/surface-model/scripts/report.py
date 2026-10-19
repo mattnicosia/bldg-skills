@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import address as A
 from pins import review_queue, status
-from store import live_surfaces, rev_index, space_at, surface_at
+from store import live_spaces, live_surfaces, rev_index, space_at, surface_at
 
 
 def proposal_report(model: dict, proposal: dict) -> str:
@@ -100,6 +100,7 @@ def revision_report(model: dict, rev: str) -> str:
                  "merged": f"target merged into {st.get('into')}; confirm",
                  "retired": f"target removed: {st.get('reason')}",
                  "span_invalid": f"wall is now {st.get('lengthNow')} ft; the span runs past the end",
+                 "renamed": f"space renamed {st.get('spaceWas')} to {st.get('spaceNow')} ({st.get('was')} to {st.get('now')}); confirm the pin still fits",
                  "set_drift": f"members changed: {len(st.get('added', []))} added, {len(st.get('gone', []))} gone"}.get(st["status"], st["status"])
         lines.append(f"- {p['source']['system']} {p['source']['ref']} on {p['addressSnapshot']}: {words}")
     if not q:
@@ -190,12 +191,47 @@ def change_list(model: dict, rev_a: str, rev_b: str) -> dict:
     order = {"changed": 0, "removed": 1, "added": 2, "now measured": 3}
     rows.sort(key=lambda r: (order[r["change"]], r["before"] or r["after"]))
     events = [e for e in model["lineage"] if _space_event_between(model, e, ia, ib)]
-    return {"from": rev_a, "to": rev_b, "surfaces": rows, "events": events,
+    space_rows = _space_fact_changes(model, rev_a, rev_b)
+    return {"from": rev_a, "to": rev_b, "surfaces": rows, "events": events, "spaces": space_rows,
             "totals": {"changed": sum(1 for r in rows if r["change"] == "changed"),
                        "added": sum(1 for r in rows if r["change"] == "added"),
                        "removed": sum(1 for r in rows if r["change"] == "removed"),
                        "nowMeasured": sum(1 for r in rows if r["change"] == "now measured"),
+                       "spaceFacts": len(space_rows),
                        "deltaAreaSf": round(sum(r["deltaAreaSf"] or 0 for r in rows), 2)}}
+
+
+SPACE_FACTS = (("elevationFt", "elevation", "ft"), ("spotFt", "spot height", "ft"), ("pitch", "pitch", ""))
+
+
+def _effective(model: dict, row: dict, rev: str, field: str):
+    """A space's own value, or for elevation the level's when the space has none."""
+    v = (row.get(field) or {}).get("value")
+    if v is None and field == "elevationFt":
+        lv = (model["revisions"][rev_index(model, rev)].get("levels") or {}).get(row["level"]) or {}
+        v = (lv.get("elevationFt") or {}).get("value")
+    return v
+
+
+def _space_fact_changes(model: dict, rev_a: str, rev_b: str) -> list[dict]:
+    """Spaces live at both revisions under one key whose elevation, roof spot height or
+    pitch changed. A garage slab that rose 2.5 ft is scope even when no wall length moved."""
+    after = {s["space"]: s for s in live_spaces(model, rev_b)}
+    rows = []
+    for b in live_spaces(model, rev_a):
+        a = after.get(b["space"])
+        if not a:
+            continue
+        for field, label, unit in SPACE_FACTS:
+            vb, va = _effective(model, b, rev_a, field), _effective(model, a, rev_b, field)
+            if vb == va or (vb is None and va is None):
+                continue
+            num = isinstance(vb, (int, float)) and isinstance(va, (int, float))
+            rows.append({"key": a["space"], "address": a["address"], "was": b["address"], "field": field, "label": label,
+                         "unit": unit, "before": vb, "after": va, "delta": round(va - vb, 3) if num else None,
+                         "source": (a.get(field) or {}).get("source")})
+    rows.sort(key=lambda r: (r["address"], r["field"]))
+    return rows
 
 
 def _space_event_between(model: dict, e: dict, ia: int, ib: int) -> bool:
@@ -229,6 +265,7 @@ def change_list_md(model: dict, cl: dict, rates: dict | None = None) -> str:
     lines = [f"# Change list: {cl['from']} to {cl['to']}", "",
              f"{t['changed']} surfaces changed, {t['added']} added, {t['removed']} removed"
              + (f", {t['nowMeasured']} measured for the first time" if t.get("nowMeasured") else "")
+             + (f", {t['spaceFacts']} elevation, spot height or pitch changes" if t.get("spaceFacts") else "")
              + f". Net area {t['deltaAreaSf']:+.2f} SF on the surfaces that changed.", "",
              "| Surface | Was | Now | Length | Area | Pricing |", "|---|---|---|---|---|---|"]
     for r in cl["surfaces"]:
@@ -243,6 +280,15 @@ def change_list_md(model: dict, cl: dict, rates: dict | None = None) -> str:
         price = _pricing(model, r, rates)
         lines.append(f"| {spoken} | {r['before'] or ''} | {r['after'] or ''} | {ln} | {ar} | {price} |")
     lines.append("")
+    if cl.get("spaces"):
+        lines.append("## Levels, roof heights and pitch")
+        lines.append("| Space | Fact | Was | Now | Change |")
+        lines.append("|---|---|---|---|---|")
+        for r in cl["spaces"]:
+            u = f" {r['unit']}" if r["unit"] else ""
+            ch = f"{r['delta']:+g}{u}" if r["delta"] is not None else ""
+            lines.append(f"| {r['address']} | {r['label']} | {_fact(r['before'], u)} | {_fact(r['after'], u)} | {ch} |")
+        lines.append("")
     if cl["events"]:
         lines.append("## What happened")
         for e in cl["events"]:
@@ -254,6 +300,10 @@ def change_list_md(model: dict, cl: dict, rates: dict | None = None) -> str:
                 lines.append(f"- {_addr(model, e['from'])} removed: {e.get('reason','')}")
         lines.append("")
     return "\n".join(lines)
+
+
+def _fact(v, unit: str) -> str:
+    return "not given" if v is None else f"{v:g}{unit}" if isinstance(v, (int, float)) else f"{v}"
 
 
 def _addr(model: dict, key: str) -> str:

@@ -52,6 +52,10 @@ the default ceiling height for spaces on that level; a space can carry its own
 `ceilingFt` from the RCP or the finish schedule. `levels[].storyFt` or an exterior's
 `heightFt` sets exterior face height. A roof plane carries its own `elevationFt`, since
 every roof sits on the one `RF` level and a lower roof is not at the level's elevation.
+A roof can also carry `spotFt` (the ridge or high point elevation) and `pitch` (`"6:12"`),
+each a cited value. They go into the model, the change list and the massing file.
+A space's own `elevationFt` (a garage slab below the level marker) is kept and the change
+list reports when it moves.
 A space with no height anywhere gets `NOT_MEASURED` and its faces carry a length and no
 area.
 

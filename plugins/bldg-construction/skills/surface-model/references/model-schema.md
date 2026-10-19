@@ -76,14 +76,31 @@ Append-only. A pin links something outside the model to a key.
 Targets: `surface` (with an optional `span` or `point`), `wall`, `space`, or `set`
 (a selector such as `L1/*/FLR` and the member keys at pin time). Systems: `estimate`,
 `proest`, `procore_rfi`, `procore_co`, `sow`, `selection`, `allowance`,
-`field_figure`, `note`. Agents propose; people accept or withdraw (`state`).
+`field_figure`, `note`. Agents propose; people accept, withdraw or move (`state`). The
+`pin-accept`, `pin-withdraw` and `pin-move` commands write the fields:
+
+| state | fields written |
+|---|---|
+| `accepted` | `acceptedBy`, `acceptedAt`, `acceptedRev` |
+| `withdrawn` | `withdrawnBy`, `withdrawnAt`, `withdrawnRev` |
+| `moved` | `movedTo` (an address), `movedBy`, `movedAt`, `movedRev` |
 
 Pin status is never stored. `pins.py status` derives it from the lineage at a revision:
-`exact`, `readdressed`, `forked`, `merged`, `retired`, `span_invalid`, `set_drift`.
+`exact`, `readdressed`, `renamed` (the space kept its outline and changed name; a person
+confirms), `forked`, `merged`, `retired`, `span_invalid`, `set_drift`, and for a person's
+decision `moved` or `withdrawn`. `review` lists everything except `exact`, `readdressed`,
+`moved` and `withdrawn`.
+
+## Rejected wall pairs
+
+`rejectedPairs` holds `{keys, addresses, rev, by, at, reason}` for each pair a person
+rejected with `pair-reject`. Later accepts skip those pairs. A wall core no face points at
+any more is retired.
 
 ## Exports
 
-`sm.py export --what surfaces` writes every live space and surface at a revision with
+`sm.py export --what roofs` writes the roof planes alone: elevation, `spotFt`, `pitch`,
+their sources and the outline. `sm.py export --what surfaces` writes every live space and surface at a revision with
 its key, address, coordinates, elevation and cited sizes. The proposal kit's click layer
 and the BLDG OS Model tab read that file; the key is the mesh tag. The Bid Presentation
 Kit's `massing.json` is written from it by

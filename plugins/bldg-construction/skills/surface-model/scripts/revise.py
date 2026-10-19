@@ -100,6 +100,37 @@ def propose(model: dict, readings: dict, rev: str) -> dict:
                                "decision": "needs_person"})
                 used_new.add(i); used_old.update(o["space"] for o in parents)
 
+    # C2. an old space that sits inside a new space an auto carry already took: the carry
+    # is really a merge (L1/LAUNDRY folds into a larger L1/MUD-ROOM)
+    for o in with_outline:
+        if o["space"] in used_old:
+            continue
+        for i, sh in table[o["space"]].items():
+            if sh / max(o["areaSf"] or 1e-9, 1e-9) < CHILD_INSIDE:
+                continue
+            ci = next((j for j, e in enumerate(events) if e["kind"] == "carry" and e["toIdx"] == i and e["from"] in table), None)
+            if ci is None:
+                continue
+            e = events[ci]
+            main = next(x for x in with_outline if x["space"] == e["from"])
+            events[ci] = {"kind": "merge", "from": [main["space"], o["space"]], "addresses": [main["address"], o["address"]],
+                          "to": new[i]["address"], "toIdx": i,
+                          "note": f"{main['address']}, {o['address']} became {new[i]['address']}",
+                          "decision": "needs_person"}
+            used_old.add(o["space"])
+            break
+    # fold a third or fourth absorbed space into the merge the first one made
+    for o in with_outline:
+        if o["space"] in used_old:
+            continue
+        for e in events:
+            if e["kind"] == "merge" and e["toIdx"] in table[o["space"]] and \
+                    table[o["space"]][e["toIdx"]] / max(o["areaSf"] or 1e-9, 1e-9) >= CHILD_INSIDE:
+                e["from"].append(o["space"]); e["addresses"].append(o["address"])
+                e["note"] = f"{', '.join(e['addresses'])} became {e['to']}"
+                used_old.add(o["space"])
+                break
+
     # D. spaces with no outline (hosts, labels) match by address on the same level
     by_addr = {n["address"]: i for i, n in enumerate(new)}
     for o in old:
