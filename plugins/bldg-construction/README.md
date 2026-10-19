@@ -11,11 +11,14 @@ Montana Contracting / BLDG Estimating construction skills. Built 2026-07-29.
       +----------------+
       |  drawing-index |   split -> classify -> extract -> element-keyed index.json
       +----------------+   OWNS all extraction. Run this first, always.
-         |           |
-         v           v
-        +---------------+
-        | sow-generator |
-        +---------------+
+         |           |           |
+         v           v           v
+        +---------------+   +---------------+
+        | sow-generator |   | surface-model |   every room, face, roof and site element gets a key
+        +---------------+   +---------------+   and an address; lineage across reissues; pins; change list
+                                   |
+                                   v
+                      drawings-to-massing, generate-proposal-mcc-living-01, BLDG OS
    mode: scope       -> SOW + leveling, zero quantities
    mode: quantified  -> SOW + quantities + rates + leveling
    Excel always, PDF on request, landlord/tenant split in either
@@ -27,6 +30,7 @@ Montana Contracting / BLDG Estimating construction skills. Built 2026-07-29.
 [`sow-generator`](sow-generator/SKILL.md) | Scope of Work with four subcontractor bid-leveling columns, in Excel and PDF. `scope` mode carries zero quantities and zero pricing; `quantified` mode adds quantities, our rates and the close-out ladder. |
 `rom-budget-range` | Rough order-of-magnitude budget ranges. |
 `Proest-Export-*` | ProEst proposal and unit-cost exports. |
+[`surface-model`](surface-model/SKILL.md) | Any task that needs "which wall" to mean one thing: pinning estimate lines, selections, RFIs and COs to the place they touch; a drawing reissue or addendum; the scope list a change order starts from. Reads dimension strings only, never the image. |
 [`generate-estimate-workbook`](generate-estimate-workbook/SKILL.md) | Internal estimate workbook from a priced estimate export + Cost Detail PDF: Estimate tab with alternates (each with Subtotal / GC / Fee / Insurance / Total), SOV with Final Price and alternates vs proposal, Notes, internal Estimate Review. |
 
 ## System of record for project files
