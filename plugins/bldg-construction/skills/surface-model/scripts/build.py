@@ -97,6 +97,7 @@ def candidates(readings: dict) -> dict:
                     problems.append(f"{c['address']}: the walk misses its start by "
                                     f"{w['closureErrorIn']} in; name the edge that is wrong")
         lv = levels.get(level, {})
+        c["elevationFt"] = cited(entry.get("elevationFt")) if entry.get("elevationFt") else None
         if kind == "exterior":
             c["heightFt"] = cited(entry.get("heightFt")) or (cited(lv.get("storyFt")) if lv.get("storyFt") else None)
         elif kind == "space":
@@ -203,7 +204,7 @@ def space_rev_row(sk: str, rev: str, c: dict) -> dict:
             "points": w["points"], "closed": w["closed"], "closureErrorIn": w["closureErrorIn"],
             "edges": [{"heading": f["heading"], "lengthFt": round(f["lengthFt"], 4), "parts": f["parts"]} for f in w["faces"]]},
         "areaSf": c.get("areaSf"), "ceilingFt": c.get("ceilingFt"), "heightFt": c.get("heightFt"),
-        "phase": c.get("phase", "new"), "mepTags": c.get("mepTags", []), "confirmedBy": c.get("confirmedBy"),
+        "elevationFt": c.get("elevationFt"), "phase": c.get("phase", "new"), "mepTags": c.get("mepTags", []), "confirmedBy": c.get("confirmedBy"),
     }
 
 

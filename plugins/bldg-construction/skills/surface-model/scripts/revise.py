@@ -51,7 +51,10 @@ def propose(model: dict, readings: dict, rev: str) -> dict:
         return G.overlap_area(o["outline"]["points"], n["outline"]["points"])
 
     with_outline = [o for o in old if o.get("outline")]
-    table = {o["space"]: {i: shared(o, n) for i, n in enumerate(new) if shared(o, n) > 0} for o in with_outline}
+    table: dict[str, dict[int, float]] = {}
+    for o in with_outline:
+        vals = {i: shared(o, n) for i, n in enumerate(new)}
+        table[o["space"]] = {i: v for i, v in vals.items() if v > 0}
 
     # A. one old, one new, nearly the same footprint: a carry
     for o in with_outline:
@@ -113,7 +116,13 @@ def propose(model: dict, readings: dict, rev: str) -> dict:
             used_old.add(o["space"])
             continue
         # an outlined space nothing matched
-        if o["address"] in by_addr and by_addr[o["address"]] not in used_new:
+        i = by_addr.get(o["address"])
+        if i is not None and i not in used_new:
+            if not new[i].get("outline"):
+                # the new set lists it without dimensions: it carries, its faces lose their outline
+                events.append(_carry(o["space"], i, o, new[i], auto=False))
+                used_new.add(i); used_old.add(o["space"])
+                continue
             holds.append(f"{o['address']} keeps its name but moved too far to match; decide by hand")
         events.append({"kind": "retire", "from": o["space"], "address": o["address"],
                        "reason": f"nothing on {o['level']} overlaps {o['address']}", "decision": "needs_person"})

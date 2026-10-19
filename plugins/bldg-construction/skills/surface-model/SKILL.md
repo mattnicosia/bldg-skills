@@ -20,7 +20,7 @@ drawing-index ──► index.json, md/<sheet>.md
         ▼
 surface-model ──► surface-model.json       keys, addresses, cited sizes, lineage, pins
         │           surfaces.json          what the proposal kit and BLDG OS draw
-        │           massing.json           the kit's massing contract, for a picture
+        │           (massing.json          written from surfaces.json by drawings-to-massing)
         │           changes_<a>_<b>.md     the scope list a change order starts from
         ▼
 drawings-to-massing, generate-proposal-mcc-living-01, BLDG OS Model tab
@@ -43,9 +43,9 @@ drawings-to-massing, generate-proposal-mcc-living-01, BLDG OS Model tab
 `L1/EXT/N` is the building's north exterior face on level 1. `L1/GREAT/FLR` is the
 great room floor. `RF/MAIN/TOP` is the main roof plane. `SITE/DRIVE` is the driveway,
 a host with no faces. `L*/*/FLR` is a selector that picks every floor. The full
-grammar and the rules behind it are in the design note (`~/dev/BLDG OS/clickable-surface-model-design.md`,
-"The address grammar"). `scripts/address.py` reads the short form, Matt's long form
-("L2 / Rm 204 / North wall / W3") and speaks any of them back in words.
+grammar, the rules behind it and worked examples are in `references/address-grammar.md`.
+`scripts/address.py` reads the short form, Matt's long form ("L2 / Rm 204 / North wall / W3")
+and speaks any of them back in words.
 
 ## Order of work
 
@@ -100,11 +100,11 @@ grammar and the rules behind it are in the design note (`~/dev/BLDG OS/clickable
 7. **Export for the people who draw it.**
    ```bash
    python3 -I scripts/sm.py export <job>/surface-model.json --what surfaces --out surfaces.json
-   python3 -I scripts/sm.py export <job>/surface-model.json --what massing --out massing.json
    ```
    `surfaces.json` carries every key with its address, outline or segment, elevation
    and cited sizes; the proposal kit tags each mesh with the key and the OS Model tab
-   draws from it. `massing.json` is the Bid Presentation Kit's contract.
+   draws from it. The kit's `massing.json` comes from that file through
+   `drawings-to-massing/scripts/massing_from_surfaces.py`, the one massing writer.
 
 ## Rules
 
@@ -128,7 +128,7 @@ grammar and the rules behind it are in the design note (`~/dev/BLDG OS/clickable
 `revise.py` | A new issue against the model: match by outline, propose lineage, accept with invariants. |
 `pins.py` | Pins, resolve a selector, pin status at a revision, what touches a key, the review queue. |
 `report.py` | The proposal report, the revision report, the change list. |
-`export.py` | surfaces.json and massing.json. |
+`export.py` | surfaces.json. |
 `prefill.py` | Draft readings from a vector sheet's text layer (needs PyMuPDF). |
 
 Stdlib only, except prefill. Run every script with `python3 -I`.
@@ -161,8 +161,9 @@ removed, and the primary suite measured for the first time.
 ## Where this goes next
 
 The job folder's `surface-model.json` is the one source. drawings-to-massing reads
-`surfaces.json` instead of re-reading dimensions. The proposal kit tags each mesh with
+`surfaces.json` instead of re-reading dimensions (done: its `massing_from_surfaces.py`). The proposal kit tags each mesh with
 the surface key and draws the click layer from the same file. BLDG OS reads the file for
 its Model tab and never computes its own copy. The design note in `~/dev/BLDG OS` holds
 the data model this file follows and the accuracy test it must pass before any
-model-derived area goes in front of an estimate.
+model-derived area goes in front of an estimate; `references/` carries the parts of it
+a collaborator needs.
