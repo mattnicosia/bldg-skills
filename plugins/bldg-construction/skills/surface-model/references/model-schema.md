@@ -35,7 +35,8 @@ facts changed. The latest row at or before a revision is the truth at that revis
 
 A `spaceRevs` row: `space`, `rev`, `address`, `level`, `kind`, `printedNumber`, `name`,
 `outline` (anchor, points, closed, closureErrorIn, edges with their printed parts),
-`areaSf`, `ceilingFt`, `heightFt`, `phase`, `mepTags`, `confirmedBy`.
+`areaSf`, `ceilingFt`, `heightFt`, `elevationFt` (a roof plane's own; null means the
+level's), `phase`, `mepTags`, `confirmedBy`.
 
 A `surfaceRevs` row: `surface`, `rev`, `address`, `host`, `kind` (`wall_face`,
 `exterior_face`, `floor`, `ceiling`, `roof`), `face`, `direction`, `ordinal`,
@@ -83,7 +84,7 @@ Pin status is never stored. `pins.py status` derives it from the lineage at a re
 ## Exports
 
 `sm.py export --what surfaces` writes every live space and surface at a revision with
-its key, address, coordinates and cited sizes. The proposal kit's click layer and the
-BLDG OS Model tab read that file; the key is the mesh tag. `--what massing` writes the
-Bid Presentation Kit's `massing.json`: one volume per exterior outline per level. Neither
-export is a takeoff.
+its key, address, coordinates, elevation and cited sizes. The proposal kit's click layer
+and the BLDG OS Model tab read that file; the key is the mesh tag. The Bid Presentation
+Kit's `massing.json` is written from it by
+`drawings-to-massing/scripts/massing_from_surfaces.py`. Neither file is a takeoff.

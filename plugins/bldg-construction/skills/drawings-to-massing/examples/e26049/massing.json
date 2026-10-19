@@ -474,7 +474,6 @@
   }
  ],
  "_notes": [
-  "RF/MAIN: same outline as L1/EXT, whose top is 13.2 ft, but the model puts it at 24.0 ft (RF). Drawn on L1/EXT's top. The address grammar has one roof level, so a lower roof plane has no elevation of its own; confirm which is right on the sections.",
   "8 host(s) have a key and no outline (L2/BATH-2, L2/CLOSET-1, L2/STUDY, SITE/DRIVE, SITE/PATIO, SITE/SEPTIC, SITE/WELL, SITE/UTIL). Add each by hand as a flat or volume if the picture needs it, and keep its key as \"el\".",
   "No level below grade in the model, so there is no foundation phase. Add one by hand if the reveal should start below grade.",
   "Roofs are drawn flat. A gable, shed or hip is a hand edit to the volume's \"roof\" (kit README, massing.json).",

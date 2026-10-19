@@ -150,15 +150,39 @@ def _events_after(model: dict, key: str, pinned_at: str, rev: str) -> list[dict]
     return out
 
 
+def ancestors(model: dict, key: str) -> set[str]:
+    """This key and every key that carried, split or merged into it."""
+    out = {key}
+    frontier = [key]
+    while frontier:
+        k = frontier.pop()
+        for e in model["lineage"]:
+            tos = e.get("to")
+            if tos is None or e["kind"] == "retire":
+                continue
+            if k == tos or (isinstance(tos, list) and k in tos):
+                froms = e["from"] if isinstance(e["from"], list) else [e["from"]]
+                for f in froms:
+                    if f not in out:
+                        out.add(f)
+                        frontier.append(f)
+    return out
+
+
 def what_touches(model: dict, key: str, rev: str) -> list[dict]:
-    """Every pin on this key, its host, its wall, or a set that holds it, with status."""
-    host = model["surfaces"][key]["host"] if key.startswith("sk") else None
-    wall = model["surfaces"][key].get("wall") if key.startswith("sk") else None
+    """Every pin on this key, its host, its wall, or a set that holds it, with status.
+    A pin made on a key that later carried, split or merged into this one counts too."""
+    keys = ancestors(model, key)
+    if key.startswith("sk"):
+        host = model["surfaces"][key]["host"]
+        keys |= ancestors(model, host)
+        wall = model["surfaces"][key].get("wall")
+        if wall:
+            keys.add(wall)
     out = []
     for p in model["pins"]:
         t = p["target"]
-        hit = (t.get("key") == key or (host and t.get("key") == host) or (wall and t.get("key") == wall)
-               or (t["kind"] == "set" and key in t.get("members", [])))
+        hit = t.get("key") in keys or (t["kind"] == "set" and bool(keys & set(t.get("members", []))))
         if not hit and t["kind"] == "set":
             hit = key in resolve(model, t["query"], rev)["keys"]
         if hit:

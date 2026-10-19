@@ -5,11 +5,10 @@ export.py -- what other skills and BLDG OS read.
                   level elevations, outlines and face segments in plan feet. The
                   proposal kit's click layer and the OS Model tab read this. The key is
                   the tag to put on the mesh (`[el:sk_12]`).
-  massing.json    the Bid Presentation Kit's massing contract: one volume per exterior
-                  outline per level, flat roofs, in plan feet with grade at 0.
+The kit's massing.json is written from this file by
+drawings-to-massing/scripts/massing_from_surfaces.py, the one massing writer.
 
-Neither file holds a quantity the model did not read off a sheet. The massing file is
-for a picture; the kit's own rule stands: never pull quantities from it.
+Nothing here holds a quantity the model did not read off a sheet.
 """
 from __future__ import annotations
 
@@ -28,7 +27,10 @@ def surfaces_export(model: dict, rev: str) -> dict:
     for s in live_spaces(model, rev):
         spaces.append({"key": s["space"], "address": s["address"], "level": s["level"], "kind": s["kind"],
                        "name": (s.get("name") or {}).get("value"), "number": (s.get("printedNumber") or {}).get("value"),
-                       "elevationFt": level_elevation(model, rev, s["level"]),
+                       "elevationFt": ((s.get("elevationFt") or {}).get("value")
+                                       if (s.get("elevationFt") or {}).get("value") is not None
+                                       else level_elevation(model, rev, s["level"])),
+                       "elevationSource": (s.get("elevationFt") or {}).get("source") or f"{s['level']} level marker",
                        "outline": (s.get("outline") or {}).get("points"), "areaSf": s.get("areaSf"),
                        "ceilingFt": (s.get("ceilingFt") or {}).get("value"), "phase": s.get("phase"),
                        "wasAddress": _was(model, s["space"], rev)})
@@ -62,31 +64,3 @@ def _was(model: dict, key: str, rev: str) -> str | None:
     if len(rows) >= 2 and rows[-1]["address"] != rows[-2]["address"]:
         return f"{rows[-2]['address']} ({rows[-2]['rev']})"
     return None
-
-
-def massing_export(model: dict, rev: str, phase_for_level: dict | None = None) -> dict:
-    """One volume per exterior outline. Height = that level's storyFt or the next level's elevation."""
-    r = model["revisions"][rev_index(model, rev)]
-    levels = r.get("levels", {})
-    elev = {k: (v.get("elevationFt") or {}).get("value") for k, v in levels.items()}
-    ordered = sorted((k for k in elev if elev[k] is not None and k != "RF"), key=lambda k: elev[k])
-    volumes = []
-    for s in live_spaces(model, rev):
-        if s["kind"] != "exterior" or not s.get("outline"):
-            continue
-        lvl = s["level"]
-        base = elev.get(lvl, 0) or 0
-        story = ((levels.get(lvl) or {}).get("storyFt") or {}).get("value")
-        if story is None and lvl in ordered:
-            i = ordered.index(lvl)
-            nxt = ordered[i + 1] if i + 1 < len(ordered) else "RF"
-            story = (elev.get(nxt) or base) - base
-        top = base + (story or 10)
-        volumes.append({"name": f"{lvl} exterior", "el": s["space"], "footprint": s["outline"]["points"],
-                        "base": base, "top": top, "phase": (phase_for_level or {}).get(lvl, "house"),
-                        "material": "paper", "roof": {"type": "flat"}})
-    flats = []
-    for s in live_spaces(model, rev):
-        if s["level"] == "L1" and s["kind"] == "space" and s.get("outline") and "DECK" in s["address"]:
-            flats.append({"polygon": s["outline"]["points"], "material": "cedar", "phase": "hardscape", "el": s["space"]})
-    return {"volumes": volumes, "flats": flats, "trees": [], "_from": {"job": model["job"], "rev": rev}}
