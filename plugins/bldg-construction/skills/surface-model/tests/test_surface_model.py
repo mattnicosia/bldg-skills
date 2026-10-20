@@ -18,8 +18,10 @@ MASSING = os.path.join(HERE, "..", "..", "drawings-to-massing", "scripts", "mass
 sys.path.insert(0, SCRIPTS)
 
 import build as B  # noqa: E402
+import geometry as G  # noqa: E402
 import export as X  # noqa: E402
 import pins as P  # noqa: E402
+import prefill as F  # noqa: E402
 import report as R  # noqa: E402
 import revise as V  # noqa: E402
 import sm  # noqa: E402
@@ -63,6 +65,26 @@ def run_cli(*argv):
     with contextlib.redirect_stdout(buf):
         code = sm.main(list(argv))
     return code, buf.getvalue()
+
+
+class PrefillSplitDimensions(unittest.TestCase):
+    """Revit prints one dimension as several words; prefill must read it as one string."""
+
+    def line(self, text):
+        return {"x": 10.0, "y": 20.0, "text": text}
+
+    def test_split_and_whole_strings_read_the_same(self):
+        got = F.join_dims([self.line("11' - 0 1/2\""), self.line("39' - 6\""), self.line("33'-0\""),
+                           self.line("10'-4 1/2\""), self.line("12' 7\"")])
+        self.assertEqual([d["text"] for d in got], ["11'-0 1/2\"", "39'-6\"", "33'-0\"", "10'-4 1/2\"", "12'-7\""])
+        self.assertEqual([G.parse_feet(d["text"]) for d in got], [11 + 0.5 / 12, 39.5, 33.0, 10 + 4.5 / 12, 12 + 7 / 12])
+
+    def test_two_strings_on_one_line_and_other_words_are_kept_apart(self):
+        got = F.join_dims([self.line("14' - 8 1/2\" 12' - 7\""), self.line("SEE A401 6' - 0\" CLR")])
+        self.assertEqual([d["text"] for d in got], ["14'-8 1/2\"", "12'-7\"", "6'-0\""])
+
+    def test_level_marker_zero_is_not_a_length(self):
+        self.assertEqual(F.join_dims([self.line("0' - 0\"")]), [])
 
 
 class MergeProposal(unittest.TestCase):
