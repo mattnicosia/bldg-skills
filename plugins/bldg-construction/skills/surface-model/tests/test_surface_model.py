@@ -337,5 +337,15 @@ class LineageExport(unittest.TestCase):
         mod.build(old)
 
 
+class ChangesExport(unittest.TestCase):
+    def test_each_revision_exports_the_change_list_from_the_one_before(self):
+        m = model_at(readings([room("GARAGE", 0, 10, 20, 10)]))
+        reissue(m, readings([room("GARAGE", 0, 10, 12, 10), room("SHOP", 12, 10, 8, 10)], rev="R2"))
+        self.assertIsNone(X.surfaces_export(m, "R1")["changes"])
+        changes = X.surfaces_export(m, "R2")["changes"]
+        self.assertEqual(changes, R.change_list(m, "R1", "R2"))
+        self.assertTrue(changes["surfaces"])
+
+
 if __name__ == "__main__":
     unittest.main()

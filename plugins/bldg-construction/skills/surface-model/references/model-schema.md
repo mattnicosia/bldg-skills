@@ -107,9 +107,14 @@ Kit's `massing.json` is written from it by
 `drawings-to-massing/scripts/massing_from_surfaces.py`. Neither file is a takeoff.
 
 `surfaces.json` has the top-level keys `job`, `rev`, `north`, `levels`, `spaces`,
-`surfaces` and `lineage`. Each space and surface row carries `wasAddress`, the address it
+`surfaces`, `lineage` and `changes`. Each space and surface row carries `wasAddress`, the address it
 had before its last readdress. `lineage` lists every event at or before the exported
 revision in the order `accept` wrote them, in the shapes the Lineage table above gives,
 and each event's `rev` names the revision that produced it. BLDG OS reads it to show
 whether a pinned wall or room was split, merged or retired. A file written before this
 field existed has no `lineage` key; readers treat that the same as an empty list.
+
+`changes` holds `report.change_list` from the revision before the exported one to the
+exported one: `from`, `to`, `surfaces`, `events`, `spaces` and `totals`, the same object
+`sm.py changes` writes. It is null when the exported revision is the first. A file
+written before this field existed has no `changes` key; readers treat that as null.

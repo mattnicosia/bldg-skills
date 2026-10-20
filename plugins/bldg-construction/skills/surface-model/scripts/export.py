@@ -8,6 +8,8 @@ export.py -- what other skills and BLDG OS read.
                   the tag to put on the mesh (`[el:sk_12]`). `lineage` holds every
                   carry, split, merge and retire up to that revision, each with its
                   `rev`, so a reader can tell what happened to a pinned key.
+                  `changes` is report.change_list from the revision before to this
+                  one, or null for the first revision.
 The kit's massing.json is written from this file by
 drawings-to-massing/scripts/massing_from_surfaces.py, the one massing writer.
 
@@ -15,6 +17,7 @@ Nothing here holds a quantity the model did not read off a sheet.
 """
 from __future__ import annotations
 
+from report import change_list
 from store import live_spaces, live_surfaces, rev_index
 
 
@@ -50,7 +53,14 @@ def surfaces_export(model: dict, rev: str) -> dict:
                          "adjacency": s.get("adjacency", []), "wasAddress": _was(model, s["surface"], rev)})
     return {"job": model["job"], "rev": rev, "north": model.get("north"),
             "levels": model["revisions"][rev_index(model, rev)].get("levels", {}),
-            "spaces": spaces, "surfaces": surfaces, "lineage": lineage_export(model, rev)}
+            "spaces": spaces, "surfaces": surfaces, "lineage": lineage_export(model, rev),
+            "changes": changes_export(model, rev)}
+
+
+def changes_export(model: dict, rev: str) -> dict | None:
+    """The change list from the revision before `rev`, or None when `rev` is the first."""
+    i = rev_index(model, rev)
+    return change_list(model, model["revisions"][i - 1]["id"], rev) if i else None
 
 
 def lineage_export(model: dict, rev: str) -> list[dict]:
