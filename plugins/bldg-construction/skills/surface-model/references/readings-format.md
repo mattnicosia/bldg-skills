@@ -55,7 +55,8 @@ every roof sits on the one `RF` level and a lower roof is not at the level's ele
 A roof can also carry `spotFt` (the ridge or high point elevation) and `pitch` (`"6:12"`),
 each a cited value. They go into the model, the change list and the massing file.
 A space's own `elevationFt` (a garage slab below the level marker) is kept and the change
-list reports when it moves.
+list reports when it moves, including when the space merged or split in the same revision
+(it is compared with the spaces it came from).
 A space with no height anywhere gets `NOT_MEASURED` and its faces carry a length and no
 area.
 
