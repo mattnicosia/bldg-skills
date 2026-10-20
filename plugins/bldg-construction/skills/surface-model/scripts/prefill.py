@@ -24,9 +24,11 @@ import sys
 try:
     import fitz  # PyMuPDF
 except ImportError:  # pragma: no cover
-    sys.exit("prefill.py needs PyMuPDF: pip install pymupdf")
+    fitz = None
 
-DIM_RE = re.compile(r"^\d{1,3}'\s?-?\s?\d{1,2}(\s\d/\d)?\"?$|^\d{1,3}'-\d{1,2}\s?\d/\d\"$")
+# Feet, an optional dash, inches, an optional fraction. Spaces may sit anywhere between
+# the parts, because Revit prints 11' - 0 1/2" as four separate words.
+DIM_RE = re.compile(r"^(\d{1,3})'\s*-?\s*(\d{1,2})(?:\s+(\d{1,2}/\d{1,2}))?\"?$")
 ROOM_WORDS = {"ROOM", "KITCHEN", "BEDROOM", "BATH", "BATHROOM", "ENTRY", "FOYER", "HALL", "CORRIDOR", "OFFICE",
               "STUDY", "MECH", "MECHANICAL", "CLOSET", "LAUNDRY", "PANTRY", "DINING", "LIVING", "GREAT", "DECK",
               "PORCH", "GARAGE", "STORAGE", "STOR", "UTILITY", "PRIMARY", "MASTER", "SUITE", "DEN", "MUD", "POWDER"}
@@ -38,18 +40,38 @@ def words(page):
         yield {"x": (x0 + x1) / 2, "y": (y0 + y1) / 2, "text": text.strip()}
 
 
-def join_dims(ws: list[dict]) -> list[dict]:
-    """Dimension strings often split into tokens: 33'-0" may come as 33'-0" or 33' 0"."""
+def lines(page):
+    """One entry per text line, its spans joined, at the line's centre."""
+    for block in page.get_text("dict")["blocks"]:
+        for line in block.get("lines", []):
+            text = re.sub(r"\s+", " ", " ".join(sp["text"] for sp in line["spans"])).strip()
+            if text:
+                x0, y0, x1, y1 = line["bbox"]
+                yield {"x": (x0 + x1) / 2, "y": (y0 + y1) / 2, "text": text}
+
+
+def join_dims(ls: list[dict]) -> list[dict]:
+    """Dimension strings in each line, written the one way geometry.py reads them.
+
+    A string may be one word (33'-0") or split across up to four (11' - 0 1/2"), so try
+    the longest run of words first at each position.
+    """
     out = []
-    i = 0
-    while i < len(ws):
-        t = ws[i]["text"]
-        if DIM_RE.match(t):
-            out.append({"text": t, "x": ws[i]["x"], "y": ws[i]["y"]})
-        elif re.match(r"^\d{1,3}'-?$", t) and i + 1 < len(ws) and re.match(r"^-?\d{1,2}(\s?\d/\d)?\"$", ws[i + 1]["text"]):
-            out.append({"text": t.rstrip("-") + "-" + ws[i + 1]["text"].lstrip("-"), "x": ws[i]["x"], "y": ws[i]["y"]})
-            i += 1
-        i += 1
+    for ln in ls:
+        toks = ln["text"].split(" ")
+        i = 0
+        while i < len(toks):
+            for k in (4, 3, 2, 1):
+                m = DIM_RE.match(" ".join(toks[i:i + k]))
+                if m:
+                    ft, inch, frac = m.groups()
+                    i += k
+                    if int(ft) == 0 and int(inch) == 0 and not frac:
+                        break  # a level marker's 0'-0", not a length
+                    out.append({"text": f"{ft}'-{inch}" + (f" {frac}" if frac else "") + '"', "x": ln["x"], "y": ln["y"]})
+                    break
+            else:
+                i += 1
     return out
 
 
@@ -76,11 +98,13 @@ def main(argv=None):
     ap.add_argument("--near", type=int, default=6, help="how many nearby dimension strings to list per room")
     ap.add_argument("--out", required=True)
     a = ap.parse_args(argv)
+    if fitz is None:
+        sys.exit("prefill.py needs PyMuPDF: pip install pymupdf")
 
     doc = fitz.open(a.pdf)
     page = doc[a.page - 1]
     ws = list(words(page))
-    dims = join_dims(ws)
+    dims = join_dims(list(lines(page)))
     tags = room_tags(ws)
     spaces = []
     for t in tags:
