@@ -1,7 +1,7 @@
 {
   "name": "bldg-construction",
   "description": "Construction estimating: drawing indexing, a surface model that gives every room and wall a permanent address, scope of work generation in Excel and PDF, bid leveling, proposals and job folder setup.",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "author": {
     "name": "Matt Nicosia"
   }

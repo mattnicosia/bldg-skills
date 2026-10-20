@@ -105,3 +105,11 @@ its key, address, coordinates, elevation and cited sizes. The proposal kit's cli
 and the BLDG OS Model tab read that file; the key is the mesh tag. The Bid Presentation
 Kit's `massing.json` is written from it by
 `drawings-to-massing/scripts/massing_from_surfaces.py`. Neither file is a takeoff.
+
+`surfaces.json` has the top-level keys `job`, `rev`, `north`, `levels`, `spaces`,
+`surfaces` and `lineage`. Each space and surface row carries `wasAddress`, the address it
+had before its last readdress. `lineage` lists every event at or before the exported
+revision in the order `accept` wrote them, in the shapes the Lineage table above gives,
+and each event's `rev` names the revision that produced it. BLDG OS reads it to show
+whether a pinned wall or room was split, merged or retired. A file written before this
+field existed has no `lineage` key; readers treat that the same as an empty list.

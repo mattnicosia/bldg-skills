@@ -113,7 +113,8 @@ and speaks any of them back in words.
    ```
    `surfaces.json` carries every key with its address, outline or segment, elevation
    and cited sizes; the proposal kit tags each mesh with the key and the OS Model tab
-   draws from it. `--what roofs` writes the roof planes alone (elevation, spot height,
+   draws from it. Its `lineage` array lists every carry, split, merge and retire up to
+   that revision, so the OS can say what happened to a pinned wall or room. `--what roofs` writes the roof planes alone (elevation, spot height,
    pitch). The kit's `massing.json` comes from that file through
    `drawings-to-massing/scripts/massing_from_surfaces.py`, the one massing writer.
 

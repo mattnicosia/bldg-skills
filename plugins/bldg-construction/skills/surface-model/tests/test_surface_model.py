@@ -298,5 +298,44 @@ class RoofExport(unittest.TestCase):
         self.assertNotIn("pitch", out["flats"][0])
 
 
+
+class LineageExport(unittest.TestCase):
+    def test_a_split_and_a_merge_both_reach_surfaces_json(self):
+        m = model_at(readings([room("GARAGE", 0, 10, 20, 10), room("MUD-ROOM", 30, 10, 10, 10), room("LAUNDRY", 40, 10, 5, 10)]))
+        keys = {r["address"]: r["space"] for r in S.live_spaces(m, "R1")}
+        reissue(m, readings([room("GARAGE", 0, 10, 12, 10), room("SHOP", 12, 10, 8, 10), room("MUD-ROOM", 30, 10, 15, 10)], rev="R2"))
+        d = tempfile.mkdtemp()
+        path, dest = os.path.join(d, "m.json"), os.path.join(d, "surfaces.json")
+        S.save(m, path)
+        self.assertEqual(run_cli("export", path, "--what", "surfaces", "--out", dest)[0], 0)
+        out = json.load(open(dest))
+        self.assertEqual(out["lineage"], m["lineage"])
+        split = [e for e in out["lineage"] if e["kind"] == "split" and e["from"] == keys["L1/GARAGE"]]
+        merge = [e for e in out["lineage"] if e["kind"] == "merge" and sorted(e["from"]) == sorted([keys["L1/MUD-ROOM"], keys["L1/LAUNDRY"]])]
+        self.assertEqual(len(split), 1)
+        self.assertEqual(len(merge), 1)
+        self.assertEqual((split[0]["rev"], len(split[0]["to"]), merge[0]["rev"]), ("R2", 2, "R2"))
+        self.assertTrue(set(split[0]["to"]) <= {r["key"] for r in out["spaces"]})
+        self.assertIn(merge[0]["to"], {r["key"] for r in out["spaces"]})
+
+    def test_an_earlier_revision_leaves_out_later_events(self):
+        m = model_at(readings([room("GARAGE", 0, 10, 20, 10)]))
+        reissue(m, readings([room("GARAGE", 0, 10, 12, 10), room("SHOP", 12, 10, 8, 10)], rev="R2"))
+        self.assertEqual(X.surfaces_export(m, "R1")["lineage"], [])
+
+    def test_a_model_saved_before_lineage_still_exports(self):
+        m = model_at(readings([room("GARAGE", 0, 10, 20, 10)]))
+        del m["lineage"]
+        self.assertEqual(X.surfaces_export(m, "R1")["lineage"], [])
+
+    def test_a_file_without_lineage_still_builds_massing(self):
+        spec = importlib.util.spec_from_file_location("massing_from_surfaces", MASSING)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        old = X.surfaces_export(model_at(readings([room("GARAGE", 0, 10, 20, 10)])), "R1")
+        del old["lineage"]
+        mod.build(old)
+
+
 if __name__ == "__main__":
     unittest.main()
