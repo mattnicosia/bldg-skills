@@ -5,7 +5,9 @@ export.py -- what other skills and BLDG OS read.
   surfaces.json   every live space and surface at a revision, with keys, addresses,
                   level elevations, outlines and face segments in plan feet. The
                   proposal kit's click layer and the OS Model tab read this. The key is
-                  the tag to put on the mesh (`[el:sk_12]`).
+                  the tag to put on the mesh (`[el:sk_12]`). `lineage` holds every
+                  carry, split, merge and retire up to that revision, each with its
+                  `rev`, so a reader can tell what happened to a pinned key.
 The kit's massing.json is written from this file by
 drawings-to-massing/scripts/massing_from_surfaces.py, the one massing writer.
 
@@ -48,7 +50,15 @@ def surfaces_export(model: dict, rev: str) -> dict:
                          "adjacency": s.get("adjacency", []), "wasAddress": _was(model, s["surface"], rev)})
     return {"job": model["job"], "rev": rev, "north": model.get("north"),
             "levels": model["revisions"][rev_index(model, rev)].get("levels", {}),
-            "spaces": spaces, "surfaces": surfaces}
+            "spaces": spaces, "surfaces": surfaces, "lineage": lineage_export(model, rev)}
+
+
+def lineage_export(model: dict, rev: str) -> list[dict]:
+    """Every lineage event at or before `rev`, in the shapes model-schema.md gives.
+
+    A model saved before lineage existed has no `lineage` key and exports an empty list."""
+    upto = rev_index(model, rev)
+    return [dict(e) for e in model.get("lineage", []) if rev_index(model, e["rev"]) <= upto]
 
 
 def roofs_export(model: dict, rev: str) -> dict:
