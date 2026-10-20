@@ -150,15 +150,22 @@ def carry(model: dict, prev: str, rev: str, ops: list[dict], amap: dict[str, str
             "retired": sum(1 for e in events if e["kind"] == "retire"), "minted": minted}
 
 
+def exported(c: dict | None) -> dict | None:
+    """A cited value in the export shape: a NOT_MEASURED value is its confidence and reason."""
+    if not c or c.get("confidence") != "NOT_MEASURED":
+        return c
+    return {"confidence": "NOT_MEASURED", "reason": c.get("reason") or c.get("source") or "not given on the set"}
+
+
 def export_rows(model: dict, rev: str, was) -> list[dict]:
     out = []
     for o in live_openings(model, rev):
         row = {"key": o["opening"], "address": o["address"], "wasAddress": was(model, o["opening"], rev),
                "surface": o["surface"], "wall": model["surfaces"][o["surface"]].get("wall"),
-               "level": o["level"], "kind": o["kind"], "tag": o["tag"], "centerFt": o["centerFt"],
-               "widthFt": o["widthFt"], "sillFt": o["sillFt"], "headFt": o["headFt"], "leaves": o["leaves"]}
+               "level": o["level"], "kind": o["kind"], "leaves": o["leaves"],
+               **{f: exported(o[f]) for f in ("tag", "centerFt", "widthFt", "sillFt", "headFt")}}
         if o.get("unit"):
-            row["unit"] = o["unit"]
+            row["unit"] = exported(o["unit"])
         out.append(row)
     return out
 

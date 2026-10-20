@@ -67,7 +67,7 @@ def surfaces_export(model: dict, rev: str) -> dict:
             "changes": changes_export(model, rev),
             "openings": O.export_rows(model, rev, _was),
             "materials": r.get("materials") or {},
-            "site": {k: v for k, v in (r.get("site") or {}).items() if v}}
+            "site": {k: O.exported(v) for k, v in (r.get("site") or {}).items() if v}}
 
 
 HEADINGS = {"N": (0, 1), "NE": (1, 1), "E": (1, 0), "SE": (1, -1), "S": (0, -1), "SW": (-1, -1), "W": (-1, 0), "NW": (-1, 1)}
@@ -96,7 +96,7 @@ def _roof_extras(row: dict) -> dict:
     out = {}
     down = row.get("downslope")
     if down and down.get("value"):
-        out["downslope"] = down
+        out["downslope"] = O.exported(down)
     if (row.get("finish") or {}).get("value"):
         out["finish"] = row["finish"]["value"]
     spot, ratio = (row.get("spotFt") or {}).get("value"), pitch_ratio((row.get("pitch") or {}).get("value"))

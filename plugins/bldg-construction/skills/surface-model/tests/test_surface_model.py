@@ -469,6 +469,10 @@ class HouseExport(unittest.TestCase):
         self.assertEqual(out["materials"]["RF-1"]["kind"], "standing_seam")
         self.assertEqual(out["site"]["gradeFt"]["value"], -0.67)
 
+    def test_a_grade_the_set_does_not_give_is_not_measured_with_its_reason(self):
+        out = self.export(site={"gradeFt": {"confidence": "NOT_MEASURED", "reason": "no grade printed"}})
+        self.assertEqual(out["site"]["gradeFt"], {"confidence": "NOT_MEASURED", "reason": "no grade printed"})
+
     def test_absent_fields_stay_absent(self):
         out = self.export(roofs=[self.roof()])
         roof = next(s for s in out["spaces"] if s["kind"] == "roof")
