@@ -89,13 +89,23 @@ and speaks any of them back in words.
    python3 -I scripts/sm.py review <job>/surface-model.json
    ```
    The review lists every pin that is no longer exact: forked (the room split, pick a
-   child), merged, retired, span past the new wall end, or a selector whose members
-   changed.
+   child), merged, retired, renamed (same outline, new room name), span past the new wall
+   end, or a selector whose members changed. A room folding into a larger one shows as one
+   merge, not a carry plus a retire. Settle a pin with a command, never by editing the JSON:
+   ```bash
+   python3 -I scripts/sm.py pin-accept   <job>/surface-model.json pin_3 --by matt
+   python3 -I scripts/sm.py pin-move     <job>/surface-model.json pin_3 --to "L1/KITCHEN-B" --by matt
+   python3 -I scripts/sm.py pin-withdraw <job>/surface-model.json pin_3 --by matt
+   ```
+   A wall pair the model proposed or accepted where the plan has no wall is rejected with
+   `sm.py pair-reject <job>/surface-model.json "L1/A/E" "L1/B/W" --by matt`. It stays rejected
+   on later issues.
 6. **The change list.** The scope list a change order starts from:
    ```bash
    python3 -I scripts/sm.py changes <job>/surface-model.json --from SD-1 --to DD-1 --md changes.md
    ```
-   One row per surface that changed, with before, after, delta, and a price only where
+   One row per surface that changed, plus a table of spaces whose elevation, roof spot
+   height or pitch changed, with before, after, delta, and a price only where
    a pinned estimate line carries a rate (`--rates rates.json`, `{"estimate:09 64 00": {"rate": 27.22, "unit": "SF"}}`).
 7. **Export for the people who draw it.**
    ```bash
@@ -103,7 +113,8 @@ and speaks any of them back in words.
    ```
    `surfaces.json` carries every key with its address, outline or segment, elevation
    and cited sizes; the proposal kit tags each mesh with the key and the OS Model tab
-   draws from it. The kit's `massing.json` comes from that file through
+   draws from it. `--what roofs` writes the roof planes alone (elevation, spot height,
+   pitch). The kit's `massing.json` comes from that file through
    `drawings-to-massing/scripts/massing_from_surfaces.py`, the one massing writer.
 
 ## Rules
@@ -121,7 +132,7 @@ and speaks any of them back in words.
 
 | Script | Purpose |
 |---|---|
-`sm.py` | The command line: init, build, propose, accept, resolve, pin, touches, review, changes, export, report, speak, summary. |
+`sm.py` | The command line: init, build, propose, accept, resolve, pin, pin-accept, pin-withdraw, pin-move, pair-reject, touches, review, changes, export, report, speak, summary. |
 `address.py` | The grammar: parse, canonical form, selector match, speak. |
 `geometry.py` | Dimension strings to feet, the clockwise walk, closure, area, overlap, back-to-back faces. |
 `build.py` | Readings to spaces, surfaces and wall pair proposals; mints keys on the first revision. |

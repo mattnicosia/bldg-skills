@@ -36,6 +36,7 @@ def new_model(job: str) -> dict:
         "surfaceRevs": [],
         "lineage": [],
         "pins": [],
+        "rejectedPairs": [],
         "counters": {"sp": 0, "wk": 0, "sk": 0, "pin": 0},
     }
 

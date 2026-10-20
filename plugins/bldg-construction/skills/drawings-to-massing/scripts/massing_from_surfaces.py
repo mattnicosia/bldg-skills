@@ -14,7 +14,9 @@ contract (kit/README.md, section "massing.json"):
             N1, N2 ...) to its surface key (sk_N), so a build that splits a volume into face
             meshes can tag each one [el:sk_N] the way the kit's build_el pattern does.
   flats     one per roof plane, drawn at the plane's elevation in the roof material, "el" the
-            roof space key and "surface" its TOP key. A space that sits outside the exterior
+            roof space key and "surface" its TOP key. A roof with a pitch or spot height in
+            the readings keeps them ("pitch", "spotFt"), and so does the volume it covers
+            under "roof", with "riseFt" (spot height minus the volume's top). A space that sits outside the exterior
             outline on its level (a deck, a porch) is a flat too, at that level's elevation.
   spaces    interior footprints with their keys and face keys, for a later click layer. The
             kit ignores this list today.
@@ -246,6 +248,16 @@ def build(sx: dict, keep: dict | None = None, src_name: str = "surfaces.json") -
         }
         if top_sf:
             f["surface"] = top_sf["key"]
+        # the readings' roof pitch and spot height (ridge or high point) ride along, so the
+        # gable, shed or hip is read from the model and not re-read off the elevations
+        shape = {k: sp[k] for k in ("pitch", "spotFt") if sp.get(k) is not None}
+        if shape:
+            f.update(shape)
+            if match is not None:
+                match["roof"].update(shape)
+                if sp.get("spotFt") is not None:
+                    match["roof"]["riseFt"] = rnd(sp["spotFt"] - match["top"])
+            report.append(f"roof   {sp['address']:10} carries " + ", ".join(f"{k} {v}" for k, v in shape.items()))
         flats.append(f)
         report.append(f"roof   {sp['address']:10} {sp['key']:6} at {f['y']} ft, placed from {placed}")
 
@@ -330,6 +342,9 @@ def build(sx: dict, keep: dict | None = None, src_name: str = "surfaces.json") -
     if "foundation" not in present:
         notes.append("No level below grade in the model, so there is no foundation phase. Add one by hand if the reveal should start below grade.")
 
+    if any("pitch" in f or "spotFt" in f for f in flats):
+        notes.append("Roofs with a pitch or spot height in the readings carry them as \"pitch\", \"spotFt\" and, on the volume's \"roof\", \"riseFt\" "
+                     "(spot height minus the volume top). The type stays flat until a person picks gable, shed or hip from them.")
     notes.append("Roofs are drawn flat. A gable, shed or hip is a hand edit to the volume's \"roof\" (kit README, massing.json).")
     notes.append("This file is for a picture. It carries no areas and no lengths; never pull a quantity from it.")
     out["_notes"] = notes

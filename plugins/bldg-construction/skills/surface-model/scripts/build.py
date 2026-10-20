@@ -100,6 +100,9 @@ def candidates(readings: dict) -> dict:
         c["elevationFt"] = cited(entry.get("elevationFt")) if entry.get("elevationFt") else None
         if kind == "exterior":
             c["heightFt"] = cited(entry.get("heightFt")) or (cited(lv.get("storyFt")) if lv.get("storyFt") else None)
+        elif kind == "roof":
+            c["spotFt"] = cited(entry.get("spotFt")) if entry.get("spotFt") is not None else None
+            c["pitch"] = cited(entry.get("pitch")) if entry.get("pitch") is not None else None
         elif kind == "space":
             c["ceilingFt"] = cited(entry.get("ceilingFt")) or (cited(lv.get("ceilingFt")) if lv.get("ceilingFt") else None)
         cands.append(c)
@@ -204,7 +207,8 @@ def space_rev_row(sk: str, rev: str, c: dict) -> dict:
             "points": w["points"], "closed": w["closed"], "closureErrorIn": w["closureErrorIn"],
             "edges": [{"heading": f["heading"], "lengthFt": round(f["lengthFt"], 4), "parts": f["parts"]} for f in w["faces"]]},
         "areaSf": c.get("areaSf"), "ceilingFt": c.get("ceilingFt"), "heightFt": c.get("heightFt"),
-        "elevationFt": c.get("elevationFt"), "phase": c.get("phase", "new"), "mepTags": c.get("mepTags", []), "confirmedBy": c.get("confirmedBy"),
+        "elevationFt": c.get("elevationFt"), "spotFt": c.get("spotFt"), "pitch": c.get("pitch"),
+        "phase": c.get("phase", "new"), "mepTags": c.get("mepTags", []), "confirmedBy": c.get("confirmedBy"),
     }
 
 
@@ -259,10 +263,13 @@ def accept_pairs(model: dict, rev: str, pairs: list[dict], by: dict) -> int:
     from store import address_map
     amap = address_map(model, rev)
     rows = {s["surface"]: s for s in model["surfaceRevs"] if s["rev"] == rev}
+    rejected = {frozenset(r["keys"]) for r in model.get("rejectedPairs", [])}
     n = 0
     for p in pairs:
         ka, kb = amap.get(p["a"]), amap.get(p["b"])
         if not ka or not kb or ka not in rows or kb not in rows:
+            continue
+        if frozenset((ka, kb)) in rejected:
             continue
         wk = model["surfaces"][ka].get("wall") or model["surfaces"][kb].get("wall") or mint(model, "wk", rev)
         model["surfaces"][ka]["wall"] = wk
@@ -271,3 +278,39 @@ def accept_pairs(model: dict, rev: str, pairs: list[dict], by: dict) -> int:
         rows[kb]["adjacency"].append({"opposite": rows[ka]["host"], "surface": ka, "fromFt": p["spanB"][0], "toFt": p["spanB"][1], "confirmedBy": by})
         n += 1
     return n
+
+
+def reject_pair(model: dict, rev: str, addr_a: str, addr_b: str, by: dict, reason: str | None = None) -> dict:
+    """
+    A person says two faces are not the two sides of one wall. The pair is dropped from the
+    adjacency of both faces at this revision and stays rejected: later accepts skip it. A wall
+    core that no face points at any more is retired (keys are never deleted).
+    """
+    from store import address_map, now, retire
+    amap = address_map(model, rev)
+    ka, kb = amap.get(addr_a), amap.get(addr_b)
+    if not ka or not kb or not ka.startswith("sk") or not kb.startswith("sk"):
+        raise SystemExit(f"{addr_a} and {addr_b} must both be surfaces live at {rev}")
+    rejected = model.setdefault("rejectedPairs", [])
+    if not any(frozenset(r["keys"]) == frozenset((ka, kb)) for r in rejected):
+        rejected.append({"keys": [ka, kb], "addresses": [addr_a, addr_b], "rev": rev, "by": by, "at": now(), "reason": reason})
+    dropped = 0
+    for row in model["surfaceRevs"]:
+        if row["rev"] != rev:
+            continue
+        other = kb if row["surface"] == ka else ka if row["surface"] == kb else None
+        if other is None:
+            continue
+        keep = [a for a in row["adjacency"] if a["surface"] != other]
+        dropped += len(row["adjacency"]) - len(keep)
+        row["adjacency"] = keep
+    for k in (ka, kb):
+        wk = model["surfaces"][k].get("wall")
+        still = [r for r in model["surfaceRevs"] if r["rev"] == rev and r["surface"] == k and r["adjacency"]]
+        if wk and not still:
+            model["surfaces"][k]["wall"] = None
+    live_walls = {s.get("wall") for s in model["surfaces"].values() if s.get("wall")}
+    for wk, row in model["walls"].items():
+        if row["retiredIn"] is None and wk not in live_walls:
+            retire(model, wk, rev)
+    return {"keys": [ka, kb], "adjacencyDropped": dropped}
