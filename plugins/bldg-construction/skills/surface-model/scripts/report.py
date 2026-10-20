@@ -13,6 +13,7 @@ report.py -- the two things a person reads.
 from __future__ import annotations
 
 import address as A
+import openings as O
 from pins import review_queue, status
 from store import live_spaces, live_surfaces, rev_index, space_at, surface_at
 
@@ -37,6 +38,11 @@ def proposal_report(model: dict, proposal: dict) -> str:
             continue
         lines.append(f"- [{i}] {_event_words(e)}")
     lines.append("")
+    n_ops = len(proposal.get("_cand", {}).get("openings", []))
+    if n_ops:
+        lines.append(f"Openings in {proposal['rev']}: {n_ops}. Each carries on accept when its face carried, its tag "
+                     f"is the same and its center is within {O.CARRY_FT:g} ft; the rest retire or are minted.")
+        lines.append("")
     pins_at_risk = _pins_touching(model, proposal)
     if pins_at_risk:
         lines.append(f"## Pins on spaces that change ({len(pins_at_risk)})")
@@ -86,12 +92,18 @@ def revision_report(model: dict, rev: str) -> str:
     i = rev_index(model, rev)
     prev = model["revisions"][i - 1]["id"] if i > 0 else None
     lines = [f"# Revision report: {rev}" + (f" (after {prev})" if prev else ""), ""]
-    ev = [e for e in model["lineage"] if e["rev"] == rev]
+    ev = [e for e in model["lineage"] if e["rev"] == rev and not str(e["from"]).startswith("op_")]
     counts = {k: sum(1 for e in ev if e["kind"] == k) for k in ("carry", "split", "merge", "retire")}
     lines.append("| carried | split | merged | retired |")
     lines.append("|---|---|---|---|")
     lines.append(f"| {counts['carry']} | {counts['split']} | {counts['merge']} | {counts['retire']} |")
     lines.append("")
+    op_ev = [e for e in model["lineage"] if e["rev"] == rev and str(e["from"]).startswith("op_")]
+    new_ops = sum(1 for o in model.get("openings", {}).values() if o["mintedIn"] == rev)
+    if op_ev or new_ops:
+        lines.append(f"Openings: {sum(1 for e in op_ev if e['kind'] == 'carry')} carried, "
+                     f"{sum(1 for e in op_ev if e['kind'] == 'retire')} retired, {new_ops} new.")
+        lines.append("")
     q = review_queue(model, rev)
     lines.append(f"## Pins to review ({len(q)})")
     for p in q:
@@ -180,7 +192,7 @@ def change_list(model: dict, rev_a: str, rev_b: str) -> dict:
         else:
             change = "changed"
         kind = (as_ or bs)[0]["kind"]
-        rows.append({"keys": [s["surface"] for s in bs + as_], "kind": kind,
+        rows.append({"subject": "surface", "keys": [s["surface"] for s in bs + as_], "kind": kind,
                      "before": addr_b or None, "after": addr_a or None,
                      "lengthBefore": lb, "lengthAfter": la, "areaBefore": ab, "areaAfter": aa,
                      "deltaLengthFt": _delta(lb, la) if change != "now measured" else None,
@@ -192,13 +204,16 @@ def change_list(model: dict, rev_a: str, rev_b: str) -> dict:
     rows.sort(key=lambda r: (order[r["change"]], r["before"] or r["after"]))
     events = [e for e in model["lineage"] if _space_event_between(model, e, ia, ib)]
     space_rows = _space_fact_changes(model, rev_a, rev_b)
-    return {"from": rev_a, "to": rev_b, "surfaces": rows, "events": events, "spaces": space_rows,
+    op_rows = O.change_rows(model, rev_a, rev_b)
+    return {"from": rev_a, "to": rev_b, "surfaces": rows + op_rows, "events": events, "spaces": space_rows,
             "totals": {"changed": sum(1 for r in rows if r["change"] == "changed"),
                        "added": sum(1 for r in rows if r["change"] == "added"),
                        "removed": sum(1 for r in rows if r["change"] == "removed"),
                        "nowMeasured": sum(1 for r in rows if r["change"] == "now measured"),
                        "spaceFacts": len(space_rows),
-                       "deltaAreaSf": round(sum(r["deltaAreaSf"] or 0 for r in rows), 2)}}
+                       "deltaAreaSf": round(sum(r["deltaAreaSf"] or 0 for r in rows), 2),
+                       "openings": {k: sum(1 for r in op_rows if r["change"] == c)
+                                    for k, c in (("added", "added"), ("removed", "removed"), ("resized", "changed"))}}}
 
 
 SPACE_FACTS = (("elevationFt", "elevation", "ft"), ("spotFt", "spot height", "ft"), ("pitch", "pitch", ""))
@@ -283,9 +298,12 @@ def change_list_md(model: dict, cl: dict, rates: dict | None = None) -> str:
              f"{t['changed']} surfaces changed, {t['added']} added, {t['removed']} removed"
              + (f", {t['nowMeasured']} measured for the first time" if t.get("nowMeasured") else "")
              + (f", {t['spaceFacts']} elevation, spot height or pitch changes" if t.get("spaceFacts") else "")
+             + (", openings {added} added, {removed} removed, {resized} resized".format(**t["openings"]) if any((t.get("openings") or {}).values()) else "")
              + f". Net area {t['deltaAreaSf']:+.2f} SF on the surfaces that changed.", "",
              "| Surface | Was | Now | Length | Area | Pricing |", "|---|---|---|---|---|---|"]
     for r in cl["surfaces"]:
+        if r.get("subject") == "opening":
+            continue
         name = (r["before"] or r["after"]).split(",")[0].strip()
         spoken = A.speak(name)
         if r["note"]:
@@ -297,6 +315,19 @@ def change_list_md(model: dict, cl: dict, rates: dict | None = None) -> str:
         price = _pricing(model, r, rates)
         lines.append(f"| {spoken} | {r['before'] or ''} | {r['after'] or ''} | {ln} | {ar} | {price} |")
     lines.append("")
+    ops = [r for r in cl["surfaces"] if r.get("subject") == "opening"]
+    if ops:
+        lines.append("## Openings")
+        lines.append("| Opening | Was | Now | Width | Sill and head | Change |")
+        lines.append("|---|---|---|---|---|---|")
+        for r in ops:
+            spans = list(dict.fromkeys(_span(r[f"sill{s}"], r[f"head{s}"]) for s in ("Before", "After") if r[f"before" if s == "Before" else "after"]))
+            sh = " to ".join(spans)
+            same = r["lengthBefore"] == r["lengthAfter"]
+            width = f"{r['lengthAfter']:g} ft" if same else _pair(r["lengthBefore"], r["lengthAfter"], "ft")
+            lines.append(f"| {r['kind']} | {r['before'] or ''} | {r['after'] or ''} | {width} "
+                         f"| {sh} | {r['note'] or r['change']} |")
+        lines.append("")
     if cl.get("spaces"):
         lines.append("## Levels, roof heights and pitch")
         lines.append("| Space | Fact | Was | Now | Change |")
@@ -317,6 +348,10 @@ def change_list_md(model: dict, cl: dict, rates: dict | None = None) -> str:
                 lines.append(f"- {_addr(model, e['from'])} removed: {e.get('reason','')}")
         lines.append("")
     return "\n".join(lines)
+
+
+def _span(sill, head) -> str:
+    return f"sill {'?' if sill is None else f'{sill:.4g}'}, head {'?' if head is None else f'{head:.4g}'} ft"
 
 
 def _fact(v, unit: str) -> str:

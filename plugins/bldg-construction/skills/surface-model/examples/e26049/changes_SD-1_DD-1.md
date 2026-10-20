@@ -1,6 +1,6 @@
 # Change list: SD-1 to DD-1
 
-9 surfaces changed, 2 added, 6 removed, 6 measured for the first time. Net area -53.20 SF on the surfaces that changed.
+9 surfaces changed, 2 added, 6 removed, 6 measured for the first time, openings 1 added, 1 removed, 1 resized. Net area -53.20 SF on the surfaces that changed.
 
 | Surface | Was | Now | Length | Area | Pricing |
 |---|---|---|---|---|---|
@@ -27,6 +27,13 @@
 | Level 2, Primary, north wall (first outline) |  | L2/PRIMARY/N | 21 ft | 189 SF | needs pricing |
 | Level 2, Primary, south wall (first outline) |  | L2/PRIMARY/S | 21 ft | 189 SF | needs pricing |
 | Level 2, Primary, west wall (first outline) |  | L2/PRIMARY/W | 20 ft | 180 SF | needs pricing |
+
+## Openings
+| Opening | Was | Now | Width | Sill and head | Change |
+|---|---|---|---|---|---|
+| window | L1/EXT/E/W2@8 | L1/EXT/E/W2@8 | 4 to 5 ft (+1) | sill 3, head 7 ft | resized: width |
+| window | L1/EXT/N/W1@20 |  | 6 ft | sill 2, head 8 ft | removed |
+| slider |  | L1/EXT/W/SL1@16 | 8 ft | sill 0, head 8 ft | added |
 
 ## What happened
 - L1/BEDROOM split into L1/BEDROOM, L1/STUDY

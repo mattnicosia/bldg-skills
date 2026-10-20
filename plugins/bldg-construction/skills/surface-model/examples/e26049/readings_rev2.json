@@ -16,7 +16,7 @@
   "confirmedBy": null
  },
  "wallTolFt": 1.0,
- "_note": "Worked example of an addendum. Against SD-1: the bedroom splits into a bedroom and a study, the great room grows two feet east, the mechanical room is gone, the primary suite gets an outline on L2, everything else carries.",
+ "_note": "Worked example of an addendum. Against SD-1: the bedroom splits into a bedroom and a study, the great room grows two feet east, the mechanical room is gone, the primary suite gets an outline on L2, everything else carries. The second north W1 goes, the east W2 grows from 4 ft to 5 ft, and a two-leaf slider appears in the west wall.",
  "levels": [
   {
    "id": "L1",
@@ -91,7 +91,13 @@
      "length": "32'-2\"",
      "source": "A-101"
     }
-   ]
+   ],
+   "finishes": {
+    "*": {
+     "value": "SID-1",
+     "source": "A-601 (made-up example)"
+    }
+   }
   },
   {
    "level": "L2",
@@ -451,6 +457,10 @@
     "value": 13.2,
     "source": "A-301 level marker, first floor roof",
     "confidence": "MEDIUM"
+   },
+   "finish": {
+    "value": "RF-1",
+    "source": "A-601 (made-up example)"
    }
   },
   {
@@ -539,6 +549,172 @@
    "handle": "UTIL",
    "name": "UTILITIES",
    "source": "C-102"
+  }
+ ],
+ "materials": {
+  "SID-1": {
+   "label": "Painted cedar clapboard",
+   "kind": "siding",
+   "source": "A-601 (made-up example)"
+  },
+  "RF-1": {
+   "label": "Asphalt shingle",
+   "kind": "shingle",
+   "source": "A-601 (made-up example)"
+  }
+ },
+ "site": {
+  "gradeFt": {
+   "value": -0.67,
+   "source": "A-301 section (made-up example)",
+   "confidence": "MEDIUM"
+  }
+ },
+ "openings": [
+  {
+   "level": "L1",
+   "host": "EXT",
+   "face": "N",
+   "kind": "window",
+   "tag": {
+    "value": "W1",
+    "source": "A-101"
+   },
+   "centerFt": {
+    "value": 10,
+    "source": "A-101",
+    "confidence": "LOW",
+    "reason": "center from the plan tag, not a dimension string (made-up example)"
+   },
+   "widthFt": {
+    "value": 6,
+    "source": "A-601 schedule"
+   },
+   "sillFt": {
+    "value": 2,
+    "source": "A-601 schedule"
+   },
+   "headFt": {
+    "value": 8,
+    "source": "A-601 schedule"
+   },
+   "leaves": 1
+  },
+  {
+   "level": "L1",
+   "host": "EXT",
+   "face": "E",
+   "kind": "window",
+   "tag": {
+    "value": "W2",
+    "source": "A-101"
+   },
+   "centerFt": {
+    "value": 8,
+    "source": "A-101",
+    "confidence": "LOW",
+    "reason": "center from the plan tag, not a dimension string (made-up example)"
+   },
+   "widthFt": {
+    "value": 5,
+    "source": "A-601 schedule"
+   },
+   "sillFt": {
+    "value": 3,
+    "source": "A-601 schedule"
+   },
+   "headFt": {
+    "value": 7,
+    "source": "A-601 schedule"
+   },
+   "leaves": 1
+  },
+  {
+   "level": "L1",
+   "host": "EXT",
+   "face": "S",
+   "kind": "door",
+   "tag": {
+    "value": "D1",
+    "source": "A-101"
+   },
+   "centerFt": {
+    "value": 27,
+    "source": "A-101",
+    "confidence": "LOW",
+    "reason": "center from the plan tag, not a dimension string (made-up example)"
+   },
+   "widthFt": {
+    "value": 3,
+    "source": "A-601 schedule"
+   },
+   "sillFt": {
+    "value": 0,
+    "source": "A-601 schedule"
+   },
+   "headFt": {
+    "value": 8,
+    "source": "A-601 schedule"
+   },
+   "leaves": 1
+  },
+  {
+   "level": "L1",
+   "host": "KITCHEN",
+   "face": "W",
+   "kind": "door",
+   "tag": {
+    "value": "101",
+    "source": "A-101"
+   },
+   "centerFt": {
+    "value": 8,
+    "source": "A-101",
+    "confidence": "LOW",
+    "reason": "center from the plan tag, not a dimension string (made-up example)"
+   },
+   "widthFt": {
+    "value": 3,
+    "source": "A-601 schedule"
+   },
+   "sillFt": {
+    "value": 0,
+    "source": "A-601 schedule"
+   },
+   "headFt": {
+    "value": 8,
+    "source": "A-601 schedule"
+   },
+   "leaves": 1
+  },
+  {
+   "level": "L1",
+   "host": "EXT",
+   "face": "W",
+   "kind": "slider",
+   "tag": {
+    "value": "SL1",
+    "source": "A-101"
+   },
+   "centerFt": {
+    "value": 16,
+    "source": "A-101",
+    "confidence": "LOW",
+    "reason": "center from the plan tag, not a dimension string (made-up example)"
+   },
+   "widthFt": {
+    "value": 8,
+    "source": "A-601 schedule"
+   },
+   "sillFt": {
+    "value": 0,
+    "source": "A-601 schedule"
+   },
+   "headFt": {
+    "value": 8,
+    "source": "A-601 schedule"
+   },
+   "leaves": 2
   }
  ]
 }

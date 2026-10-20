@@ -7,7 +7,9 @@ description: Gives every room, wall face, floor, ceiling, roof plane and site el
 
 A job is a set of surfaces. This skill gives each one a key that never changes and an
 address a PM would say out loud, reads its size from the dimension strings on the plans,
-and keeps a log of what each drawing reissue did to it. Everything else on the job
+and keeps a log of what each drawing reissue did to it. Each window, door, slider and
+garage door gets a key in the face that holds it, and each roof plane its slope direction
+and finish, so the model draws as a house. Everything else on the job
 (an estimate line, a selection, an allowance, an RFI, a change order, a field figure)
 pins to a key, so "the great room's north wall" means the same wall on the proposal
 page, in the estimate, on the addendum and on the change order.
@@ -61,12 +63,18 @@ and speaks any of them back in words.
    then order the edges, set the headings, fix the anchors and remove the draft flags.
    On a scanned sheet, read the strings off the scan. Two to three minutes a room.
    List what was read and what was assumed, and mark assumed values LOW.
+   Then the openings: for each window, door, slider and garage door, the face it sits in,
+   its tag, its width, sill and head from the schedule, and its center along the face.
+   A center from where the tag sits is LOW with that reason. Add each roof plane's
+   downslope and finish, a finish per face (`"*"` for every wall face of a host), the
+   `materials` legend and `site.gradeFt`. The format is in `references/readings-format.md`.
 3. **Build the first revision.**
    ```bash
    python3 -I scripts/sm.py init <job>/surface-model.json --job E26049
    python3 -I scripts/sm.py build <job>/surface-model.json readings_rev1.json --rev SD-1
    ```
-   The build refuses a room whose walk does not close within an inch and names the gap.
+   The build refuses a room whose walk does not close within an inch and names the gap,
+   and an opening whose center and width do not fit inside its face.
    It prints the wall pairs it proposes (which faces are the two sides of one wall).
    Show the list to a person and rerun with `--accept-pairs <who>` once they confirm.
 4. **Pin what touches the building.** Estimate lines by selector, selections and
@@ -82,7 +90,10 @@ and speaks any of them back in words.
    python3 -I scripts/sm.py propose <job>/surface-model.json readings_rev2.json --rev DD-1 --out proposal.json
    ```
    Read the proposal: carries apply on their own; splits, merges and retires are listed
-   with the pins they would touch. Accept with `--all` or `--decide 2,4` after a person
+   with the pins they would touch. Openings settle on accept: one carries when its face
+   carried, its tag is the same and its center is within a foot; otherwise the old key
+   retires and the new reading gets a new key. The change list shows each one that was
+   added, removed or resized. Accept with `--all` or `--decide 2,4` after a person
    decides:
    ```bash
    python3 -I scripts/sm.py accept <job>/surface-model.json proposal.json --by matt --all --accept-pairs matt
@@ -104,8 +115,8 @@ and speaks any of them back in words.
    ```bash
    python3 -I scripts/sm.py changes <job>/surface-model.json --from SD-1 --to DD-1 --md changes.md
    ```
-   One row per surface that changed, plus a table of spaces whose elevation, roof spot
-   height or pitch changed, with before, after, delta, and a price only where
+   One row per surface that changed, a table of openings added, removed or resized,
+   a table of spaces whose elevation, roof spot height or pitch changed, with before, after, delta, and a price only where
    a pinned estimate line carries a rate (`--rates rates.json`, `{"estimate:09 64 00": {"rate": 27.22, "unit": "SF"}}`).
 7. **Export for the people who draw it.**
    ```bash
@@ -116,7 +127,9 @@ and speaks any of them back in words.
    draws from it. Its `lineage` array lists every carry, split, merge and retire up to
    that revision, so the OS can say what happened to a pinned wall or room. Its `changes`
    field holds the change list from the revision before, in the shape `report.py` gives
-   it, or null for the first revision. `--what roofs` writes the roof planes alone (elevation, spot height,
+   it, or null for the first revision. `openings` lists every opening with its face,
+   `materials` the finish legend, `site` the grade, and each roof plane carries its
+   `downslope`, a derived `eaveFt` (LOW) and its `finish`. `--what roofs` writes the roof planes alone (elevation, spot height,
    pitch). The kit's `massing.json` comes from that file through
    `drawings-to-massing/scripts/massing_from_surfaces.py`, the one massing writer.
 
@@ -140,6 +153,7 @@ and speaks any of them back in words.
 `geometry.py` | Dimension strings to feet, the clockwise walk, closure, area, overlap, back-to-back faces. |
 `build.py` | Readings to spaces, surfaces and wall pair proposals; mints keys on the first revision. |
 `revise.py` | A new issue against the model: match by outline, propose lineage, accept with invariants. |
+`openings.py` | Windows, doors, sliders and garage doors: check each fits its face, mint, carry across a reissue, export, change rows. |
 `pins.py` | Pins, resolve a selector, pin status at a revision, what touches a key, the review queue. |
 `report.py` | The proposal report, the revision report, the change list. |
 `export.py` | surfaces.json. |
@@ -167,7 +181,9 @@ sm changes surface-model.json --from SD-1 --to DD-1
 ```
 
 The review shows the flooring set drifted (two floors added, two gone), the RFI forked
-(pick the bedroom or the study) and nothing else. The change list shows the bedroom's
+(pick the bedroom or the study) and nothing else. The openings, finishes and grade in the
+example are made up too: the reissue drops one north window, widens the east window from
+4 ft to 5 ft and adds a slider in the west wall, and the change list shows those three. The change list shows the bedroom's
 north wall as one row, 16 ft to 15.5 ft across the two rooms it became, the new partition's
 two faces as added, the great room's glass wall as 33 ft to 35 ft, the mechanical room
 removed, and the primary suite measured for the first time.

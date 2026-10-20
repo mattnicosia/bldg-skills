@@ -85,7 +85,72 @@ word plus an ordinal (`BATH-1`), once, and never frees it.
 ```
 
 Feet along a face run from the left end as you stand in the space facing the wall.
-Both are stored as printed and never normalized.
+Both are stored as printed and never normalized. A `"*"` key in `finishes` covers every
+wall face of the host that has no finish of its own, so an exterior clad in one siding
+needs one line:
+
+```json
+"finishes": {"*": {"value": "SID-1", "source": "A002.2 6.08"}, "S2": {"value": "CONC-1", "source": "A101.3"}}
+```
+
+A finish value is a key into the `materials` legend:
+
+```json
+"materials": {
+ "SID-1": {"label": "Thermally modified wood, vertical 1x6 nickel gap", "kind": "siding", "source": "A002.2 6.08"},
+ "RF-1":  {"label": "24 ga standing seam", "kind": "standing_seam", "source": "A002.2 7.06"}
+}
+```
+
+`kind` is one of `siding`, `standing_seam`, `membrane`, `shingle`, `masonry`, `stucco`,
+`concrete`, `glass`, `other`. Add `colorHint` only when the set names a color, and say in
+`source` where the color came from.
+
+## Openings
+
+One list for the job. Each entry names the face it sits in the way the address does:
+the level, the host (a room's handle or number, or `EXT`) and the face (`N`, `N2`, `E`).
+
+```json
+"openings": [
+ {"level": "L1", "host": "EXT", "face": "N2", "kind": "window",
+  "tag": {"value": "W01", "source": "A101.2"},
+  "centerFt": {"value": 43.1, "source": "A101.2", "confidence": "LOW", "reason": "center from the plan tag, not a dimension string"},
+  "widthFt": {"value": 5.0, "source": "A200 window schedule"},
+  "sillFt": {"value": 0.0, "source": "A200 window schedule"},
+  "headFt": {"value": 8.0, "source": "A200 window schedule: sill 0'-0\" plus height 8'-0\""},
+  "leaves": 1,
+  "unit": {"value": "Andersen 400, exterior Terratone", "source": "A200 window schedule"}}
+]
+```
+
+- `kind` is `window`, `door`, `slider` or `garage`.
+- `centerFt` is feet along the face from its first point, the left end as you stand
+  inside facing the wall (the face's `seg[0]`). A center read from where a tag sits on
+  the plan or elevation is LOW and says so in `reason`. A center from a dimension string
+  is HIGH.
+- `sillFt` and `headFt` are feet above the floor of the level, not absolute. When the
+  schedule measures from a room floor that sits off the level (a garage slab at -0'-6"),
+  add the offset, mark the value LOW and say so.
+- `leaves` is the panel count of a slider or a multi-leaf door; it defaults to 1.
+- `unit` is optional.
+
+The build refuses an opening whose face does not exist, whose kind is not one of the
+four, which has no tag, or whose center and width do not fit inside the face.
+
+## Roof slope and site
+
+A roof plane can carry `downslope`, the compass heading water runs (`N`, `E`, `S`, `W`,
+or `NE` and so on), cited to the slope arrow or the spot heights that show it, and
+`finish`, a cited key into `materials`. A flat roof may leave `downslope` out. The
+exporter derives the eave from the spot height, the pitch and the downslope.
+
+```json
+"site": {"gradeFt": {"value": -0.67, "source": "A301.1 section"}}
+```
+
+`site.gradeFt` is finished grade at the building, on the levels' datum. When no sheet
+prints it, write `{"confidence": "NOT_MEASURED", "reason": "..."}`.
 
 ## Cited values
 

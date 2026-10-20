@@ -11,20 +11,23 @@ For the first revision this mints every key. For a later revision, revise.py cal
 from __future__ import annotations
 
 import geometry as G
+import openings as O
 from store import mint
 
 KINDS = {"space": "wall_face", "exterior": "exterior_face", "roof": "roof"}
 
 
 def cited(v, default_conf="HIGH"):
-    """Accept {"value":..,"source":..} or a bare number with no source (LOW)."""
+    """Accept {"value":..,"source":..} or a bare number with no source (LOW). A reason
+    (how a LOW value was got, or why one is NOT_MEASURED) rides along."""
     if v is None:
         return None
     if isinstance(v, dict):
         d = {"value": v.get("value"), "source": v.get("source"),
              "confidence": v.get("confidence") or (default_conf if v.get("source") else "LOW")}
-        if v.get("confirmedBy"):
-            d["confirmedBy"] = v["confirmedBy"]
+        for k in ("reason", "confirmedBy"):
+            if v.get(k):
+                d[k] = v[k]
         return d
     return {"value": v, "source": None, "confidence": "LOW"}
 
@@ -51,9 +54,10 @@ def host_handle(entry: dict, taken: set[str]) -> str:
 # ---------------------------------------------------------------------------
 def candidates(readings: dict) -> dict:
     """
-    Returns {"levels": {...}, "spaces": [cand...], "problems": [...]}. Each cand holds
-    kind, level, handle, address, name, number, outline (points, faces, closed,
-    closureErrorIn), areaSf, ceilingFt or heightFt, runs, finishes, phase.
+    Returns {"levels": {...}, "spaces": [cand...], "openings": [...], "problems": [...]}.
+    Each cand holds kind, level, handle, address, name, number, outline (points, faces,
+    closed, closureErrorIn), areaSf, ceilingFt or heightFt, runs, finishes, phase. Each
+    opening names the face it sits in and has been checked to fit inside it.
     """
     problems: list[str] = []
     levels = {lv["id"].upper(): lv for lv in readings.get("levels", [])}
@@ -103,6 +107,8 @@ def candidates(readings: dict) -> dict:
         elif kind == "roof":
             c["spotFt"] = cited(entry.get("spotFt")) if entry.get("spotFt") is not None else None
             c["pitch"] = cited(entry.get("pitch")) if entry.get("pitch") is not None else None
+            c["downslope"] = cited(entry.get("downslope")) if entry.get("downslope") is not None else None
+            c["finish"] = cited(entry.get("finish")) if entry.get("finish") is not None else None
         elif kind == "space":
             c["ceilingFt"] = cited(entry.get("ceilingFt")) or (cited(lv.get("ceilingFt")) if lv.get("ceilingFt") else None)
         cands.append(c)
@@ -115,7 +121,8 @@ def candidates(readings: dict) -> dict:
         add("roof", e, (e.get("level") or "RF").upper())
     for e in readings.get("hosts", []):
         add("host", e, (e.get("level") or "SITE").upper())
-    return {"levels": levels, "spaces": cands, "problems": problems}
+    ops, op_problems = O.read(readings, cands, cited)
+    return {"levels": levels, "spaces": cands, "openings": ops, "problems": problems + op_problems}
 
 
 _RANK = {"VERIFIED": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3, "NOT_MEASURED": 4}
@@ -153,7 +160,7 @@ def surface_rows_for(cand: dict) -> list[dict]:
                          "seg": [f["start"], f["end"]], "poly": None, "parts": parts,
                          "address": f"{lvl}/{host}/{f['face']}",
                          "runs": [r for r in cand.get("runs", []) if str(r.get("face", "")).upper() == f["face"]],
-                         "finish": cited(cand.get("finishes", {}).get(f["face"]))})
+                         "finish": cited(_finish(cand, f["face"]))})
     if kind == "space":
         for fc, k in (("FLR", "floor"), ("CLG", "ceiling")):
             rows.append({"face": fc, "kind": k, "areaSf": cand["areaSf"], "lengthFt": None,
@@ -161,6 +168,12 @@ def surface_rows_for(cand: dict) -> list[dict]:
                          "seg": None, "poly": w["points"] if w else None, "runs": [],
                          "address": f"{lvl}/{host}/{fc}", "finish": cited(cand.get("finishes", {}).get(fc))})
     return rows
+
+
+def _finish(cand: dict, face: str):
+    """The face's own finish, or the `*` finish that covers every wall face of the host."""
+    fin = cand.get("finishes", {})
+    return fin.get(face) or fin.get("*")
 
 
 # ---------------------------------------------------------------------------
@@ -208,6 +221,7 @@ def space_rev_row(sk: str, rev: str, c: dict) -> dict:
             "edges": [{"heading": f["heading"], "lengthFt": round(f["lengthFt"], 4), "parts": f["parts"]} for f in w["faces"]]},
         "areaSf": c.get("areaSf"), "ceilingFt": c.get("ceilingFt"), "heightFt": c.get("heightFt"),
         "elevationFt": c.get("elevationFt"), "spotFt": c.get("spotFt"), "pitch": c.get("pitch"),
+        "downslope": c.get("downslope"), "finish": c.get("finish"),
         "phase": c.get("phase", "new"), "mepTags": c.get("mepTags", []), "confirmedBy": c.get("confirmedBy"),
     }
 
@@ -228,7 +242,9 @@ def revision_entry(readings: dict, rev: str, levels: dict) -> dict:
             "levels": {k: {"elevationFt": cited(v.get("elevationFt")),
                            "storyFt": cited(v.get("storyFt")) if v.get("storyFt") else None,
                            "ceilingFt": cited(v.get("ceilingFt")) if v.get("ceilingFt") else None}
-                       for k, v in levels.items()}}
+                       for k, v in levels.items()},
+            "materials": readings.get("materials", {}),
+            "site": {k: cited(v) for k, v in (readings.get("site") or {}).items()}}
 
 
 # ---------------------------------------------------------------------------
@@ -249,8 +265,10 @@ def first_build(model: dict, readings: dict, rev: str, accept_pairs_by: dict | N
         for r in surface_rows_for(c):
             k = mint(model, "sk", rev, kind=r["kind"], host=sk, wall=None)
             model["surfaceRevs"].append(surface_rev_row(k, rev, sk, r))
+    from store import address_map
+    n_ops = O.mint_all(model, rev, cand["openings"], address_map(model, rev))
     pairs = propose_pairs(cand["spaces"], model["wallTolFt"])
-    result = {"ok": True, "rev": rev, "spaces": len(cand["spaces"]),
+    result = {"ok": True, "rev": rev, "spaces": len(cand["spaces"]), "openings": n_ops,
               "surfaces": sum(1 for s in model["surfaceRevs"] if s["rev"] == rev),
               "pairsProposed": len(pairs), "pairs": pairs, "pairsAccepted": 0}
     if accept_pairs_by:

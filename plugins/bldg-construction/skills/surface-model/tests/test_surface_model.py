@@ -20,6 +20,7 @@ sys.path.insert(0, SCRIPTS)
 import build as B  # noqa: E402
 import geometry as G  # noqa: E402
 import export as X  # noqa: E402
+import openings as O  # noqa: E402
 import pins as P  # noqa: E402
 import prefill as F  # noqa: E402
 import report as R  # noqa: E402
@@ -345,6 +346,167 @@ class ChangesExport(unittest.TestCase):
         changes = X.surfaces_export(m, "R2")["changes"]
         self.assertEqual(changes, R.change_list(m, "R1", "R2"))
         self.assertTrue(changes["surfaces"])
+
+
+
+def opening(face, tag, c, w, kind="window", host="EXT", sill=3, head=8, level="L1", **extra):
+    return {"level": level, "host": host, "face": face, "kind": kind, "tag": {"value": tag, "source": "A-101"},
+            "centerFt": {"value": c, "source": "A-101", "confidence": "LOW", "reason": "center from the plan tag"},
+            "widthFt": {"value": w, "source": "A-200"}, "sillFt": {"value": sill, "source": "A-200"},
+            "headFt": {"value": head, "source": "A-200"}, **extra}
+
+
+def house(ops, rev="R1", rooms=None, roofs=(), **extra):
+    r = readings(rooms if rooms is not None else [room("LIVING", 0, 20, 30, 20)], roofs=roofs, rev=rev)
+    r["exterior"] = [{"level": "L1", "anchor": [0, 20], "edges": room("x", 0, 20, 30, 20)["edges"],
+                      "heightFt": {"value": 10, "source": "A-301"}}]
+    r["openings"] = ops
+    r.update(extra)
+    return r
+
+
+class OpeningBuild(unittest.TestCase):
+    def test_each_opening_gets_a_key_in_its_face(self):
+        m = model_at(house([opening("N", "W01", 10, 5), opening("S", "102", 15, 3, kind="door", sill=0)]))
+        ops = {o["address"]: o for o in S.live_openings(m, "R1")}
+        self.assertEqual(sorted(ops), ["L1/EXT/N/W01@10", "L1/EXT/S/102@15"])
+        north = S.key_for_address(m, "L1/EXT/N", "R1")
+        self.assertEqual(ops["L1/EXT/N/W01@10"]["surface"], north)
+        self.assertEqual(ops["L1/EXT/N/W01@10"]["opening"], "op_1")
+        self.assertEqual(ops["L1/EXT/N/W01@10"]["at"], [10.0, 20.0])
+        self.assertEqual(ops["L1/EXT/S/102@15"]["at"], [15.0, 0.0])
+
+    def test_an_interior_door_sits_in_a_room_face(self):
+        m = model_at(house([opening("E", "101", 10, 3, kind="door", host="LIVING", sill=0)]))
+        self.assertEqual(S.live_openings(m, "R1")[0]["surface"], S.key_for_address(m, "L1/LIVING/E", "R1"))
+
+    def test_an_opening_that_does_not_fit_its_face_is_refused(self):
+        for bad in (opening("N", "W01", 28, 5), opening("N", "W01", 2, 5), opening("E", "W01", 10, 21)):
+            res = B.first_build(S.new_model("T1"), house([bad]), "R1", None)
+            self.assertFalse(res["ok"])
+            self.assertIn("does not fit", res["problems"][0])
+
+    def test_an_unknown_face_or_kind_is_refused(self):
+        res = B.first_build(S.new_model("T1"), house([opening("N2", "W01", 10, 5)]), "R1", None)
+        self.assertIn("no such face", res["problems"][0])
+        res = B.first_build(S.new_model("T1"), house([opening("N", "W01", 10, 5, kind="skylight")]), "R1", None)
+        self.assertIn("is not one of", res["problems"][0])
+
+
+class OpeningReissue(unittest.TestCase):
+    def setUp(self):
+        self.m = model_at(house([opening("N", "W01", 10, 5), opening("N", "W01", 20, 5), opening("E", "W02", 10, 4),
+                                 opening("S", "102", 15, 3, kind="door", sill=0)]))
+
+    def reissue(self, ops, **kw):
+        return reissue(self.m, house(ops, rev="R2", **kw))
+
+    def test_carry_resize_remove_and_add(self):
+        _, res = self.reissue([opening("N", "W01", 10.4, 5), opening("E", "W02", 10, 5),
+                               opening("S", "102", 15, 3, kind="door", sill=0),
+                               opening("W", "115", 10, 10, kind="slider", sill=0, leaves=2)])
+        self.assertEqual(res["openings"], {"carried": 3, "retired": 1, "minted": 1})
+        live = {o["address"]: o["opening"] for o in S.live_openings(self.m, "R2")}
+        self.assertEqual(live["L1/EXT/N/W01@10.4"], "op_1")
+        self.assertEqual(live["L1/EXT/E/W02@10"], "op_3")
+        self.assertEqual(live["L1/EXT/W/115@10"], "op_5")
+        self.assertEqual(self.m["openings"]["op_2"]["retiredIn"], "R2")
+        ev = [e for e in self.m["lineage"] if e["from"].startswith("op_")]
+        self.assertEqual(sorted(e["from"] for e in ev), ["op_1", "op_2", "op_3", "op_4"])
+        rows = {(r["change"], r["kind"]): r for r in R.change_list(self.m, "R1", "R2")["surfaces"] if r["subject"] == "opening"}
+        self.assertEqual(sorted(rows), [("added", "slider"), ("changed", "window"), ("removed", "window")])
+        self.assertEqual((rows[("changed", "window")]["lengthBefore"], rows[("changed", "window")]["lengthAfter"]), (4, 5))
+        self.assertEqual(rows[("changed", "window")]["note"], "resized: width")
+        self.assertEqual(R.change_list(self.m, "R1", "R2")["totals"]["openings"], {"added": 1, "removed": 1, "resized": 1})
+
+    def test_a_move_past_a_foot_or_a_new_tag_retires_and_mints(self):
+        _, res = self.reissue([opening("N", "W01", 11.5, 5), opening("N", "W09", 20, 5), opening("E", "W02", 10, 4),
+                               opening("S", "102", 15, 3, kind="door", sill=0)])
+        self.assertEqual(res["openings"], {"carried": 2, "retired": 2, "minted": 2})
+
+    def test_a_sill_change_is_a_resize(self):
+        self.reissue([opening("N", "W01", 10, 5), opening("N", "W01", 20, 5, sill=2), opening("E", "W02", 10, 4),
+                      opening("S", "102", 15, 3, kind="door", sill=0)])
+        rows = [r for r in R.change_list(self.m, "R1", "R2")["surfaces"] if r["subject"] == "opening"]
+        self.assertEqual([(r["change"], r["note"], r["sillBefore"], r["sillAfter"]) for r in rows],
+                         [("changed", "resized: sill", 3, 2)])
+
+    def test_an_opening_follows_its_face_into_a_split_room(self):
+        m = model_at(house([opening("N", "101", 25, 3, kind="door", host="GARAGE", sill=0)],
+                           rooms=[room("GARAGE", 0, 20, 30, 20)]))
+        reissue(m, house([opening("N", "101", 7, 3, kind="door", host="SHOP", sill=0)], rev="R2",
+                         rooms=[room("GARAGE", 0, 20, 18, 20), room("SHOP", 18, 20, 12, 20)]))
+        live = S.live_openings(m, "R2")
+        self.assertEqual([o["opening"] for o in live], ["op_1"])
+        self.assertEqual(live[0]["surface"], S.key_for_address(m, "L1/SHOP/N", "R2"))
+        self.assertEqual(live[0]["address"], "L1/SHOP/N/101@7")
+
+
+class HouseExport(unittest.TestCase):
+    def roof(self, **kw):
+        return {"level": "RF", "handle": "MAIN-S", "anchor": [0, 10], "edges": room("x", 0, 10, 30, 10)["edges"],
+                "spotFt": {"value": 20, "source": "A-201"}, "pitch": {"value": "12/12", "source": "A-201"}, **kw}
+
+    def export(self, **kw):
+        return X.surfaces_export(model_at(house([opening("N", "W01", 10, 5, unit={"value": "Andersen 400", "source": "A-200"})], **kw)), "R1")
+
+    def test_openings_follow_the_contract(self):
+        op = self.export()["openings"][0]
+        self.assertEqual(sorted(op), sorted(["key", "address", "wasAddress", "surface", "wall", "level", "kind", "tag",
+                                             "centerFt", "widthFt", "sillFt", "headFt", "leaves", "unit"]))
+        self.assertEqual((op["key"], op["address"], op["kind"], op["leaves"]), ("op_1", "L1/EXT/N/W01@10", "window", 1))
+        self.assertEqual(op["centerFt"], {"value": 10, "source": "A-101", "confidence": "LOW", "reason": "center from the plan tag"})
+
+    def test_roof_downslope_eave_finish_materials_and_grade(self):
+        out = self.export(roofs=[self.roof(downslope={"value": "S", "source": "A-201"}, finish={"value": "RF-1", "source": "A-002"})],
+                          materials={"RF-1": {"label": "Standing seam", "kind": "standing_seam", "source": "A-002"}},
+                          site={"gradeFt": {"value": -0.67, "source": "A-301", "confidence": "MEDIUM"}})
+        roof = next(s for s in out["spaces"] if s["kind"] == "roof")
+        self.assertEqual(roof["downslope"], {"value": "S", "source": "A-201", "confidence": "HIGH"})
+        self.assertEqual(roof["finish"], "RF-1")
+        self.assertEqual((roof["eaveFt"]["value"], roof["eaveFt"]["confidence"]), (10.0, "LOW"))
+        self.assertIn("derived", roof["eaveFt"]["reason"])
+        self.assertEqual(out["materials"]["RF-1"]["kind"], "standing_seam")
+        self.assertEqual(out["site"]["gradeFt"]["value"], -0.67)
+
+    def test_a_grade_the_set_does_not_give_is_not_measured_with_its_reason(self):
+        out = self.export(site={"gradeFt": {"confidence": "NOT_MEASURED", "reason": "no grade printed"}})
+        self.assertEqual(out["site"]["gradeFt"], {"confidence": "NOT_MEASURED", "reason": "no grade printed"})
+
+    def test_absent_fields_stay_absent(self):
+        out = self.export(roofs=[self.roof()])
+        roof = next(s for s in out["spaces"] if s["kind"] == "roof")
+        self.assertFalse({"downslope", "eaveFt", "finish"} & set(roof))
+        self.assertEqual((out["materials"], out["site"]), ({}, {}))
+        m = model_at(readings([room("GARAGE", 0, 10, 20, 10)]))
+        del m["openings"], m["openingRevs"]
+        self.assertEqual(X.surfaces_export(m, "R1")["openings"], [])
+
+    def test_a_star_finish_covers_every_wall_face(self):
+        out = X.surfaces_export(model_at(house([])), "R1")
+        self.assertEqual({s["finish"] for s in out["surfaces"] if s["kind"] == "exterior_face"}, {None})
+        r = house([])
+        r["exterior"][0]["finishes"] = {"*": {"value": "SID-1", "source": "A-002"}, "N": {"value": "STO-1", "source": "A-002"}}
+        faces = {s["face"]: s["finish"] for s in X.surfaces_export(model_at(r), "R1")["surfaces"] if s["kind"] == "exterior_face"}
+        self.assertEqual(faces, {"N": "STO-1", "E": "SID-1", "S": "SID-1", "W": "SID-1"})
+
+    def test_pitch_ratio(self):
+        self.assertEqual([X.pitch_ratio(p) for p in ("12/12", "3/12", "6:12", "1/4/12", "flat")],
+                         [1.0, 0.25, 0.5, 0.25 / 12, None])
+
+
+class WorkedExample(unittest.TestCase):
+    def test_the_e26049_reissue_adds_removes_and_resizes_an_opening(self):
+        ex = os.path.join(HERE, "..", "examples", "e26049")
+        def load(name):
+            with open(os.path.join(ex, name), encoding="utf-8") as f:
+                return json.load(f)
+        m = S.new_model("E26049")
+        B.first_build(m, load("readings_rev1.json"), "SD-1", PERSON)
+        reissue(m, load("readings_rev2.json"), rev="DD-1")
+        cl = R.change_list(m, "SD-1", "DD-1")
+        self.assertEqual(cl["totals"]["openings"], {"added": 1, "removed": 1, "resized": 1})
+        self.assertEqual(len(X.surfaces_export(m, "DD-1")["openings"]), 5)
 
 
 if __name__ == "__main__":
