@@ -9,16 +9,18 @@ second, never the other way, because a renumber makes number matching pair the w
 rooms.
 
 Two invariants gate every revision, and a failure refuses the whole revision:
-  1. every key live at the previous revision appears in exactly one lineage event;
+  1. every key live at the previous revision (space, surface or opening) appears in
+     exactly one lineage event;
   2. the pin count after accept equals the pin count before.
 """
 from __future__ import annotations
 
 import geometry as G
+import openings as O
 from build import (accept_pairs, candidates, propose_pairs, revision_entry,
                    space_rev_row, surface_rev_row, surface_rows_for)
-from store import (current_rev, live_spaces, live_surfaces, mint, retire, space_at,
-                   surface_at)
+from store import (address_map, current_rev, live_spaces, live_surfaces, mint, retire,
+                   space_at, surface_at)
 
 SAME_MIN = 0.90       # shared / larger area: the same footprint
 CHILD_INSIDE = 0.60   # a new space mostly inside one old space is its child
@@ -267,13 +269,16 @@ def accept(model: dict, proposal: dict, by: dict, accept_all: bool, accept_pairs
                     retire(model, s["surface"], rev)
                     lineage.append({"kind": "retire", "from": s["surface"], "rev": rev, "by": by, "reason": e["reason"]})
 
+    ops = O.carry(model, prev, rev, cand.get("openings", []), address_map(model, rev), lineage, by)
     model["lineage"].extend(lineage)
     pairs = propose_pairs(new, model["wallTolFt"])
     accepted = accept_pairs(model, rev, pairs, accept_pairs_by) if accept_pairs_by else 0
     if len(model["pins"]) != pins_before:
         raise SystemExit("pin count changed during accept; refusing")
+    rest = [e for e in lineage if not str(e["from"]).startswith("op_")]
     return {"ok": True, "rev": rev, "lineage": len(lineage), "pairsProposed": len(pairs), "pairsAccepted": accepted,
-            "counts": {k: sum(1 for l in lineage if l["kind"] == k) for k in ("carry", "split", "merge", "retire")}}
+            "counts": {k: sum(1 for e in rest if e["kind"] == k) for k in ("carry", "split", "merge", "retire")},
+            "openings": ops}
 
 
 # ---------------------------------------------------------------------------

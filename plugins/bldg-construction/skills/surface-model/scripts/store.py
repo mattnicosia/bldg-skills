@@ -1,8 +1,8 @@
 """
 store.py -- the job's surface model file.
 
-One JSON file per job, `surface-model.json`, beside drawing-index's `index.json`. Three
-things carry identity (space, wall, surface). Keys are minted once, never reused, never
+One JSON file per job, `surface-model.json`, beside drawing-index's `index.json`. Four
+things carry identity (space, wall, surface, opening). Keys are minted once, never reused, never
 deleted. Per-revision facts sit in `spaceRevs` and `surfaceRevs`. `lineage` and `pins`
 are append-only. Pin status is never stored; `pins.py` derives it.
 
@@ -34,10 +34,12 @@ def new_model(job: str) -> dict:
         "surfaces": {},
         "spaceRevs": [],
         "surfaceRevs": [],
+        "openings": {},
+        "openingRevs": [],
         "lineage": [],
         "pins": [],
         "rejectedPairs": [],
-        "counters": {"sp": 0, "wk": 0, "sk": 0, "pin": 0},
+        "counters": {"sp": 0, "wk": 0, "sk": 0, "op": 0, "pin": 0},
     }
 
 
@@ -59,24 +61,24 @@ def save(model: dict, path: str) -> None:
 # ---------------------------------------------------------------------------
 # keys
 # ---------------------------------------------------------------------------
+TABLES = {"sp": "spaces", "wk": "walls", "sk": "surfaces", "op": "openings"}
+
+
 def mint(model: dict, prefix: str, rev: str, **attrs) -> str:
-    model["counters"][prefix] += 1
+    model["counters"][prefix] = model["counters"].get(prefix, 0) + 1
     key = f"{prefix}_{model['counters'][prefix]}"
-    table = {"sp": "spaces", "wk": "walls", "sk": "surfaces"}[prefix]
     row = {"key": key, "job": model["job"], "mintedIn": rev, "retiredIn": None}
     row.update(attrs)
-    model[table][key] = row
+    model.setdefault(TABLES[prefix], {})[key] = row
     return key
 
 
 def retire(model: dict, key: str, rev: str) -> None:
-    table = {"sp": "spaces", "wk": "walls", "sk": "surfaces"}[key[:2]]
-    model[table][key]["retiredIn"] = rev
+    model[TABLES[key[:2]]][key]["retiredIn"] = rev
 
 
 def is_live(model: dict, key: str, rev: str | None = None) -> bool:
-    table = {"sp": "spaces", "wk": "walls", "sk": "surfaces"}[key[:2]]
-    row = model[table].get(key)
+    row = model.get(TABLES[key[:2]], {}).get(key)
     if row is None:
         return False
     if row["retiredIn"] is None:
@@ -106,7 +108,7 @@ def facts_at(model: dict, table: str, key_field: str, key: str, rev: str) -> dic
     order = {r["id"]: i for i, r in enumerate(model["revisions"])}
     at = order[rev]
     best = None
-    for row in model[table]:
+    for row in model.get(table, []):
         if row[key_field] != key:
             continue
         i = order[row["rev"]]
@@ -123,24 +125,30 @@ def surface_at(model: dict, key: str, rev: str) -> dict | None:
     return facts_at(model, "surfaceRevs", "surface", key, rev)
 
 
-def live_spaces(model: dict, rev: str) -> list[dict]:
+def opening_at(model: dict, key: str, rev: str) -> dict | None:
+    return facts_at(model, "openingRevs", "opening", key, rev)
+
+
+def _live(model: dict, prefix: str, rev: str, at) -> list[dict]:
     out = []
-    for key in model["spaces"]:
-        if is_live(model, key, rev) and rev_index(model, model["spaces"][key]["mintedIn"]) <= rev_index(model, rev):
-            row = space_at(model, key, rev)
+    for key, meta in model.get(TABLES[prefix], {}).items():
+        if is_live(model, key, rev) and rev_index(model, meta["mintedIn"]) <= rev_index(model, rev):
+            row = at(model, key, rev)
             if row:
                 out.append(row)
     return out
+
+
+def live_spaces(model: dict, rev: str) -> list[dict]:
+    return _live(model, "sp", rev, space_at)
 
 
 def live_surfaces(model: dict, rev: str) -> list[dict]:
-    out = []
-    for key in model["surfaces"]:
-        if is_live(model, key, rev) and rev_index(model, model["surfaces"][key]["mintedIn"]) <= rev_index(model, rev):
-            row = surface_at(model, key, rev)
-            if row:
-                out.append(row)
-    return out
+    return _live(model, "sk", rev, surface_at)
+
+
+def live_openings(model: dict, rev: str) -> list[dict]:
+    return _live(model, "op", rev, opening_at)
 
 
 def address_map(model: dict, rev: str) -> dict[str, str]:

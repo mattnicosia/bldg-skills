@@ -9,7 +9,11 @@ export.py -- what other skills and BLDG OS read.
                   carry, split, merge and retire up to that revision, each with its
                   `rev`, so a reader can tell what happened to a pinned key.
                   `changes` is report.change_list from the revision before to this
-                  one, or null for the first revision.
+                  one, or null for the first revision. `openings` lists every window,
+                  door, slider and garage door with the face it sits in; `materials`
+                  is the finish legend the `finish` fields point into; `site` holds
+                  the finished grade when the set gives one. Roof planes carry their
+                  `downslope`, the `eaveFt` derived from it, and their `finish`.
 The kit's massing.json is written from this file by
 drawings-to-massing/scripts/massing_from_surfaces.py, the one massing writer.
 
@@ -17,6 +21,9 @@ Nothing here holds a quantity the model did not read off a sheet.
 """
 from __future__ import annotations
 
+import math
+
+import openings as O
 from report import change_list
 from store import live_spaces, live_surfaces, rev_index
 
@@ -41,6 +48,8 @@ def surfaces_export(model: dict, rev: str) -> dict:
                        "ceilingFt": (s.get("ceilingFt") or {}).get("value"), "phase": s.get("phase"),
                        "spotFt": (s.get("spotFt") or {}).get("value"), "pitch": (s.get("pitch") or {}).get("value"),
                        "wasAddress": _was(model, s["space"], rev)})
+        if s["kind"] == "roof":
+            spaces[-1].update(_roof_extras(s))
     surfaces = []
     for s in live_surfaces(model, rev):
         surfaces.append({"key": s["surface"], "address": s["address"], "host": s["host"], "kind": s["kind"],
@@ -51,10 +60,56 @@ def surfaces_export(model: dict, rev: str) -> dict:
                          "areaSf": s.get("areaSf"), "seg": s.get("seg"), "poly": s.get("poly"),
                          "confidence": _conf(s), "runs": s.get("runs", []), "finish": (s.get("finish") or {}).get("value"),
                          "adjacency": s.get("adjacency", []), "wasAddress": _was(model, s["surface"], rev)})
+    r = model["revisions"][rev_index(model, rev)]
     return {"job": model["job"], "rev": rev, "north": model.get("north"),
-            "levels": model["revisions"][rev_index(model, rev)].get("levels", {}),
+            "levels": r.get("levels", {}),
             "spaces": spaces, "surfaces": surfaces, "lineage": lineage_export(model, rev),
-            "changes": changes_export(model, rev)}
+            "changes": changes_export(model, rev),
+            "openings": O.export_rows(model, rev, _was),
+            "materials": r.get("materials") or {},
+            "site": {k: v for k, v in (r.get("site") or {}).items() if v}}
+
+
+HEADINGS = {"N": (0, 1), "NE": (1, 1), "E": (1, 0), "SE": (1, -1), "S": (0, -1), "SW": (-1, -1), "W": (-1, 0), "NW": (-1, 1)}
+
+
+def pitch_ratio(text) -> float | None:
+    """'12/12' -> 1.0, '3/12' -> 0.25, '1/4/12' -> 0.0208, '6:12' -> 0.5."""
+    t = str(text or "").replace(" ", "")
+    if ":" in t:
+        rise, run = t.split(":", 1)
+    elif t.count("/") >= 1:
+        rise, run = t.rsplit("/", 1)
+    else:
+        return None
+    try:
+        n, d = (rise.split("/") + ["1"])[:2]
+        return float(n) / float(d) / float(run)
+    except (ValueError, ZeroDivisionError):
+        return None
+
+
+def _roof_extras(row: dict) -> dict:
+    """The downslope as read, the eave derived from it, and the finish key. The ridge or
+    high edge sits at spotFt; the eave is that less pitch times the run across the plane to
+    its furthest downslope edge."""
+    out = {}
+    down = row.get("downslope")
+    if down and down.get("value"):
+        out["downslope"] = down
+    if (row.get("finish") or {}).get("value"):
+        out["finish"] = row["finish"]["value"]
+    spot, ratio = (row.get("spotFt") or {}).get("value"), pitch_ratio((row.get("pitch") or {}).get("value"))
+    pts = (row.get("outline") or {}).get("points")
+    vec = HEADINGS.get(str((down or {}).get("value") or "").upper())
+    if spot is not None and ratio is not None and vec and pts:
+        ux, uy = vec[0] / math.hypot(*vec), vec[1] / math.hypot(*vec)
+        proj = [x * ux + y * uy for x, y in pts]
+        run = max(proj) - min(proj)
+        out["eaveFt"] = {"value": round(spot - ratio * run, 3), "confidence": "LOW",
+                         "reason": f"derived: spot height {spot:g} less pitch {row['pitch']['value']} times the "
+                                   f"{run:.2f} ft run to the downslope edge"}
+    return out
 
 
 def changes_export(model: dict, rev: str) -> dict | None:
