@@ -318,12 +318,14 @@ def change_list_md(model: dict, cl: dict, rates: dict | None = None) -> str:
     ops = [r for r in cl["surfaces"] if r.get("subject") == "opening"]
     if ops:
         lines.append("## Openings")
-        lines.append("| Opening | Was | Now | Width | Sill to head | Change |")
+        lines.append("| Opening | Was | Now | Width | Sill and head | Change |")
         lines.append("|---|---|---|---|---|---|")
         for r in ops:
             spans = list(dict.fromkeys(_span(r[f"sill{s}"], r[f"head{s}"]) for s in ("Before", "After") if r[f"before" if s == "Before" else "after"]))
             sh = " to ".join(spans)
-            lines.append(f"| {r['kind']} | {r['before'] or ''} | {r['after'] or ''} | {_pair(r['lengthBefore'], r['lengthAfter'], 'ft')} "
+            same = r["lengthBefore"] == r["lengthAfter"]
+            width = f"{r['lengthAfter']:g} ft" if same else _pair(r["lengthBefore"], r["lengthAfter"], "ft")
+            lines.append(f"| {r['kind']} | {r['before'] or ''} | {r['after'] or ''} | {width} "
                          f"| {sh} | {r['note'] or r['change']} |")
         lines.append("")
     if cl.get("spaces"):
@@ -349,7 +351,7 @@ def change_list_md(model: dict, cl: dict, rates: dict | None = None) -> str:
 
 
 def _span(sill, head) -> str:
-    return f"{'?' if sill is None else f'{sill:g}'}-{'?' if head is None else f'{head:g}'} ft"
+    return f"sill {'?' if sill is None else f'{sill:.4g}'}, head {'?' if head is None else f'{head:.4g}'} ft"
 
 
 def _fact(v, unit: str) -> str:

@@ -29,11 +29,11 @@
 | Level 2, Primary, west wall (first outline) |  | L2/PRIMARY/W | 20 ft | 180 SF | needs pricing |
 
 ## Openings
-| Opening | Was | Now | Width | Sill to head | Change |
+| Opening | Was | Now | Width | Sill and head | Change |
 |---|---|---|---|---|---|
-| window | L1/EXT/E/W2@8 | L1/EXT/E/W2@8 | 4 to 5 ft (+1) | 3-7 ft to 3-7 ft | resized: width |
-| window | L1/EXT/N/W1@20 |  | 6 ft | 2-8 ft | removed |
-| slider |  | L1/EXT/W/SL1@16 | 8 ft | 0-8 ft | added |
+| window | L1/EXT/E/W2@8 | L1/EXT/E/W2@8 | 4 to 5 ft (+1) | sill 3, head 7 ft | resized: width |
+| window | L1/EXT/N/W1@20 |  | 6 ft | sill 2, head 8 ft | removed |
+| slider |  | L1/EXT/W/SL1@16 | 8 ft | sill 0, head 8 ft | added |
 
 ## What happened
 - L1/BEDROOM split into L1/BEDROOM, L1/STUDY
