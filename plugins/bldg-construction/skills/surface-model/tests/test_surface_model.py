@@ -236,6 +236,22 @@ class SpaceFactChanges(unittest.TestCase):
         self.assertIn("L1/GARAGE | elevation | -0.5 ft | 2 ft | +2.5 ft", md)
         self.assertEqual(cl["totals"]["spaceFacts"], 4)
 
+    def test_a_merged_room_that_rose_is_listed(self):
+        # Yaun Road REV 02: the laundry folds into the mud room, and the floor rises to +2'-0".
+        m = model_at(readings([room("MUD-ROOM", 0, 10, 10, 10), room("LAUNDRY", 10, 10, 5, 10)]))
+        reissue(m, readings([room("MUD-ROOM", 0, 10, 15, 10, elevationFt={"value": 2.0, "source": "A101.5"})], rev="R2"))
+        cl = R.change_list(m, "R1", "R2")
+        got = [(r["address"], r["was"], r["field"], r["before"], r["after"], r["delta"]) for r in cl["spaces"]]
+        self.assertEqual(got, [("L1/MUD-ROOM", "L1/LAUNDRY, L1/MUD-ROOM", "elevationFt", 0, 2.0, 2.0)])
+        self.assertIn("L1/MUD-ROOM | elevation | 0 ft | 2 ft | +2 ft", R.change_list_md(m, cl))
+
+    def test_a_split_room_that_dropped_is_listed_once_per_part(self):
+        m = model_at(readings([room("GARAGE", 0, 10, 20, 10)]))
+        reissue(m, readings([room("GARAGE", 0, 10, 12, 10),
+                             room("SHOP", 12, 10, 8, 10, elevationFt={"value": -0.5, "source": "A-301"})], rev="R2"))
+        got = [(r["address"], r["was"], r["before"], r["after"]) for r in R.change_list(m, "R1", "R2")["spaces"]]
+        self.assertEqual(got, [("L1/SHOP", "L1/GARAGE", 0, -0.5)])
+
     def test_unchanged_facts_are_not_listed(self):
         r1 = readings([room("GARAGE", 0, 10, 10, 10, elevationFt={"value": -0.5, "source": "A-301"})])
         m = model_at(r1)

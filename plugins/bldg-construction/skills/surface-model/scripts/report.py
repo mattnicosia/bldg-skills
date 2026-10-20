@@ -214,22 +214,39 @@ def _effective(model: dict, row: dict, rev: str, field: str):
 
 
 def _space_fact_changes(model: dict, rev_a: str, rev_b: str) -> list[dict]:
-    """Spaces live at both revisions under one key whose elevation, roof spot height or
-    pitch changed. A garage slab that rose 2.5 ft is scope even when no wall length moved."""
+    """Spaces whose elevation, roof spot height or pitch changed between two revisions. A
+    garage slab that rose 2.5 ft is scope even when no wall length moved. A space born from
+    a merge or split is compared with the spaces it came from, since it has a new key
+    (Yaun Road's mud room took in the laundry and rose 2 ft in one revision)."""
+    before = {s["space"]: s for s in live_spaces(model, rev_a)}
     after = {s["space"]: s for s in live_spaces(model, rev_b)}
+    ia, ib = rev_index(model, rev_a), rev_index(model, rev_b)
+    links = [([k], k) for k in before if k in after]
+    for e in model["lineage"]:
+        if not _space_event_between(model, e, ia, ib) or e["kind"] not in ("merge", "split"):
+            continue
+        if e["kind"] == "merge":
+            links.append((e["from"], e["to"]))
+        else:
+            links.extend(([e["from"]], t) for t in e["to"])
     rows = []
-    for b in live_spaces(model, rev_a):
-        a = after.get(b["space"])
-        if not a:
+    for froms, to in links:
+        a = after.get(to)
+        bs = [before[f] for f in froms if f in before]
+        if not a or not bs:
             continue
         for field, label, unit in SPACE_FACTS:
-            vb, va = _effective(model, b, rev_a, field), _effective(model, a, rev_b, field)
-            if vb == va or (vb is None and va is None):
-                continue
-            num = isinstance(vb, (int, float)) and isinstance(va, (int, float))
-            rows.append({"key": a["space"], "address": a["address"], "was": b["address"], "field": field, "label": label,
-                         "unit": unit, "before": vb, "after": va, "delta": round(va - vb, 3) if num else None,
-                         "source": (a.get(field) or {}).get("source")})
+            va = _effective(model, a, rev_b, field)
+            was: dict = {}
+            for b in bs:
+                was.setdefault(_effective(model, b, rev_a, field), []).append(b["address"])
+            for vb, addrs in was.items():
+                if vb == va:
+                    continue
+                num = isinstance(vb, (int, float)) and isinstance(va, (int, float))
+                rows.append({"key": a["space"], "address": a["address"], "was": ", ".join(sorted(addrs)), "field": field,
+                             "label": label, "unit": unit, "before": vb, "after": va,
+                             "delta": round(va - vb, 3) if num else None, "source": (a.get(field) or {}).get("source")})
     rows.sort(key=lambda r: (r["address"], r["field"]))
     return rows
 
