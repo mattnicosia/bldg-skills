@@ -1,0 +1,144 @@
+{
+  "proposal_no": "P-2026-058",
+  "date_long": "August 7, 2026",
+  "project_name": "Camp Ramah Bathroom Renovation",
+  "project_location": "289 Christian Herald Rd \u2014 Valley Cottage, New York",
+  "client_contact": "Michael Edelstein",
+  "client_company": "Camp Ramah",
+  "client_addr1": "289 Christian Herald Rd",
+  "client_addr2": "Valley Cottage, NY 10989",
+  "signer_name": "Matt Nicosia",
+  "signer_title": "Vice President",
+  "subtotal": 130000.0,
+  "tax_label": "Sales Tax (Excluded)",
+  "tax": 0.0,
+  "total": 130000.0,
+  "scope_items": [
+    "Remove and dispose of existing bathroom finishes and fixtures. Furnish (1) 30-yard container for debris removal.",
+    "Furnish and install framing as required to support new construction.",
+    "Furnish and install 1/2&quot; moisture-resistant (green board) drywall, Level 3 finish, approximately 1,840 sq ft.",
+    "Prepare and paint all new drywall surfaces, approximately 1,840 sq ft.",
+    "Furnish and install rough-in and supply/install of the following fixtures: (6) sinks, (5) toilets, (5) showers, (5) shower drains.",
+    "Furnish and install wall tile (288 sf), floor tile (226 sf), and chair rail tile (410 sf). Furnish and install wall waterproofing (288 sf). Furnish and install (5) shower pan mud jobs with waterproofing.",
+    "Furnish and install bathroom accessories.",
+    "Furnish and install countertops, approximately 36 sq ft.",
+    "Furnish and install finish carpentry as required.",
+    "Furnish and install toilet partitions.",
+    "Provide protection of existing surfaces and adjacent areas during construction."
+  ],
+  "notes": [
+    "All work performed in a professional and workman-like manner, licensed as required by law.",
+    "All work fully covered with compensation and liability insurances.",
+    "Pricing includes all supervision, labor, materials and equipment required to complete the scope above.",
+    "Pricing is valid for 30 days.",
+    "All work to be performed during normal working hours. Overtime is not included.",
+    "Permits and fees are not included.",
+    "Tile material is carried at a $7.00/sf allowance, including grout, transitions, Schluter strips and setting materials. This allowance is already included in the ceramic tile value shown on the Schedule of Values.",
+    "Sales tax is not included. It is assumed a capital improvement certificate will be provided to Montana Contracting Corp. prior to the start of construction.",
+    "Excludes drilling for plumbing or modifying any existing plumbing lines. Scope is limited to fixture-level rough-in and supply/install of the fixtures listed above.",
+    "Electrical work is not included."
+  ],
+  "sov": [
+    {
+      "code": "01 56 00",
+      "description": "Protection",
+      "amount": 2500.0
+    },
+    {
+      "code": "02 41 00",
+      "description": "Demolition",
+      "amount": 5100.0
+    },
+    {
+      "code": "06 11 00",
+      "description": "Wood Framing",
+      "amount": 2750.0
+    },
+    {
+      "code": "06 20 00",
+      "description": "Finish Carpentry",
+      "amount": 7200.0
+    },
+    {
+      "code": "07 14 00",
+      "description": "Fluid-Applied Waterproofing",
+      "amount": 6690.0
+    },
+    {
+      "code": "09 29 00",
+      "description": "Gypsum Board",
+      "amount": 4600.0
+    },
+    {
+      "code": "09 30 13",
+      "description": "Ceramic Tiling",
+      "amount": 19150.0
+    },
+    {
+      "code": "09 91 00",
+      "description": "Painting",
+      "amount": 3000.0
+    },
+    {
+      "code": "10 21 00",
+      "description": "Toilet Compartments",
+      "amount": 12000.0
+    },
+    {
+      "code": "10 28 00",
+      "description": "Toilet, Bath, and Laundry Accessories",
+      "amount": 1300.0
+    },
+    {
+      "code": "12 36 00",
+      "description": "Countertops",
+      "amount": 4680.0
+    },
+    {
+      "code": "22 40 00",
+      "description": "Plumbing",
+      "amount": 37764.54
+    }
+  ],
+  "sov_markups": [
+    {
+      "label": "General Conditions (10%)",
+      "amount": 10673.45
+    },
+    {
+      "label": "Fee (7.5%)",
+      "amount": 8805.6
+    },
+    {
+      "label": "Insurance (3%)",
+      "amount": 3786.41
+    }
+  ],
+  "allowances": [
+    {
+      "name": "Tile Material",
+      "basis": "Wall, floor and chair rail tile",
+      "amount": 6440.0
+    },
+    {
+      "name": "Tile",
+      "basis": "Material",
+      "amount": "$7.00 per SF"
+    }
+  ],
+  "alternates": [
+    {
+      "name": "Heated Floors",
+      "basis": "Electric mats at the five showers",
+      "amount": 4800.0,
+      "unit": ""
+    }
+  ],
+  "value_engineering": [
+    {
+      "name": "Porcelain in Place of Ceramic Chair Rail",
+      "basis": "",
+      "amount": 1200.0
+    }
+  ]
+}

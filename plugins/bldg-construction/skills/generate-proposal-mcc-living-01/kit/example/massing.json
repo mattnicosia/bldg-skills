@@ -1,0 +1,382 @@
+{
+ "units": "ft",
+ "note": "Eun/Yu Residence, massing from the A1 plans and A2.00 elevations. Sample for the kit.",
+ "volumes": [
+  {
+   "name": "Basement",
+   "footprint": [
+    [
+     72.4,
+     -75.6
+    ],
+    [
+     106.4,
+     -75.6
+    ],
+    [
+     106.4,
+     -24.24
+    ],
+    [
+     72.4,
+     -24.24
+    ]
+   ],
+   "base": -4,
+   "top": -0.5,
+   "phase": "foundation",
+   "material": "concrete",
+   "coping": false,
+   "skin": false
+  },
+  {
+   "name": "Module A",
+   "footprint": [
+    [
+     70.24,
+     -75.6
+    ],
+    [
+     106.4,
+     -75.6
+    ],
+    [
+     106.4,
+     -64.0
+    ],
+    [
+     70.24,
+     -64.0
+    ]
+   ],
+   "base": -0.5,
+   "top": 11,
+   "phase": "house",
+   "material": "paper"
+  },
+  {
+   "name": "Module B",
+   "footprint": [
+    [
+     72.4,
+     -64.0
+    ],
+    [
+     106.4,
+     -64.0
+    ],
+    [
+     106.4,
+     -52.0
+    ],
+    [
+     72.4,
+     -52.0
+    ]
+   ],
+   "base": -0.5,
+   "top": 11,
+   "phase": "house",
+   "material": "paper"
+  },
+  {
+   "name": "Module C",
+   "footprint": [
+    [
+     72.4,
+     -52.0
+    ],
+    [
+     92.0,
+     -52.0
+    ],
+    [
+     92.0,
+     -40.0
+    ],
+    [
+     72.4,
+     -40.0
+    ]
+   ],
+   "base": -0.5,
+   "top": 11,
+   "phase": "house",
+   "material": "paper"
+  },
+  {
+   "name": "Module D",
+   "footprint": [
+    [
+     72.4,
+     -40.0
+    ],
+    [
+     92.0,
+     -40.0
+    ],
+    [
+     92.0,
+     -24.24
+    ],
+    [
+     72.4,
+     -24.24
+    ]
+   ],
+   "base": -0.5,
+   "top": 11,
+   "phase": "house",
+   "material": "paper"
+  },
+  {
+   "name": "Module E",
+   "footprint": [
+    [
+     18.4,
+     -75.6
+    ],
+    [
+     66.56,
+     -75.6
+    ],
+    [
+     66.56,
+     -60.4
+    ],
+    [
+     18.4,
+     -60.4
+    ]
+   ],
+   "base": 11,
+   "top": 22,
+   "phase": "house",
+   "material": "paper"
+  },
+  {
+   "name": "Module F",
+   "footprint": [
+    [
+     66.56,
+     -75.6
+    ],
+    [
+     106.4,
+     -75.6
+    ],
+    [
+     106.4,
+     -60.4
+    ],
+    [
+     66.56,
+     -60.4
+    ]
+   ],
+   "base": 11,
+   "top": 22,
+   "phase": "house",
+   "material": "paper"
+  },
+  {
+   "name": "Module G",
+   "footprint": [
+    [
+     72.4,
+     -60.4
+    ],
+    [
+     92.0,
+     -60.4
+    ],
+    [
+     92.0,
+     -48.4
+    ],
+    [
+     72.4,
+     -48.4
+    ]
+   ],
+   "base": 11,
+   "top": 22,
+   "phase": "house",
+   "material": "paper"
+  },
+  {
+   "name": "Under Module E",
+   "footprint": [
+    [
+     14.08,
+     -75.6
+    ],
+    [
+     66.56,
+     -75.6
+    ],
+    [
+     66.56,
+     -60.4
+    ],
+    [
+     14.08,
+     -60.4
+    ]
+   ],
+   "base": 8,
+   "top": 11,
+   "phase": "envelope",
+   "material": "paper"
+  },
+  {
+   "name": "West End",
+   "footprint": [
+    [
+     14.08,
+     -75.6
+    ],
+    [
+     18.4,
+     -75.6
+    ],
+    [
+     18.4,
+     -60.4
+    ],
+    [
+     14.08,
+     -60.4
+    ]
+   ],
+   "base": -0.5,
+   "top": 22,
+   "phase": "envelope",
+   "material": "paper"
+  },
+  {
+   "name": "Stair Volume",
+   "footprint": [
+    [
+     70.24,
+     -80.0
+    ],
+    [
+     94.0,
+     -80.0
+    ],
+    [
+     94.0,
+     -75.6
+    ],
+    [
+     70.24,
+     -75.6
+    ]
+   ],
+   "base": -0.5,
+   "top": 25.5,
+   "phase": "envelope",
+   "material": "paper"
+  },
+  {
+   "name": "Upper Roof Deck",
+   "footprint": [
+    [
+     72.4,
+     -60.4
+    ],
+    [
+     92.0,
+     -60.4
+    ],
+    [
+     92.0,
+     -48.4
+    ],
+    [
+     72.4,
+     -48.4
+    ]
+   ],
+   "base": 22,
+   "top": 25.5,
+   "phase": "house",
+   "material": "cedar",
+   "alt": "5",
+   "skin": false
+  }
+ ],
+ "elevations": {
+  "S": {
+   "image": "drawings/elev_S.jpg",
+   "x0": 14.08,
+   "x1": 106.4,
+   "y0": -4,
+   "y1": 26.5
+  },
+  "N": {
+   "image": "drawings/elev_N.jpg",
+   "x0": 14.08,
+   "x1": 106.4,
+   "y0": -4,
+   "y1": 26.5
+  }
+ },
+ "flats": [
+  {
+   "polygon": [
+    [
+     56.0,
+     -100.0
+    ],
+    [
+     106.4,
+     -100.0
+    ],
+    [
+     106.4,
+     -80.0
+    ],
+    [
+     56.0,
+     -80.0
+    ]
+   ],
+   "material": "paving",
+   "phase": "hardscape"
+  }
+ ],
+ "trees": [
+  [
+   2,
+   -18,
+   8
+  ],
+  [
+   118,
+   -14,
+   9
+  ],
+  [
+   20,
+   -100,
+   8
+  ],
+  [
+   112,
+   -98,
+   9
+  ],
+  [
+   64,
+   -110,
+   7
+  ],
+  [
+   -8,
+   -60,
+   8
+  ]
+ ]
+}

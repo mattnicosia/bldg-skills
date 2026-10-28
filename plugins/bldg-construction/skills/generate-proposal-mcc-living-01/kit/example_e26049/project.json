@@ -1,0 +1,407 @@
+{
+ "title": "1004 Old Albany Post Rd",
+ "project": {
+  "name": "1004 Old Albany Post Road",
+  "address": "1004 Old Albany Post Road, Garrison, NY",
+  "job": "E26049",
+  "chip": "Budget Presentation"
+ },
+ "model": {
+  "mode": "glb",
+  "file": "model.glb",
+  "palette": {
+   "siding": "#d8bd96",
+   "trim": "#d8bd96",
+   "soffit": "#b8986c",
+   "frame": "#2e3138",
+   "flashing": "#3b3d42",
+   "membrane": "#5d5e61",
+   "sedum": "#6c7d40",
+   "stone": "#a29d93",
+   "concrete": "#a3a19b",
+   "deck": "#8d6a4b"
+  },
+  "render": {
+   "heroes": {
+    "sun_az": 250,
+    "sun_el": 22,
+    "sun_energy": 3.4,
+    "sky": 0.06,
+    "seed": 11,
+    "clearing": {
+     "cx": 18,
+     "cy": 16,
+     "rx": 75,
+     "ry": 58
+    },
+    "forest": {
+     "open": [
+      285,
+      345
+     ],
+     "count": 150,
+     "gaps": [
+      [
+       100,
+       170,
+       1.6
+      ]
+     ]
+    },
+    "grass_box": [
+     -70,
+     -40,
+     110,
+     110
+    ],
+    "grass_density": 14,
+    "interior_lights": [
+     [
+      8,
+      24,
+      9.5,
+      340
+     ],
+     [
+      22,
+      24,
+      9.5,
+      380
+     ],
+     [
+      36,
+      22,
+      9.5,
+      340
+     ],
+     [
+      48,
+      22,
+      9.5,
+      260
+     ],
+     [
+      24,
+      -2,
+      9,
+      220
+     ],
+     [
+      24,
+      32,
+      20.5,
+      320
+     ],
+     [
+      24,
+      14,
+      20.5,
+      280
+     ],
+     [
+      24,
+      0,
+      20.5,
+      200
+     ],
+     [
+      -8,
+      26,
+      10.8,
+      160
+     ],
+     [
+      -8,
+      15,
+      10.8,
+      120
+     ],
+     [
+      10,
+      30.8,
+      4.5,
+      160
+     ],
+     [
+      24,
+      30.8,
+      4.5,
+      160
+     ],
+     [
+      38,
+      30.8,
+      4.5,
+      160
+     ],
+     [
+      24,
+      36,
+      11.6,
+      70
+     ]
+    ],
+    "shots": [
+     {
+      "id": "nw",
+      "pos": [
+       -40,
+       70,
+       5.2
+      ],
+      "look": [
+       14,
+       14,
+       10.0
+      ],
+      "lens": 28
+     },
+     {
+      "id": "dusk",
+      "pos": [
+       -40,
+       70,
+       5.2
+      ],
+      "look": [
+       14,
+       14,
+       10.0
+      ],
+      "lens": 28,
+      "dusk": true,
+      "sun_az": 285,
+      "sun_el": 2.0,
+      "lamp": 80,
+      "exposure": 1.15,
+      "sky": 0.2,
+      "cloud_light": 0.25,
+      "samples": 64
+     },
+     {
+      "id": "dusk_p",
+      "pos": [
+       -46,
+       78,
+       5.2
+      ],
+      "look": [
+       6,
+       22,
+       9.5
+      ],
+      "lens": 22,
+      "dusk": true,
+      "sun_az": 285,
+      "sun_el": 2.0,
+      "lamp": 80,
+      "exposure": 1.15,
+      "size": [
+       1000,
+       1500
+      ],
+      "page": true,
+      "sky": 0.2,
+      "cloud_light": 0.25,
+      "samples": 64
+     }
+    ]
+   }
+  }
+ },
+ "decisions": {
+  "email": "m.nicosia@montanacontracting.com"
+ },
+ "next_step": "The next step is a working session with Blejer Architecture + Design and the owner to walk this budget line by line.",
+ "groups": [
+  {
+   "name": "Site, Utilities and Driveway",
+   "scope": "Clearing, earthwork, the driveway and its retaining walls, drainage, the well, the septic system and utility service.",
+   "trades": [
+    "CLEARING & GRUBBING",
+    "GRADING",
+    "EXCAVATION & FILL",
+    "EROSION & SEDIMENT CONTROL",
+    "RADON MITIGATION",
+    "BASE COURSES (RCA DRIVEWAY)",
+    "HARDSCAPING (PATIO ONLY)",
+    "CONCRETE RETAINING WALLS",
+    "FINAL GRADING & SEEDING (LANDSCAPING EXCLUDED)",
+    "WATER SERVICE",
+    "WATER WELL",
+    "SANITARY PIPING",
+    "SEPTIC SYSTEM",
+    "DRAINAGE & STORMWATER",
+    "ELECTRICAL UTILITY SERVICE",
+    "COMMUNICATIONS CONDUIT",
+    "GUIDE RAIL"
+   ]
+  },
+  {
+   "name": "Foundation and Structure",
+   "scope": "Crawl space foundation, waterproofing, wood framing and structural steel.",
+   "trades": [
+    "CAST-IN-PLACE CONCRETE",
+    "PARGING",
+    "FOUNDATION WATERPROOFING",
+    "STRUCTURAL STEEL",
+    "WOOD FRAMING"
+   ]
+  },
+  {
+   "name": "Building Envelope",
+   "scope": "Insulation, roofing, green roofs, wood siding, Unilux windows and doors, skylights and the screened porch.",
+   "trades": [
+    "THERMAL INSULATION",
+    "VEGETATED ROOF (GREEN ROOF)",
+    "SIDING",
+    "ROOFING",
+    "WINDOWS & LIFT-SLIDE DOORS",
+    "SKYLIGHTS",
+    "EXTERIOR ENTRY DOOR",
+    "WOOD DECKING",
+    "RETRACTABLE SCREENS"
+   ]
+  },
+  {
+   "name": "Interior Finishes",
+   "scope": "The floating stair, drywall, millwork, cabinetry, doors, white oak floors, tile, paint, countertops and appliances.",
+   "trades": [
+    "METAL STAIRS",
+    "METAL RAILINGS & GUARDS",
+    "FINISH CARPENTRY",
+    "CLOSET INTERIORS",
+    "ARCHITECTURAL CASEWORK",
+    "INTERIOR WOOD DOORS",
+    "DOOR HARDWARE",
+    "SHOWER GLASS",
+    "GYPSUM BOARD",
+    "TILING",
+    "WOOD FLOORING",
+    "PAINTING",
+    "BATH ACCESSORIES",
+    "COUNTERTOPS",
+    "RESIDENTIAL APPLIANCES"
+   ]
+  },
+  {
+   "name": "Mechanical, Electrical and Plumbing",
+   "scope": "Plumbing and fixtures, heat pumps and ERV, electrical, lighting, cabling and life safety.",
+   "trades": [
+    "PLUMBING",
+    "PLUMBING FIXTURES",
+    "HVAC",
+    "HVAC TESTING, BALANCING & ENVELOPE TESTING",
+    "ENERGY RECOVERY VENTILATION",
+    "ELECTRICAL",
+    "LIGHTING FIXTURES",
+    "STRUCTURED CABLING",
+    "SMOKE & CO DETECTION"
+   ]
+  },
+  {
+   "name": "General Requirements",
+   "scope": "Supervision, project management, temporary facilities, protection, waste removal and final cleaning.",
+   "trades": [
+    "GENERAL REQUIREMENTS",
+    "WASTE REMOVAL"
+   ]
+  }
+ ],
+ "alternates": {
+  "1": {
+   "title": "1. Residential Fire Sprinkler System",
+   "note": "NFPA 13D system with a storage tank and booster pump, fed from the well."
+  },
+  "2": {
+   "title": "2. Septic Pump Chamber",
+   "note": "1,000 gallon pump chamber, effluent pump, alarm and force main, for a pumped system at the final siting."
+  },
+  "3": {
+   "title": "3. Whole-House Standby Generator",
+   "note": "24 kW propane generator on a 500 gallon tank. The automatic transfer switch carries the whole house on the 200 amp service, with load management."
+  },
+  "4": {
+   "title": "4. Building Stakeout and Foundation As-Built Survey",
+   "note": "Layout of the house and a survey of the finished foundation."
+  },
+  "5": {
+   "title": "5. Survey Staking for the House, Well and Septic",
+   "note": "Staking for the Health Department layout."
+  },
+  "6": {
+   "title": "6. Driveway Layout and Final Survey",
+   "note": "Grade control layout, an as-built profile and the final survey."
+  },
+  "7": {
+   "title": "7. Dewatering During Excavation",
+   "note": "Pumping during the foundation excavation, if groundwater is encountered."
+  },
+  "8": {
+   "title": "8. Rock Removal, Per Day",
+   "note": "Excavator with hammer, operator, loading and hauling, for each day of rock work."
+  },
+  "9": {
+   "title": "9. Radiant Floor Heat, Warmboard-S",
+   "note": "Hydronic radiant panels in place of the subfloor, with a combination boiler and water heater."
+  },
+  "10": {
+   "title": "10. Radiant Floor Heat, Poured Thin Slab",
+   "note": "Hydronic radiant in a 1-1/2 inch gypsum thin slab over the subfloor, with a combination boiler and water heater."
+  },
+  "11": {
+   "title": "11. Asphalt Driveway",
+   "note": "Two-course asphalt paving over the full driveway, in place of the stone wearing course."
+  },
+  "12": {
+   "title": "12. Tar and Chip Driveway",
+   "note": "A double chip seal over the stone wearing course."
+  },
+  "13": {
+   "title": "13. Asphalt Millings Driveway",
+   "note": "3 inch recycled asphalt millings in place of the stone wearing course."
+  },
+  "14": {
+   "title": "14. Grid Pavers on the Steep Section",
+   "note": "Stone-filled grid pavers over about 435 feet of the driveway."
+  },
+  "15": {
+   "title": "15. Concrete on the Steep Section",
+   "note": "6 inch concrete with a broom finish over about 435 feet of the driveway."
+  }
+ },
+ "ve": {
+  "1": {
+   "title": "1. North American Windows and Doors",
+   "note": "Aluminum-clad windows and lift-slides from a North American maker in place of Unilux, with shorter lead times and lower freight."
+  },
+  "2": {
+   "title": "2. EPDM Roof in Place of the Green Roofs",
+   "note": "The first-floor roofs finished in EPDM, without the sedum trays."
+  },
+  "3": {
+   "title": "3. Engineered Lumber in Place of Steel",
+   "note": "LVL and PSL beams at the cantilever and the glass walls, as the structural engineer allows."
+  },
+  "4": {
+   "title": "4. A 42-Week Schedule",
+   "note": "Six weeks shorter, with the windows, millwork and doors selected and the Central Hudson work order filed before ground breaking."
+  },
+  "5": {
+   "title": "5. Siding Material at $9.00 per SF",
+   "note": "Tight-knot cedar or thermally modified wood in place of the $14.00 per SF allowance."
+  },
+  "6": {
+   "title": "6. Open-Riser Stair",
+   "note": "White oak treads on steel plate stringers in place of the custom floating stair."
+  },
+  "7": {
+   "title": "7. Removable Screen Panels",
+   "note": "Removable screen panels in site-built frames in place of the Centor retractable screens."
+  },
+  "8": {
+   "title": "8. Trimmed Recessed Lights",
+   "note": "Trimmed fixtures in place of the canless lights taped into the drywall."
+  }
+ }
+}

@@ -1,0 +1,287 @@
+{
+ "mob": "2027-04-05",
+ "keys": "2027-10-05",
+ "weeks": 26,
+ "rows": [
+  {
+   "key": "mob",
+   "name": "Mobilize and Excavate the Barn",
+   "short": "Excavate",
+   "kind": "montana",
+   "s": "2027-04-05",
+   "f": "2027-04-13",
+   "crit": true,
+   "wx": 0,
+   "hold": null,
+   "ms": [],
+   "grp": "site"
+  },
+  {
+   "key": "fdn",
+   "name": "Barn Footings, Walls and Slabs",
+   "short": "Foundation",
+   "kind": "montana",
+   "s": "2027-04-14",
+   "f": "2027-05-14",
+   "crit": true,
+   "wx": 0,
+   "hold": null,
+   "ms": [],
+   "grp": "site"
+  },
+  {
+   "key": "phdem",
+   "name": "Pool House Demolition and Excavation",
+   "s": "2027-04-14",
+   "f": "2027-04-23",
+   "kind": "montana",
+   "grp": "site"
+  },
+  {
+   "key": "phfdn",
+   "name": "Pool House Foundation and Slab",
+   "s": "2027-04-26",
+   "f": "2027-05-21",
+   "kind": "montana",
+   "grp": "site"
+  },
+  {
+   "key": "frm",
+   "name": "Barn Framing, Mezzanine and Stairs",
+   "short": "Framing",
+   "kind": "montana",
+   "s": "2027-05-12",
+   "f": "2027-06-04",
+   "crit": true,
+   "wx": 0,
+   "hold": null,
+   "ms": [],
+   "grp": "site"
+  },
+  {
+   "key": "phfrm",
+   "name": "Pool House Framing and Roof Framing",
+   "s": "2027-05-24",
+   "f": "2027-06-18",
+   "kind": "montana",
+   "grp": "site"
+  },
+  {
+   "key": "roof",
+   "name": "Barn Roof Framing and Exposed Beams",
+   "short": "Roof Framing",
+   "kind": "montana",
+   "s": "2027-05-31",
+   "f": "2027-06-18",
+   "crit": true,
+   "wx": 0,
+   "hold": null,
+   "ms": [],
+   "grp": "site"
+  },
+  {
+   "key": "win",
+   "name": "Barn Windows and Bifold Doors",
+   "short": "Windows",
+   "kind": "montana",
+   "s": "2027-06-07",
+   "f": "2027-06-15",
+   "crit": false,
+   "wx": 0,
+   "hold": null,
+   "ms": [],
+   "grp": "site"
+  },
+  {
+   "key": "sid",
+   "name": "Barn Siding, Trim, Soffits and Cupola",
+   "short": "Siding",
+   "kind": "montana",
+   "s": "2027-06-16",
+   "f": "2027-07-13",
+   "crit": false,
+   "wx": 0,
+   "hold": null,
+   "ms": [],
+   "grp": "site"
+  },
+  {
+   "key": "rfg",
+   "name": "Barn Standing Seam Roof, Roof Deck and Gutters",
+   "short": "Roofing",
+   "kind": "montana",
+   "s": "2027-06-21",
+   "f": "2027-07-06",
+   "crit": true,
+   "wx": 0,
+   "hold": null,
+   "ms": [],
+   "grp": "site"
+  },
+  {
+   "key": "phenv",
+   "name": "Pool House Windows, Cedar Roof, Siding and Trim",
+   "s": "2027-06-21",
+   "f": "2027-08-06",
+   "kind": "montana",
+   "grp": "site"
+  },
+  {
+   "key": "mep",
+   "name": "Barn Plumbing, HVAC and Electrical Rough",
+   "short": "MEP Rough",
+   "kind": "montana",
+   "s": "2027-06-30",
+   "f": "2027-07-20",
+   "crit": true,
+   "wx": 0,
+   "hold": null,
+   "ms": [],
+   "grp": "site"
+  },
+  {
+   "key": "phmep",
+   "name": "Pool House Plumbing, HVAC and Electrical Rough",
+   "s": "2027-07-12",
+   "f": "2027-07-30",
+   "kind": "montana",
+   "grp": "site"
+  },
+  {
+   "key": "foam",
+   "name": "Barn Spray Foam and Air Sealing",
+   "short": "Insulation",
+   "kind": "montana",
+   "s": "2027-07-21",
+   "f": "2027-07-27",
+   "crit": true,
+   "wx": 0,
+   "hold": null,
+   "ms": [],
+   "grp": "site"
+  },
+  {
+   "key": "gwb",
+   "name": "Barn Drywall",
+   "short": "Drywall",
+   "kind": "montana",
+   "s": "2027-07-28",
+   "f": "2027-08-24",
+   "crit": true,
+   "wx": 0,
+   "hold": null,
+   "ms": [],
+   "grp": "site"
+  },
+  {
+   "key": "phins",
+   "name": "Pool House Spray Foam and Drywall",
+   "s": "2027-08-02",
+   "f": "2027-08-27",
+   "kind": "montana",
+   "grp": "site"
+  },
+  {
+   "key": "mill",
+   "name": "Barn Wainscot, Beams, Bar, Cabinets and Trim",
+   "short": "Millwork",
+   "kind": "montana",
+   "s": "2027-08-11",
+   "f": "2027-09-14",
+   "crit": true,
+   "wx": 0,
+   "hold": null,
+   "ms": [],
+   "grp": "site"
+  },
+  {
+   "key": "pnt",
+   "name": "Barn Paint and Stain",
+   "short": "Paint",
+   "kind": "montana",
+   "s": "2027-08-18",
+   "f": "2027-09-07",
+   "crit": true,
+   "wx": 0,
+   "hold": null,
+   "ms": [],
+   "grp": "site"
+  },
+  {
+   "key": "phint",
+   "name": "Pool House Stair, Bar, Stone Floor and Finishes",
+   "s": "2027-08-23",
+   "f": "2027-09-24",
+   "kind": "montana",
+   "grp": "site"
+  },
+  {
+   "key": "flr",
+   "name": "Barn Flooring, Tile and Counters",
+   "short": "Flooring",
+   "kind": "montana",
+   "s": "2027-09-01",
+   "f": "2027-09-14",
+   "crit": true,
+   "wx": 0,
+   "hold": null,
+   "ms": [],
+   "grp": "site"
+  },
+  {
+   "key": "trim",
+   "name": "Barn Fixtures, Stove and Startup",
+   "short": "Trim-Out",
+   "kind": "montana",
+   "s": "2027-09-08",
+   "f": "2027-09-24",
+   "crit": true,
+   "wx": 0,
+   "hold": null,
+   "ms": [],
+   "grp": "site"
+  },
+  {
+   "key": "pun",
+   "name": "Punch List and Final Clean, Both Buildings",
+   "short": "Punch",
+   "kind": "montana",
+   "s": "2027-09-27",
+   "f": "2027-10-05",
+   "crit": true,
+   "wx": 0,
+   "hold": null,
+   "ms": [
+    {
+     "d": "2027-10-05",
+     "label": "Work Complete",
+     "big": true
+    }
+   ],
+   "grp": "site"
+  }
+ ],
+ "milestones": [
+  [
+   0,
+   "Mobilize"
+  ],
+  [
+   6,
+   "Barn Foundation Complete"
+  ],
+  [
+   13,
+   "Barn Dried In"
+  ],
+  [
+   18,
+   "Pool House Dried In"
+  ],
+  [
+   26,
+   "Work Complete"
+  ]
+ ],
+ "note": "Barn rows from the Barn schedule. Pool House rows placed inside the same 26 weeks by Montana, start offset to be confirmed."
+}

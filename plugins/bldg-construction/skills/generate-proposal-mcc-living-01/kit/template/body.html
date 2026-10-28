@@ -1,0 +1,51 @@
+<img id="poster" alt="" aria-hidden="true" src="{{POSTER}}">
+<canvas id="world" aria-label="{{MODEL_LABEL}}" role="img"></canvas>
+<div id="stills" aria-hidden="true">{{STILLS}}</div>
+<div id="grain" aria-hidden="true"></div>
+<div id="vignette" aria-hidden="true"></div>
+<div class="scrim" id="scrimL" aria-hidden="true"></div>
+<div class="scrim" id="scrimR" aria-hidden="true"></div>
+<div class="scrim" id="scrimT" aria-hidden="true"></div>
+<div class="scrim" id="scrimTop" aria-hidden="true"></div>
+
+<header class="top">
+  <div class="wm"><img class="ink" src="{{IMG:mc-wordmark.png}}" width="1400" height="84" alt="Montana Contracting"><img class="rev" src="{{IMG:mc-wordmark-rev.png}}" width="1400" height="84" alt="" aria-hidden="true"></div>
+  <span class="chip">{{CHIP}}</span>
+  <span class="grow"></span>
+  {{DEC_BUTTON}}
+  <button class="btn" id="openBook" type="button"><span class="lab">{{BOOK_LABEL}}</span><span class="short">{{BOOK_SHORT}}</span>{{BOOK_NOTE}}</button>
+</header>
+
+<nav class="ticks" aria-label="Stops"><ol id="ticks"></ol></nav>
+
+<div class="copy" id="copy"></div>
+
+<div class="cue" aria-hidden="true"><span>{{CUE}}</span><i></i></div>
+<div class="mobilebar"><span id="mobileStop"></span><b id="mobileTotal"></b></div>
+<div id="spacer"></div>
+
+<div id="decs" hidden role="dialog" aria-label="Decision List">
+  <div class="book-top">
+    <div class="wm"><img class="ink" src="{{IMG:mc-wordmark.png}}" width="1400" height="84" alt="Montana Contracting"></div>
+    <span class="chip">Decision List</span>
+    <span class="grow"></span>
+    <button class="btn line" id="closeDecs" type="button">{{BOOK_BACK}}</button>
+  </div>
+  <div class="book-grid">
+    <nav class="book-idx" aria-label="Sections of the decision list"><a href="#d-summary">Summary</a><a href="#d-alts">Alternates</a><a href="#d-sel">Selections</a><a href="#d-log">Activity</a></nav>
+    <div class="book-main" id="decBody"></div>
+  </div>
+</div>
+
+<div id="book" hidden role="dialog" aria-label="{{BOOK_LABEL}}">
+  <div class="book-top">
+    <div class="wm"><img class="ink" src="{{IMG:mc-wordmark.png}}" width="1400" height="84" alt="Montana Contracting"><img class="rev" src="{{IMG:mc-wordmark-rev.png}}" width="1400" height="84" alt="" aria-hidden="true"></div>
+    <span class="chip">{{CHIP}}</span>
+    <span class="grow"></span>
+    <button class="btn line" id="closeBook" type="button">{{BOOK_BACK}}</button>
+  </div>
+  <div class="book-grid">
+    <nav class="book-idx" id="bookIdx" aria-label="Sections"></nav>
+    <div class="book-main" id="bookBody"></div>
+  </div>
+</div>

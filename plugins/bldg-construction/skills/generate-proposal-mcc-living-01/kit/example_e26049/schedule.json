@@ -1,0 +1,116 @@
+{
+ "mob": "2027-04-05",
+ "weeks": 48,
+ "keys": "2028-03-05",
+ "draft": true,
+ "rows": [
+  {
+   "key": "mob",
+   "name": "Mobilize and Clear",
+   "s": "2027-04-05",
+   "f": "2027-04-25"
+  },
+  {
+   "key": "drv",
+   "name": "Driveway and Retaining Walls",
+   "s": "2027-04-12",
+   "f": "2027-05-30"
+  },
+  {
+   "key": "fdn",
+   "name": "Excavation and Foundation",
+   "s": "2027-05-10",
+   "f": "2027-06-27"
+  },
+  {
+   "key": "utl",
+   "name": "Well, Septic and Utilities",
+   "s": "2027-05-31",
+   "f": "2027-07-11"
+  },
+  {
+   "key": "frm",
+   "name": "Framing",
+   "s": "2027-06-28",
+   "f": "2027-08-15"
+  },
+  {
+   "key": "stl",
+   "name": "Structural Steel and Upper Volume",
+   "s": "2027-07-12",
+   "f": "2027-08-29"
+  },
+  {
+   "key": "rfg",
+   "name": "Roofing and Green Roofs",
+   "s": "2027-08-09",
+   "f": "2027-09-26"
+  },
+  {
+   "key": "win",
+   "name": "Unilux Windows and Lift-Slides",
+   "s": "2027-08-30",
+   "f": "2027-10-31"
+  },
+  {
+   "key": "sid",
+   "name": "Siding and Soffits",
+   "s": "2027-09-06",
+   "f": "2027-10-31"
+  },
+  {
+   "key": "mep",
+   "name": "Mechanical, Electrical and Plumbing",
+   "s": "2027-09-13",
+   "f": "2027-11-07"
+  },
+  {
+   "key": "gwb",
+   "name": "Insulation and Drywall",
+   "s": "2027-10-25",
+   "f": "2027-12-12"
+  },
+  {
+   "key": "mill",
+   "name": "Stair, Millwork and Doors",
+   "s": "2027-11-29",
+   "f": "2028-01-23"
+  },
+  {
+   "key": "flr",
+   "name": "Flooring, Tile and Paint",
+   "s": "2027-12-06",
+   "f": "2028-02-06"
+  },
+  {
+   "key": "site",
+   "name": "Site Finish and Driveway Surface",
+   "s": "2028-01-17",
+   "f": "2028-02-20"
+  },
+  {
+   "key": "pun",
+   "name": "Fixtures, Trim and Punch List",
+   "s": "2028-01-24",
+   "f": "2028-03-05"
+  }
+ ],
+ "milestones": [
+  [
+   0,
+   "Mobilize"
+  ],
+  [
+   12,
+   "Foundation Complete"
+  ],
+  [
+   30,
+   "Dried In"
+  ],
+  [
+   48,
+   "Work Complete"
+  ]
+ ]
+}
