@@ -1,0 +1,30 @@
+{
+  "title": "The Cooper Barn and Pool House",
+  "next_step": "The next step is a working session with Crisp Architects and the owners to walk this budget line by line.",
+  "decisions": {
+    "enabled": true,
+    "email": "m.nicosia@montanacontracting.com"
+  },
+  "alternates": {
+    "1": {
+      "title": "1. Pool House Hydro-Air Heating and Cooling",
+      "note": "An air-to-water heat pump with two air handlers and ductwork, in place of the ductless mini split"
+    },
+    "2": {
+      "title": "2. Barn Building Stakeout and As-Built Survey",
+      "note": "Stakeout and foundation as-built survey at the Barn"
+    },
+    "3": {
+      "title": "3. Pool House Building Stakeout and As-Built Survey",
+      "note": "Stakeout and foundation as-built survey at the Pool House"
+    },
+    "4": {
+      "title": "4. Sealed Barn Workshop Slab",
+      "note": "Sealer on the workshop slab"
+    },
+    "5": {
+      "title": "5. Rock Removal, Per Day",
+      "note": "Rock hammering and removal, priced per day"
+    }
+  }
+}

@@ -1,0 +1,586 @@
+{
+ "_note": "Selections for the presentation (kit v1.7). Prices are never typed here: options point at an alternate or VE item in the workbook (ref), and rate items read their quantity from workbook rows. build.py stops if anything does not tie.",
+ "send": {
+  "form": "selections",
+  "email_subject": "1004 Old Albany Post Road, Selections"
+ },
+ "views": {
+  "out": {
+   "label": "Exterior",
+   "img": "sel/out_green.png",
+   "alt": "Montana model of the house from the northwest",
+   "swap": {
+    "roof": {
+     "epdm": "sel/out_epdm.png"
+    }
+   }
+  },
+  "in": {
+   "label": "Interior",
+   "img": "sel/inside.png",
+   "alt": "Montana model with the roof and the box lifted off, first floor rooms"
+  },
+  "site": {
+   "label": "Site",
+   "plan": "sel/site_bg.jpg",
+   "size": [
+    1577,
+    1004
+   ],
+   "alt": "Site plan from the Badey and Watson survey, with the driveway from Old Albany Post Road to the house",
+   "el": "drive",
+   "width": 35,
+   "path": [
+    [
+     45,
+     793
+    ],
+    [
+     300,
+     789
+    ],
+    [
+     550,
+     782
+    ],
+    [
+     650,
+     780
+    ],
+    [
+     700,
+     775
+    ],
+    [
+     740,
+     762
+    ],
+    [
+     775,
+     740
+    ],
+    [
+     800,
+     705
+    ],
+    [
+     815,
+     660
+    ],
+    [
+     835,
+     615
+    ],
+    [
+     855,
+     570
+    ],
+    [
+     880,
+     520
+    ],
+    [
+     910,
+     478
+    ],
+    [
+     945,
+     450
+    ],
+    [
+     990,
+     438
+    ],
+    [
+     1030,
+     445
+    ],
+    [
+     1065,
+     470
+    ],
+    [
+     1085,
+     510
+    ],
+    [
+     1090,
+     560
+    ],
+    [
+     1090,
+     610
+    ],
+    [
+     1085,
+     650
+    ],
+    [
+     1078,
+     682
+    ]
+   ],
+   "section": {
+    "from": 0.2344,
+    "to": 0.9141,
+    "label": "Steep Section, 14 Percent",
+    "label_at": [
+     430,
+     842
+    ]
+   },
+   "house": [
+    [
+     1157,
+     642
+    ],
+    [
+     1248,
+     715
+    ],
+    [
+     1200,
+     773
+    ],
+    [
+     1109,
+     699
+    ]
+   ],
+   "labels": [
+    [
+     "House",
+     1262,
+     770,
+     28
+    ],
+    [
+     "Old Albany Post Road",
+     58,
+     852,
+     24
+    ]
+   ],
+   "_source": "DW-1 Badey and Watson composite map, cropped 475,356,2052,1360 with tools/sel/survey.py; steep section placed by profile stations 1+50 to 5+85 of 6+40"
+  }
+ },
+ "list_label": "List",
+ "elements": [
+  {
+   "id": "roof",
+   "view": "out",
+   "at": [
+    63,
+    64
+   ],
+   "mode": "options",
+   "name": "Green Roof",
+   "where": "First-Level Roofs, 1,220 SF of Trays",
+   "carried": "Sedum trays on a root barrier and drainage mat, with first-year watering.",
+   "options": [
+    {
+     "id": "green",
+     "name": "Green Roof",
+     "img": "sw:sedum",
+     "note": "Sedum trays in a 1-foot gravel edge over the EPDM roof. Roof framing is sized for saturated trays."
+    },
+    {
+     "id": "epdm",
+     "name": "EPDM Only",
+     "ref": "VE-2",
+     "img": "sw:epdm",
+     "note": "The same 2,430 SF EPDM roof, exposed. No trays, gravel edge or tray crane day. The model shows it."
+    }
+   ]
+  },
+  {
+   "id": "box",
+   "view": "out",
+   "at": [
+    28,
+    60
+   ],
+   "mode": "options",
+   "name": "Box Structure",
+   "where": "Cantilevered Second Floor",
+   "carried": "Steel beams and posts carry the box and the 52-foot glass wall.",
+   "options": [
+    {
+     "id": "steel",
+     "name": "Steel, As Designed",
+     "img": "crop:hero:0.2333,0.1252,0.5208,0.4674",
+     "note": "Steel beams and posts, with the crane day to set them."
+    },
+    {
+     "id": "lvl",
+     "name": "LVL and PSL",
+     "ref": "VE-3",
+     "img": "",
+     "note": "Engineered lumber beams, posts and connectors in place of the steel. Subject to the structural engineer."
+    }
+   ]
+  },
+  {
+   "id": "siding",
+   "view": "out",
+   "at": [
+    55,
+    40
+   ],
+   "mode": "rate",
+   "unit": "SF",
+   "name": "Siding and Soffits",
+   "where": "All Wood Cladding, 3,166 SF",
+   "carried": "Material at $14.00 per SF, plus 10 percent waste.",
+   "img": "crop:hero:0.7167,0.2755,0.9,0.7346",
+   "label": "Material Price per SF",
+   "base": 14,
+   "min": 8,
+   "max": 24,
+   "step": 0.5,
+   "rows": [
+    "F/O Wood Siding Material",
+    "F/O Wood Soffit Material"
+   ],
+   "factor": 1.1,
+   "check_rate": true,
+   "after": "Installation and the rain screen stay as priced.",
+   "marks": [
+    {
+     "v": 9,
+     "label": "$9.00 Priced",
+     "ref": "VE-5"
+    }
+   ]
+  },
+  {
+   "id": "win",
+   "view": "out",
+   "at": [
+    44,
+    73
+   ],
+   "mode": "options",
+   "name": "Window Wall",
+   "where": "Glass Wall, Lift-Slides and Windows",
+   "carried": "Unilux Design Line, triple glazed, 1,429 SF with freight and duty.",
+   "options": [
+    {
+     "id": "unilux",
+     "name": "Unilux Design Line",
+     "img": "crop:hero:0.2333,0.4341,0.625,0.7513",
+     "note": "Triple-glazed windows, lift-slides and swing doors from Germany, with freight, duty and port handling."
+    },
+    {
+     "id": "na",
+     "name": "North American",
+     "ref": "VE-1",
+     "img": "",
+     "note": "Aluminum-clad windows and lift-slides in the same openings, with freight."
+    }
+   ]
+  },
+  {
+   "id": "porch",
+   "view": "out",
+   "at": [
+    69,
+    83
+   ],
+   "mode": "options",
+   "name": "Porch Screens",
+   "where": "Screened Porch, 42 LF of Openings",
+   "carried": "Centor retractable screens that roll away into the frame.",
+   "options": [
+    {
+     "id": "centor",
+     "name": "Centor Retractable",
+     "img": "crop:hero:0.4792,0.2087,0.9375,0.7679",
+     "note": "Manual retractable screens across each porch opening."
+    },
+    {
+     "id": "panels",
+     "name": "Removable Panels",
+     "ref": "VE-7",
+     "img": "",
+     "note": "Screen panels in site-built frames that lift out."
+    }
+   ]
+  },
+  {
+   "id": "floor",
+   "view": "in",
+   "at": [
+    38,
+    46
+   ],
+   "mode": "rate",
+   "unit": "SF",
+   "name": "White Oak Flooring",
+   "where": "Both Floors, 2,300 SF",
+   "carried": "5 to 7 inch white oak, site finished, material at $15.00 per SF.",
+   "img": "sw:oak",
+   "label": "Material Price per SF",
+   "base": 15,
+   "min": 8,
+   "max": 30,
+   "step": 0.5,
+   "rows": [
+    "F/I 5-7\" White Oak Flooring"
+   ],
+   "factor": 1.0,
+   "after": "Installation and site finishing stay as priced.",
+   "marks": []
+  },
+  {
+   "id": "stair",
+   "view": "in",
+   "at": [
+    50,
+    33
+   ],
+   "mode": "options",
+   "name": "Floating Stair",
+   "where": "Great Room to the Box",
+   "carried": "White oak treads on a steel center stringer, with a frameless glass guard.",
+   "options": [
+    {
+     "id": "float",
+     "name": "Floating Stair",
+     "img": "crop:inside:0.44,0.24,0.66,0.448",
+     "note": "Steel center stringer, white oak treads, stained and sealed on site."
+    },
+    {
+     "id": "open",
+     "name": "Open Riser",
+     "ref": "VE-6",
+     "img": "",
+     "note": "Wood treads on steel plate stringers, open between the treads."
+    }
+   ]
+  },
+  {
+   "id": "cab",
+   "view": "in",
+   "at": [
+    50,
+    55
+   ],
+   "mode": "rate",
+   "unit": "LF",
+   "name": "Kitchen Cabinets",
+   "where": "Kitchen, 22 LF of Lowers and Uppers",
+   "carried": "Lower and upper cabinets at $750.00 per LF, furnished and installed.",
+   "img": "crop:inside:0.38,0.448,0.61,0.72",
+   "label": "Cabinet Price per LF",
+   "base": 750,
+   "min": 400,
+   "max": 1500,
+   "step": 25,
+   "rows": [
+    "F/I Lower Cabinets",
+    "F/I Upper Cabinets"
+   ],
+   "factor": 1.0,
+   "check_rate": true,
+   "after": "The island and the vanities are priced on their own.",
+   "marks": []
+  },
+  {
+   "id": "appl",
+   "view": "in",
+   "at": [
+    57,
+    65
+   ],
+   "mode": "rate",
+   "unit": "LUMP",
+   "name": "Appliances",
+   "where": "Kitchen and Laundry",
+   "carried": "Refrigerator, dishwasher, induction range, hood, microwave, washer and dryer.",
+   "img": "",
+   "label": "Appliance Allowance",
+   "codes": [
+    "11.31.00"
+   ],
+   "min": 10000,
+   "max": 45000,
+   "step": 250,
+   "after": "The allowance covers the appliances themselves.",
+   "marks": []
+  },
+  {
+   "id": "tile",
+   "view": "in",
+   "at": [
+    33,
+    24
+   ],
+   "mode": "rate",
+   "unit": "SF",
+   "name": "Bath Tile",
+   "where": "Bath Floors and Shower Walls, 485 SF",
+   "carried": "Tile material at $50.00 per SF, all in.",
+   "img": "sw:tile",
+   "label": "Material Price per SF",
+   "base": 50,
+   "min": 20,
+   "max": 100,
+   "step": 1,
+   "rows": [
+    "F/I Floor Tile @ Baths",
+    "F/I Wall Tile @ Showers"
+   ],
+   "factor": 1.0,
+   "after": "Setting and waterproofing stay as priced.",
+   "marks": []
+  },
+  {
+   "id": "lights",
+   "view": "in",
+   "at": [
+    31,
+    58
+   ],
+   "mode": "options",
+   "name": "Recessed Lights",
+   "where": "Great Room and Kitchen",
+   "carried": "Trimless recessed lights set in the drywall.",
+   "options": [
+    {
+     "id": "trimless",
+     "name": "Trimless",
+     "img": "",
+     "ph": "Supplier Photo",
+     "note": "4 inch LED lights taped in flush with the ceiling."
+    },
+    {
+     "id": "trim",
+     "name": "Trimmed",
+     "ref": "VE-8",
+     "img": "",
+     "note": "The same lights with a visible trim ring."
+    }
+   ]
+  },
+  {
+   "id": "heat",
+   "view": "in",
+   "at": [
+    25,
+    37
+   ],
+   "mode": "options",
+   "name": "Floor Heat",
+   "where": "Radiant Heat Under the Floors",
+   "carried": "Electric radiant mats under the bath tile. Heat pumps heat the house.",
+   "options": [
+    {
+     "id": "baths",
+     "name": "Bath Floors",
+     "img": "sw:tile",
+     "note": "Electric radiant mats with thermostats under the bath floor tile."
+    },
+    {
+     "id": "wb",
+     "name": "Warmboard-S",
+     "ref": "ALT 9",
+     "img": "",
+     "note": "Hydronic radiant panels in place of the subfloor, with a combination boiler and water heater."
+    },
+    {
+     "id": "ts",
+     "name": "Thin Slab",
+     "ref": "ALT 10",
+     "img": "",
+     "note": "Hydronic radiant in a 1-1/2 inch gypsum slab over the subfloor, with a combination boiler and water heater."
+    }
+   ]
+  },
+  {
+   "id": "drive",
+   "view": "site",
+   "at": [
+    52.1,
+    64
+   ],
+   "mode": "options",
+   "name": "Driveway Surface",
+   "where": "About 650 Feet to Old Albany Post Road",
+   "carried": "Item 4 stone over a 10-inch recycled concrete base, with stone water bars.",
+   "options": [
+    {
+     "id": "stone",
+     "name": "Stone",
+     "img": "sw:stone",
+     "note": "Item 4 stone wearing course over the full driveway."
+    },
+    {
+     "id": "millings",
+     "name": "Millings",
+     "ref": "ALT 13",
+     "img": "sw:millings",
+     "note": "3 inches of recycled asphalt millings in place of the stone wearing course."
+    },
+    {
+     "id": "tarchip",
+     "name": "Tar and Chip",
+     "ref": "ALT 12",
+     "img": "sw:tarchip",
+     "note": "Two coats of liquid asphalt with stone chips rolled in, over the stone wearing course."
+    },
+    {
+     "id": "grid",
+     "name": "Grid Pavers",
+     "ref": "ALT 14",
+     "img": "sw:grid",
+     "section": true,
+     "note": "Stone-filled grid pavers on the steep section only, about 435 feet at 14 percent."
+    },
+    {
+     "id": "concrete",
+     "name": "Concrete",
+     "ref": "ALT 15",
+     "img": "sw:concrete",
+     "section": true,
+     "note": "6-inch concrete with a broom finish on the steep section only, about 435 feet at 14 percent."
+    },
+    {
+     "id": "asphalt",
+     "name": "Asphalt",
+     "ref": "ALT 11",
+     "img": "sw:asphalt",
+     "note": "Two-course asphalt paving over the full driveway."
+    }
+   ]
+  },
+  {
+   "id": "gen",
+   "view": "site",
+   "at": [
+    80,
+    69
+   ],
+   "mode": "options",
+   "name": "Standby Generator",
+   "where": "Alternate 1, Beside the House",
+   "carried": "Not included. The house runs on the utility service.",
+   "options": [
+    {
+     "id": "none",
+     "name": "Not Included",
+     "img": "",
+     "ph": "Utility Only",
+     "note": "No backup power. The budget carries the 200 amp utility service."
+    },
+    {
+     "id": "kw24",
+     "name": "24 kW Propane",
+     "ref": "ALT 1",
+     "img": "",
+     "note": "24 kW generator on a 500 gallon buried propane tank, with the trenching, gas piping and first fill. The transfer switch carries the whole house."
+    }
+   ]
+  }
+ ]
+}

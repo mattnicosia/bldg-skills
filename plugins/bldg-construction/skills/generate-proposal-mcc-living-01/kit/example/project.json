@@ -1,0 +1,320 @@
+{
+  "title": "Kit Example",
+  "project": {
+    "name": "Eun/Yu Residence",
+    "address": "28 Country Club Lane South, Briarcliff Manor",
+    "job": "E26040",
+    "chip": "Budget Proposal"
+  },
+  "estimate": "estimate.xlsx",
+  "schedule": "schedule.json",
+  "model": {
+    "mode": "massing",
+    "file": "massing.json",
+    "front_deg": 0
+  },
+  "book_button": {
+    "label": "Detailed Budget",
+    "note": "In the Res4 Format"
+  },
+  "trade_names": {
+    "Sitework": "Site Work",
+    "Decorative Metal & Railings": "Decorative Metal and Railings",
+    "Finish Carpentry & Stairs": "Finish Carpentry and Stairs",
+    "Waterproofing & Foundation Drainage": "Waterproofing and Foundation Drainage",
+    "EIFS & Stucco": "EIFS and Stucco",
+    "Siding & Weather Barriers": "Siding and Weather Barriers",
+    "Roofing & Sheet Metal": "Roofing and Sheet Metal",
+    "Doors, Frames & Hardware": "Doors, Frames and Hardware",
+    "Glass & Glazing": "Glass and Glazing",
+    "Drywall & Carpentry": "Drywall and Carpentry",
+    "Plumbing & Gas": "Plumbing and Gas",
+    "Hardscape & Retaining Walls": "Hardscape and Retaining Walls",
+    "Modular Package": "Modular Package, Signature",
+    "Modular Setting": "Setting the Modulars"
+  },
+  "phases": [
+    {
+      "id": "foundation",
+      "label": "Foundation",
+      "sched": "fdn"
+    },
+    {
+      "id": "house",
+      "label": "Modules",
+      "sched": "set"
+    },
+    {
+      "id": "envelope",
+      "label": "Site-Built Envelope",
+      "sched": "env"
+    },
+    {
+      "id": "hardscape",
+      "label": "Hardscape",
+      "sched": "hard"
+    }
+  ],
+  "alternates": {
+    "5": {
+      "featured": true,
+      "note": "Shown on the model"
+    },
+    "4": {
+      "featured": true
+    },
+    "6": {
+      "featured": true
+    },
+    "7": {
+      "featured": true,
+      "note": "Modules arrive solar-ready"
+    },
+    "12": {
+      "featured": true,
+      "note": "Speakers, Wi-Fi and TV allowances"
+    }
+  },
+  "alt_note": "Priced with markups. Alternates 17 and 18 carry no general conditions.",
+  "allowances": [
+    {
+      "label": "Closet Interiors",
+      "basis": "Owner-directed",
+      "value": "$33,000"
+    },
+    {
+      "label": "HVAC",
+      "basis": "All but line-voltage wiring",
+      "value": "$160,000"
+    }
+  ],
+  "keys": [
+    {
+      "key": "A clean handoff on the hillside.",
+      "design": "",
+      "ours": "We coordinate with the slope contractor from the start and walk the hill with them before we mobilize.",
+      "source": "Supp. 2"
+    },
+    {
+      "key": "Solid bearing under every footing.",
+      "design": "Removal of the old fill and structural fill, per Carlin-Simpson.",
+      "ours": "Carried to 4 feet under the basement. Deeper fill is priced as found.",
+      "source": "CSA Report"
+    }
+  ],
+  "next_step": "The next step is a working session with Res4 and the family to walk this budget line by line.",
+  "stops": [
+    {
+      "type": "hero",
+      "name": "The House",
+      "view": "hero",
+      "tag": "Eun/Yu Residence \u00b7 28 Country Club Lane South \u00b7 Briarcliff Manor",
+      "h1": [
+        "Designed by Res4.",
+        "Ready to build."
+      ],
+      "lede": "Every module, post and window on this page comes from the Res4 budget pricing set.",
+      "facts": [
+        [
+          "7",
+          "modules"
+        ],
+        [
+          "3,013 SF",
+          "built in the factory"
+        ],
+        [
+          "1,405 SF",
+          "basement"
+        ]
+      ]
+    },
+    {
+      "type": "story",
+      "name": "Site Conditions",
+      "side": "r",
+      "view": "aerial",
+      "show": "foundation",
+      "tag": "Carlin-Simpson geotechnical report, March 23, 2026",
+      "h2": "Site Conditions",
+      "body": [
+        "Brick, concrete and soil, 8 to 11 feet deep under the house. The report calls for removing it and replacing it with structural fill."
+      ],
+      "keys": [
+        {
+          "key": "Solid bearing under every footing.",
+          "design": "Removal of the old fill and structural fill, per Carlin-Simpson.",
+          "ours": "Carried to 4 feet under the basement. Deeper fill is priced as found."
+        }
+      ]
+    },
+    {
+      "type": "build",
+      "name": "Modular Scope",
+      "view": "corner-left",
+      "reveal": [
+        "house"
+      ],
+      "tag": "From the Signature Building Systems estimate, August 14, 2026",
+      "h2": "Modular Scope",
+      "body": [
+        "Seven modules, framed, sheathed and weathertight when they arrive. The crane, the rigging and the set crew are ours."
+      ]
+    },
+    {
+      "type": "build",
+      "name": "Building Envelope & Exterior Finishes",
+      "view": "front",
+      "reveal": [
+        "envelope",
+        "hardscape"
+      ],
+      "tag": "From A0.10, A2.00 and A5.00",
+      "h2": "Building Envelope & Exterior Finishes",
+      "body": [
+        "Black-stained western red cedar over the factory's sheathing. Roofing at every mate line and parapet."
+      ]
+    },
+    {
+      "type": "schedule",
+      "name": "Preliminary Schedule",
+      "view": "aerial",
+      "tag": "Built with Res4, Signature and the slope contractor",
+      "h2": "Preliminary Schedule",
+      "lede": "Mobilize January 4. Set day April 27. Keys by November 5.",
+      "moves": "Dates depend on NYS approval, the slope repair, the building permit and the factory slot.",
+      "kf_note": "default timing"
+    },
+    {
+      "type": "budget",
+      "name": "The Budget",
+      "view": "aerial-rear"
+    },
+    {
+      "type": "alternates",
+      "name": "Alternates",
+      "view": "top",
+      "lede": "Priced with markups. Switch one on to see it on the house."
+    },
+    {
+      "type": "precon",
+      "name": "Pre-Construction",
+      "view": "rear",
+      "h2": "Pre-Construction",
+      "body": [
+        "We find solutions that hold the design intent, the quality and the excitement that started the project.",
+        "Every option is priced from our proprietary cost database before anyone commits to it."
+      ]
+    },
+    {
+      "type": "job",
+      "name": "How We Run the Job",
+      "view": "low"
+    },
+    {
+      "type": "principals",
+      "name": "The Principals",
+      "view": "corner-right",
+      "dusk": true
+    },
+    {
+      "type": "thanks",
+      "name": "Thank You",
+      "view": "hero",
+      "h2": "Thank you for the opportunity to build your house.",
+      "body": [
+        "We are fully committed to giving you the best experience we can."
+      ],
+      "next": "The next step is a working session with Res4 and the family to walk the budget line by line."
+    }
+  ],
+  "groups": [
+    {
+      "name": "Site Work",
+      "scope": "Mobilization, excavation, erosion control, utilities and site demolition.",
+      "trades": [
+        "Site Work",
+        "Site Demolition"
+      ]
+    },
+    {
+      "name": "Foundation and Steel",
+      "scope": "Foundations, slabs, dampproofing, drains, helical piles and structural steel.",
+      "trades": [
+        "Concrete",
+        "Waterproofing and Foundation Drainage",
+        "Helical Piles",
+        "Structural Steel"
+      ]
+    },
+    {
+      "name": "Modular Package, Signature",
+      "scope": "Seven modules from the factory, less the engineering the Owner already paid.",
+      "trades": [
+        "Modular Package, Signature"
+      ],
+      "color": "#d9d4ca"
+    },
+    {
+      "name": "Setting the Modulars",
+      "scope": "Crane, rigging and set crew.",
+      "trades": [
+        "Setting the Modulars"
+      ]
+    },
+    {
+      "name": "Building Envelope and Decks",
+      "scope": "Framing, sheathing, insulation, cedar, stucco, roofing, windows, glass, railings and decks.",
+      "trades": [
+        "Rough Carpentry",
+        "Insulation",
+        "Siding and Weather Barriers",
+        "EIFS and Stucco",
+        "Roofing and Sheet Metal",
+        "Windows",
+        "Glass and Glazing",
+        "Overhead Garage Door",
+        "Decorative Metal and Railings",
+        "Decking"
+      ]
+    },
+    {
+      "name": "Hardscape",
+      "scope": "Terrace, retaining walls and auto court.",
+      "trades": [
+        "Hardscape and Retaining Walls"
+      ]
+    },
+    {
+      "name": "Plumbing, HVAC, Electrical",
+      "scope": "Connections between modules and all site-built MEP. HVAC is the $160,000 allowance.",
+      "trades": [
+        "Plumbing and Gas",
+        "HVAC (Allowance)",
+        "Electrical"
+      ]
+    },
+    {
+      "name": "Interior Finishes",
+      "scope": "Stair, trim, floors, tile, paint, closets, millwork, counters and appliances.",
+      "trades": [
+        "Finish Carpentry and Stairs",
+        "Drywall and Carpentry",
+        "Wood Flooring",
+        "Tile",
+        "Painting",
+        "Doors, Frames and Hardware",
+        "Closet Interiors (Allowance)",
+        "Custom Millwork",
+        "Countertops",
+        "Appliances",
+        "Specialties"
+      ]
+    }
+  ],
+  "decisions": {
+    "email": "m.nicosia@montanacontracting.com",
+    "placeholder": "Add a note for Montana and Res4",
+    "lede": "Every open choice on the house, with its price and the date the factory needs it."
+  }
+}

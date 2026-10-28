@@ -1,107 +1,214 @@
 ---
 name: generate-proposal-mcc-living-01
-description: Build a Montana Contracting living proposal, a scroll presentation where the model builds as you scroll, plus the budget, alternates, schedule, pre-construction, principals and a Detailed Budget, from the estimate workbook and drawings or a 3D model.
+description: Build a Montana Contracting presentation in website format, a scroll page with the project, the design (the building rising on its land, signature elements priced in Montana blue), the budget (Elements and MasterFormat views, allowances, alternates, notes and clarifications), selections (one card per element on Exterior, Interior, Site and List views, with requests the owner or architect sends to Montana), the schedule, how we work and an optional pre-construction view, from the estimate workbook and drawings or a 3D model.
 ---
 
 # Generate Proposal MCC Living 01
 
-The client-facing living proposal Montana sends with a budget or bid. One page. A model of the house builds as the reader scrolls, then the number, the alternates, the schedule, pre-construction, how we run the job, the principals and a thank-you, with a Detailed Budget behind a button. The first one was job E26040, a modular residence for an architect-led client. The PDF proposal is a separate deliverable (generate-proposal-mcc). This page goes alongside it.
+The client-facing presentation Montana sends with a budget or bid. One page in website format, built to the bar of lusion.co/about: one idea per screen, giant type, scroll-linked motion, numbers as the design object, rounded corners and a friendly UI. The PDF proposal is a separate deliverable (generate-proposal-montana). This page goes alongside it.
 
-Call it a "presentation". The budget view is the "Detailed Budget". Options are "Alternates". Lead with Montana Contracting. Never show or mention NOVATERRA or any internal tool.
+The reference job is E260050 The Cooper Barn, v5.2, which Matt approved on 2026-10-16 ("It's literally perfect"). Its build is in the kit at `kit/web/`. Start every new job from it.
+
+Call it a "presentation". Lead with Montana Contracting. Never show or mention NOVATERRA or any internal tool.
+
+## The page
+
+The flow is project, design, budget, selections, schedule, approach. Every section has a numbered kicker and a plain title. Details for each section, and the code behind it, are in `references/website-format.md`. Read it before building.
+
+1. **Entry.** The best hero render, full screen, with no effect over it. Pills for Budget Presentation, the town and the building type, the project name as the title, and the architect and address as the eyebrow. A loader where the M assembles from its three pieces.
+2. **01 / Project.** Title "Project Details". A facts column (Location, Type, Architect, Budget, Schedule) beside the project description, written in the Project description voice below. Offer Matt alternatives for the title.
+3. **Gallery.** The day and dusk renders on a pinned horizontal track.
+4. **02 / Design.** One pinned model and one fixed camera on a block of land (lawn, topsoil, subsoil).
+   - "Site and Foundation" shows the excavation, then the backfill, then the next step, so the foundation never disappears. Its figure is all site work and concrete with overhead and profit.
+   - Build steps (Workshop, Lounge, Exterior for the Cooper Barn) are in color.
+   - "Signature Elements" are in white clay with each element in Montana blue, one per screen with its price. The marker is brackets by default. Dot, leader and badge are kept as options (`#mk-dot`, `#mk-leader`, `#mk-badge`).
+   - The last step lists the elements plus "Building, Site and Systems" so the list totals the base budget.
+5. **03 / Budget.** The base as a rolling figure, a stacked bar by group and two pills, Elements and MasterFormat.
+   - Each row opens to its line items with no line pricing and no unit rates.
+   - **MasterFormat = the Schedule of Values.** One row per cost code exactly as the workbook's SOV sheet lists it (`01 00 00 General Requirements`, `02 41 00 Waste Removal`, ... `34 71 00 Guide Rail`), at direct cost, with the same plain names the PDF proposal uses (`SOV_NAMES` in `build.py`, e.g. Base Courses (RCA Driveway) reads Gravel Driveway). Never group by two-digit division. `build.py` dies if a line's code is missing from the SOV sheet or a row differs from the workbook by a cent. See `kit/example_e26049/web/build.py`.
+   - `build.py` writes `web/proposal_lists.json` (allowances, alternates, value engineering) so the PDF proposal (generate-proposal-mcc) carries the same items, names and figures.
+   - Below the rows: Direct Cost in bold, then Overhead and Profit once with its grey tile, then Base Budget. There is no Overhead and Profit row in the list.
+   - Selections (when the job has `selections.json`, see Selections below), then Allowances (a ranked ledger, largest first, with bars and the total, then the per square foot rates in their own strip), then Alternates (switches and a running total, Requested and If Montana Confirms, a Send to Montana button), then Notes and Clarifications (Basis of Budget, Clarifications, Exclusions).
+6. **04 / Schedule.** A side panel with the total weeks, a live week counter and the phases filling as the cursor passes. A pinned chart that ends exactly on the last week. No "Preliminary" note.
+7. **05 / Approach.** Title "How We Work", then "Every superintendent is a finish carpenter by trade." in large type, then "Your Team": the three principals with the line "Three principals stay on this project from the first walkthrough to the final punch list. You are never handed off." and their portraits (class `yteam`, never `team`). No team-as-numbers block (Matt dropped the 1 Superintendent, 1 PM, 3 Principals tiers 2026-10-21). Then Montana OS on a light panel: outline OS letters top right, plain section headings with no survey-theme mono labels or square bullets (matches the current software), and "This Job in Montana OS", an app frame whose tiles are the job's own numbers (base budget, line items, schedule weeks, selections). Then the six features as numbered rows and Who It Serves. No values list, no principles, no stats row (Matt removed them 2026-10-17).
+8. **Walk Your Plans.** Montana's offer since 2026-10-17: one full-scale plan session at Walk Your Plans New York in Port Chester, on Montana. A black screen after How We Work and before the pre-con card, not inside How We Work (that section is who we are; the offer needs its own moment near the ask). Kicker Walk Your Plans, headline "Walk the house before it's built.", the job's real rooms in the support line, a Book the Session button (email) and a link to walkyourplansnewyork.com. The image is the job's own floor plan glowing on a dark floor (`tools/wyp/plan_floor.py`). Pre-con Phase 02 lists the plan walk.
+9. **Pre-Construction.** A black card, "See Our Pre-Construction Process", after Walk Your Plans. It opens a full-screen view that grows out of the card. The view is the latest pre-con proposal with everything project-specific removed. There is no pre-construction button in the nav, the menu or the close.
+10. **Thank you.** The dusk render with "Thank you for the opportunity to partner with you on this project."
+11. **Next Step.** Navy, the working session line, a Call button and the contact block.
+
+**Proposal PDF.** When the PDF proposal exists (generate-proposal-mcc), put it alone in `<project>/proposal/`. The build adds a Proposal PDF button at the top right of the nav at every width (a compact pill under 600px, so it never hides in a narrow panel) and in the phone menu. Publish the preview with `capabilities: {"downloads": true}` and the PDF in `files`, because a plain link cannot save a file inside an artifact. Run `pdf_check.mjs`.
+
+The M logo goes in the loader, the Montana OS panel, the navy Next Step (tone on tone), the pre-con card and view, and the favicon. Never next to the wordmark. Dark panels are true black (#000), not navy.
+
+## The visual bar
+
+The architect's renderings are the minimum. Every frame must look at least as good as the best rendering the architect provided: real materials, the real details (canopies, brackets, cupola, gutters, flues), daylight with soft shadows and a believable setting.
+
+- Collect every rendering first and save the best one as `ref/reference.jpg`.
+- Hero and gallery frames come from `tools/render/hero.py`: eye level, real grown trees, dappled light, grass, a cloud sky and a lit interior. Tune with `--draft` and `--probe` before the long render.
+- Design frames come from `tools/render/diorama.py`, driven by `web/render_model.sh`: the building on a land block with boolean excavation pits, `--color` for build steps, white clay with `--highlight` for elements, `--ghost-els` and `--hide-els` for cutaways, `--points` for marker anchors.
+- Before publishing, a fresh-context reviewer (Agent tool) compares the frames with the reference on materials, detail, proportion, light, setting and artifacts. Fix until it says they match or beat it. Expect two or three passes: zoom into corners, wall tops, roof edges and pier bases, and check site features and the stair against the plan. If they cannot reach the bar in the time available, say so plainly before publishing.
 
 ## The kit
 
 All code lives in the Bid Presentation Kit. Do not rebuild it from scratch.
 
-- Master copy: `MCC\Estimating\Misc. Templates\Bid Presentation Kit\` on the Montana shared drive.
-- If that folder is not there yet, the latest zip is in the E26040 job folder under `05 Claude Cowork\` (v1.1 adds the Decision List). Ask Matt to move it to Misc. Templates once.
-- To get it into the session:
-  1. Stage the zip from the linked computer, or ask Matt to attach it.
-  2. Unzip it into the working directory.
-  3. Run `npm i` in `kit/`.
-  4. Run `pip install openpyxl pillow --break-system-packages`.
-  5. Make sure `pdftoppm` (poppler) is available; the drawing tools need it.
-- `kit/README.md` is the reference for every field in project.json and massing.json. Read it before writing either.
-- `kit/example/` is a complete project (massing built from drawings). Copy it as the starting point for a new job.
+- The kit ships with this skill as plain files in `kit/` in this skill's base directory (`kit/README.md` first). Never ask Matt for it and never reach into another job's folder for it. Plugins cannot contain zip files, so never zip the kit inside the skill.
+- To get it into the session: copy this skill's `kit/` folder into the working directory as `kit/`, run `npm i` in it, run `pip install openpyxl pillow numpy bpy --break-system-packages`, and make sure `pdftoppm` is available.
+- Layout: `<work>/kit/` and `<work>/<project>/` side by side. Copy `kit/web/` to `<project>/web/`. `kit/web/README.md` lists every file.
+- If you improve the kit during a job, bump the version in `kit/README.md`, replace the files in this skill's `kit/` folder (no `node_modules`, no zips) and ship it as a plugin update. Say what changed.
+- `kit/example_e26049/` is the second worked example (1004 Old Albany Post Rd): a modern house from a Claude takeoff workbook, with a Value Engineering list under the Alternates (`ve` in project.json, deducts that join the running total), line items found by their words, a schedule from `schedule.json` milestones and a client wording pass on line items. Start from it when the workbook carries VE items or the rows are not the Cooper Barn layout.
 
-If you improve the kit during a job (a fix, a new stop type), bump the version, rezip it and save it back to Misc. Templates. Say what changed.
+Kit v1.13 (E260050 Cooper Barn and Pool House, 2026-10-21) added "Your Team" in place of the team tiers, the Proposal PDF pill at every width, the Project Details title, the allowance ledger and rate strip, Netlify publishing (step 7) and the third example `kit/example_e260050/`: two buildings plus shared General Requirements from three workbooks, Barn and Pool House filters on the elements and budget, a pool house model with a cutaway stair. Its render fixes: duplicate casing jambs and glazed-unit head and sill overlaps removed in `tools/glb/parts.js`, `--target x,y,z` and multi-tag elements (`a+b`) in `diorama.py`. Kit v1.12 and v1.11 (E26049) brought the v1.12 CSS, the Montana OS panel without survey-theme labels, Exterior and Interior selection pills and the edge fade only on transparent frames. Kit v1.10 (E26049) rebuilt Approach (team as numbers, Montana OS as a product with the job's numbers, values and stats removed) and moved Walk Your Plans above Pre-Construction. Kit v1.9 (E26049) took every plus-or-minus range out of the pre-con content, added Walk Your Plans and FL. Kit v1.8 (E26049) added the Proposal PDF button. Kit v1.7 (E26049) added Selections (`tools/sel/`, below). Kit v1.6 (E26049) set the motion rules below after the live hero and Project glitch. Kit v1.5 (E26049) bundled the kit into this skill, added the second example, the Value Engineering list, `sedum` and `stone` materials in the renderers and palette colors for frames and flashing in the diorama, and moved logos and fonts to `assets/`. It also records the model hygiene rules from the E26049 render reviews (README, "Model hygiene"): two faces that sit exactly on each other render as black zippers, so walls, framing, coping, trays and footings never share a face; the stair gets its own phase; an all-elements frame with elements inside a volume ghosts a plain `xray` shell that `hero.py` drops; patios, stairs and porch walls are checked against the plan, not only the renders. Kit v1.4 (Cooper Barn v5) added the website format (`web/`), `tools/render/diorama.py`, the element-tagged model pattern (`tools/glb/example_cooper_barn_el.js`) and vendored Lenis for local checks. Kit v1.3 added the hero frames. The classic format (`kit/build.py`, `template/`) is kept for the Decision List.
 
 ## Order of work
 
-1. **Gather first.** Before any build, collect:
-   - The final estimate workbook in the house format: SOV with Final Price, markups, Alternates block, Notes & Clarifications. If the estimate is not final, the presentation is not final. Say so.
-   - The schedule: a real one (CPM, P6, the working-schedule workbook) or Matt's dates. Never invent durations. `tools/schedule.py` turns an activity CSV into schedule.json.
-   - The drawings: plans, elevations, sections, finish schedule.
-   - Any 3D model. Ask the architect for it. A SketchUp, Revit or Rhino export to .glb saves the most time.
-   - The architect's requested pricing format, if any. One architect asked for Site Work, Foundation, House, Garage, Decks, Hardscape. Use it for `groups`.
-2. **Pick the model source** (README, "The three model sources"):
-   - **Architect model available:** use `glb`. Tag groups with `[phase:...]` and `[alt:N]`, or map node names in `model.phaseNodes` and `model.altNodes`.
-   - **Drawings only:** use `massing` and the drawings-to-massing skill. Elevation skins make it read like a paper model of the real house.
-   - **Neither, or no time:** use `images`, with renders (`"fit": "cover"`) or drawings.
-3. **Write project.json.** Copy `kit/example/project.json` and replace everything.
-   - Map phases to schedule rows (`"sched"`) so the model rises in calendar time on the schedule stop.
-   - Mark which alternates to feature on the Alternates stop, and say on each whether it shows on the model.
-4. **Write the copy** with the montana-web-voice skill. The rules below are Matt's and override defaults.
-5. **Build:** `python3 build.py <project>`.
-   - It stops if the base does not tie to the workbook to the dollar, if a trade is not in a group, or if copy breaks the house rules.
-   - Fix the cause. Do not set `allow_lint` on a final.
-6. **Check:** run `node tools/check.mjs <project> both`, then `python3 tools/sheet.py <project> desktop` and `phone`.
-   - Open both sheets and look at every frame.
-   - Headlines fit.
-   - The model is framed beside the copy, not under it.
-   - Phases rise in order.
-   - The schedule chart reads.
-   - The numbers match the workbook.
-   - Fix the camera with `view` presets or exact poses.
-7. **Publish:**
-   - Publish `out/presentation.html` with the Artifact tool, with `capabilities: {"db": {}, "user": {"scopes": ["profile"]}}` so the Decision List saves for everyone on the link. The same file path keeps the URL. After the first publish, list the `decisions` and `log` collections with ArtifactData once to confirm the store answers.
-   - Save `out/<JOB>_Presentation_Netlify.zip` to the job's `04 Deliverables` as `<JOB>_Presentation_Netlify_v#.zip`, using the next version number. Matt drags it onto Netlify. It carries noindex.
-   - Record the artifact URL, the final numbers and the open questions in the Claude project doc for the job.
-
-## Decision List
-
-On by default (kit v1.1). A header button opens every alternate (Include, Not Now, Discuss) and every `decision` milestone in schedule.json (Confirmed, Open), each with a note, who answered and when, a working total, and an activity log. It turns the presentation into the start of pre-construction.
-
-- **Where it saves:** shared saving works only in the claude.ai artifact. On Netlify or in a saved copy, answers last for the visit, and the email button sends the list to Montana.
-- **Sharing:** tell Matt how to share it. People outside Montana can save answers only if he invites them by email as Editor, and only while the artifact is not also shared by public link. Editors can also republish the page, so he should invite only the people who should answer.
-- **Selections:** put the selection deadlines in schedule.json as a `decision` row with dated milestones, so they appear as Selections.
-- **Before the working session:** read the answers back with ArtifactData (`decisions`, `log`) and summarize them for Matt: what was included, what is under discussion, and the notes.
-- **Schedule impact:** do not add a schedule impact to an alternate unless Matt gives its duration.
+1. **Gather first.** The final estimate workbook in the house format (Estimate sheet, SOV with Final Price, markups, Alternates block, Notes & Clarifications). The schedule, real or Matt's dates, never invented. The drawings. Any 3D model from the architect. Every rendering. If the estimate is not final, the presentation is not final. Say so.
+2. **Build the model.** Write `<project>/model/build_el.js` from `tools/glb/example_cooper_barn_el.js`. Tag each signature element and each cutaway wall with `M.el` so it becomes its own mesh. Then, from `kit/`, `node tools/make_glb.mjs <project> <project>/model_el.glb <project>/model/build_el.js`. List what was read off the drawings and what was assumed.
+3. **Render the frames.** Set the camera, the land block, the pits, the element points and the frame list in `web/render_model.sh`, then run it in the background with `nohup` and watch `web/model/done.txt` for ALLDONE. One Blender at a time, about 100 seconds a frame at 1600x1200 and 24 samples on two cores.
+4. **Write the job blocks** in `web/build.py` (marked `# JOB`): element rows, allowance rows, milestones, the project description, the design steps, Basis of Budget, Clarifications, Exclusions, the team and the zip name. Write the copy with the montana-web-voice skill and the rules below.
+5. **Build:** `python3 -I build.py` in `web/`. It stops if the base does not tie to the TOTAL BASE BID row, if a row moved, if a note fragment is not in the Notes sheet, if a dollar figure lacks cents, or if the copy breaks the house rules. Fix the cause.
+   With selections: write `<project>/selections.json` from the example, render the views with `web/render_selections.sh` after the model frames, and make the swatches with `tools/sel/swatches.py <project>/sel`.
+6. **Check.** Run `shoot.mjs`, `interact.mjs`, `fitcheck.mjs`, `markers.mjs` and `precon_card.mjs`. Look at every screenshot, desktop and phone. Then send a fresh-context checker (Agent tool) the visible copy, `figures.json` and the workbook, to verify every figure, scope claim and copy rule. Fix what it finds that the estimate supports.
+7. **Publish.**
+   - Publish `web/site/index.html` with the Artifact tool, with `root` set to `web/site` and every asset in `files`. Publish to a private preview first. Change the live link only when Matt says go.
+   - Save the zip to the job's `04 Deliverables` as `<JOB>_Presentation_Netlify_v#.zip`, using the next version number. It carries noindex.
+   - **Netlify (Matt's account).** Site name `montana-<shortname>.netlify.app` (short: `montana-cooper`). Keep a copy of the zip on Matt's Mac at `~/Sites/montana-presentations/<shortname>/<Name>_Presentation_v#.zip`. Deploy from the Mac shell (device_bash) with the REST API: `POST https://api.netlify.com/api/v1/sites/<site_id>/deploys` with `Content-Type: application/zip` and the zip as the body, then poll the deploy until `state` is `ready`. netlify-cli fails behind the proxy (407), so use curl. The token lives only in `~/.nf_token` in that shell. If it is missing or expired, start an OAuth ticket (`POST /api/v1/oauth/tickets?client_id=d6f37de6614df7ae58664cfca524744d73807a377f5ee71f1a254f78412e3750`), give Matt the link `https://app.netlify.com/authorize?response_type=ticket&ticket=<id>` to approve in his browser, then exchange the ticket for the token. Never ask Matt for a token or password and never type one into a page. `*.netlify.app` cannot be fetched from either shell, so verify through the API (deploy state, file count).
+   - **Cover email.** Every publish reply includes the cover email draft, written in Matt's voice guide (`/Users/mattnicosia/matt-vault-v2/03 Self/Writing Voice.md`). Subject `Montana Budget - <Project Name>`. The link near the top, no figures in the body, no "Here is our", no "reach out" hedges. Close on thanks for the opportunity and an offer to review on Zoom or in person. Signature: Matt Nicosia, Chief Operating Officer.
+   - Record the links, the final numbers and the open items in the Claude project doc for the job.
 
 ## Copy rules from Matt
 
-- No em dashes anywhere. No "X, not Y". No questions, exclamation points or semicolons. Title Case for every label that is not a sentence.
-- Headlines are plain titles or flat facts. Use the stop names that worked: "Project History", "Site Conditions", "Modular Scope", "Building Envelope & Exterior Finishes", "Finishes", "Preliminary Schedule", "Pre-Construction", "How We Run the Job", "The Principals".
-- The opening headline credits the architect and is something the owner and architect both feel good reading (for example "Designed by <Architect>. Ready to build."). Offer Matt five options and say which one you put in.
-- Never put risk in front of the client. Use "Key to Success" and "Our Approach". When the design already handles it, add "In the Design" and credit the engineer or architect. Never take credit for the design team's measures.
-- Coordination with other contractors (slope repair, abatement, utility) reads as partnership and a clean handoff. Avoid contract-boundary lines such as "in our budget, below the line is theirs" or "not in our price".
-- Never show where the documents disagree. It makes the architect look bad.
-- Pre-Construction: "We find solutions that hold the design intent, the quality and the excitement that started the project." Mention the proprietary cost database. Do not show another client's numbers; they confuse the reader.
+- Never put a plus-or-minus range or an accuracy percentage where a client reads it. Next to their budget, "±25 to 30%" reads as "your number could be 30% low" (Matt, E26049). Say what each phase locks instead, and show certainty by shape, not numbers.
+
+- No em dashes or en dashes anywhere. No "X, not Y". No questions, exclamation points or semicolons. Title Case for every label that is not a sentence.
+- Titles are plain: "Project Details", "Design", "Signature Elements", "Budget", "Allowances", "Alternates", "Notes and Clarifications", "Schedule", "How We Work", "See Our Pre-Construction Process". Offer Matt options when a title is new, and say which one you put in.
+- Lines Matt rejected as AI writing: "Every design move, priced.", "The Design Moves", "On Site", "Supervision on Site. Management in the Office.", "Carpenters run our sites." Avoid anything like them.
+- Never put risk in front of the client. Never show where the documents disagree. Never take credit for the design team's measures.
+- Coordination with other contractors reads as partnership and a clean handoff. Avoid contract-boundary lines.
+- Every claim must match the estimate notes. If a scope is excluded, the copy cannot say it is carried.
 - Keep reading light: one idea per screen, short lines, numbers as the design object.
-- Every claim must match the estimate notes. If winter protection, dewatering, rock or deeper fill are excluded, the copy cannot say they are carried.
 - Principals are Joe Montana (Founder and CEO), Matt Nicosia (COO) and Chris Lange (Director of Construction). Show each person once. Confirm titles if anything changed.
+
+## Project description voice (Montana Contracting)
+
+Use this voice for the project description in the presentation: the Project section right after the entry, and any other paragraph that describes the building.
+
+### Inputs to collect first
+Ask for these if they're missing. Never invent a fact, number, brand or name.
+- Project name, town and state
+- Building type and size (square feet, units, acres, stories)
+- Scope: ground-up, conversion, buildout, phased work around an operating business
+- Named materials, products and systems (brands where known)
+- What was hard: site, schedule, structure, occupied building, tight lot
+- Architect, if any
+- Who uses the building and how
+
+### Structure
+Three paragraphs, 1 to 4 sentences each, about 90 to 220 words in total.
+1. **The site and the brief.** What it is, where it is, what it had to do. The first sentence must stand alone as a search snippet: under about 155 characters, and naming the building type and the town.
+2. **The build.** Materials, massing, systems and the hard part, with real numbers and product names.
+3. **The building as designed.** The interior, how it will be used, the result. End on a plain, quiet line, not a sales line.
+
+### Rules
+- Lead with the building, not the company. When the company appears, say "we" / "our team" or "Montana Contracting". Never "I".
+- Name the material and the brand: "Marvin Contemporary Windows", "Warmboard radiant heating", "rift white oak", "helical piles". Don't write "high-end finishes" or "premium materials".
+- Use real numbers as numerals: 4,900 square feet, 12 to 18 feet, 26,000 square feet, three weeks.
+- A short fragment opener is fine when the brief is the story: "Three weeks, start to finish." / "Two homes, one family, one site."
+- Leave construction terms as they are (MEP, GMP, schematic design). Don't explain them.
+- Name the architect when there is one.
+- Never use em dashes or en dashes. Use periods, commas or colons.
+- Banned: "proud to share", "excited", "grateful", thank-you lines, "stunning", "breathtaking", "dream home", "state-of-the-art" (unless quoting a spec), "nestled", "seamless", "elevate", "transform".
+- Banned patterns: "not X, but Y" contrasts, stacked negations ("No X. No Y."), any sentence that explains why something matters.
+- Don't describe the photos ("the photography follows..."). Describe the building.
+- Don't claim anything the inputs don't support. If a paragraph has no facts to work from, ask for them. Don't pad.
+
+### Examples (approved, live on montanacontracting.com)
+
+**Palisades Mod Ranch**
+A 4,900-square-foot ranch in Palisades, New York, designed around two principles: open space and natural light. Fourteen-foot Marvin Contemporary Windows and Wasco skylights pull daylight deep into the plan, while ceiling heights shift from 12 to 18 feet to define each zone without walls.
+
+The exterior is a composition of materials. Clear cedar and ipe siding sit alongside Cembonit fiber cement panels and natural stone veneer, all capped by a black standing-seam metal roof. The material palette feels grounded and modern at once, aging into the wooded Palisades site rather than fighting it.
+
+Inside, every system was chosen for precision and comfort. Warmboard radiant heating runs underfoot. Three Stuv wood-burning fireplaces anchor the main living spaces. Liberamente kitchen cabinetry, a RadioRa lighting control system, and a fully-finished basement complete a home built to perform as well as it looks.
+
+**Dunkin' New City**
+Three weeks, start to finish. Dunkin' needed a full interior rebuild of an operating store in New City, and the schedule left no room for a slow start or a second mobilization.
+
+We ran the job with our own crews. Every one of our superintendents came up as a carpenter first, so the people running the schedule are the same people who can pick up a tool and close a gap in it. A three-week interior turn depends on a crew that can move from demo to rough-in to finish without waiting on outside labor to catch up.
+
+The result is a full rebuild behind the same four walls. New counters, new digital menu boards, a full espresso and cold brew bar, dark tile and black ceiling throughout, and the branded wall signage that anchors the dining room. The store reopened on schedule, finished to the same standard as a ground-up build.
+
+**Rivers Bend Farm**
+A 50 by 60 foot, two-story barn built as an event space on a private 100-acre compound in the Catskills. The barn shares the land with a main house, a cottage, a single-family cabin and a regenerative organic farm.
+
+The ground floor holds the events. Upstairs is fully finished as a bridal suite and living space, so a wedding party can get ready, stay the night and step down into the celebration without leaving the building.
+
+The compound is private and remote. The West Kill runs through the property, past a pond and an open lawn, and the farm works the land around the barn.
+
+### Check before handing off
+- Three paragraphs, in the order above
+- First sentence works on its own as a search snippet
+- Every number, brand and name came from the inputs
+- No em dashes, en dashes, banned words or banned patterns
 
 ## Numbers
 
-- The Budget stop shows the base in millions, the groups as strata and the markups as one line.
-- The Detailed Budget shows direct cost by trade, then the markups compounding in order. Markup rates come from the workbook. Never hand-type them.
-- Alternates show the workbook's Final Price, with markups. A blank price shows "Not Priced". Deducts show negative.
-- Exclusions and By Owner come straight from the Notes & Clarifications sheet. Clarifications go in only if Matt wants them (`include_clarifications`).
-- Check the General Requirements duration in the workbook against the schedule length. Tell Matt if they differ.
+- Every figure comes from the Estimate sheet line items, summed with Python Decimal to the cent. Every dollar figure on the page shows cents ($1,739.00).
+- The SOV Final Price column rounds each trade, so it can differ from the line items by a few cents. Use the line items and tell Matt the difference.
+- Group and division percentages are shares of the base budget. Overhead and profit shows once, under Direct Cost.
+- Signature element figures are their line items times 1.15 (overhead and profit). The element rows are checked by name at build, so a moved row stops the build.
+- Allowances follow the Notes sheet list, carried before overhead and profit. Alternates show the workbook's Final Price, with markups.
+- Basis of Budget, Clarifications and Exclusions come from the Notes & Clarifications sheet.
+- Check the General Requirements staffing in the workbook against the schedule length. Tell Matt if they differ.
+
+## Selections
+
+Approved by Matt on 2026-10-17 ("love it"). Every new bid gets it from the start. The code is `kit/tools/sel/selbuild.py`, the worked example is `kit/example_e26049/` (`selections.json`, `web/render_selections.sh`, `web/selections_check.mjs`, `model/build_el_epdm.js`), and the schema is at the top of `selbuild.py`.
+
+- **One card, two modes.** Options mode for a material or product choice: tiles, the change for that element, the new total, and the view changes with the pick. Rate mode for an allowance priced per SF, LF or as a lump sum: a dial sets the rate, with marks where a value engineering item matches a rate. Matt does not want a side-by-side compare and does not want packages.
+- **Four pills.** Exterior and Interior are model renders from one fixed camera (Interior lifts the roof off). Site is the survey, faded with `tools/sel/survey.py`, with the driveway drawn and painted in the chosen surface, never a photo of grass labelled driveway. List replaces a separate selections schedule.
+- **Numbered points** on the views open the card. Same numbers as the list.
+- **Prices are never typed.** Options name the workbook item (`ALT 11`, `VE-2`); rates are `sum(row qty) x factor x 1.15`; lump sums are the cost codes' total, per dollar 1.15. The build stops if a mark with a ref does not tie to the cent.
+- **Requests, not changes.** A pick is Requested and changes nothing until Montana confirms in writing. Requests are saved on the reader's device and shared with the Alternates switches (one store, `refmap`). Send to Montana posts a Netlify form named `selections` with the list, the change and the total; if that fails it opens an email to the decisions address. Confirmed picks become the next workbook version and the next revision of the proposal.
+- **Assets.** Swatches from `tools/sel/swatches.py` are drawn, not supplier photos; replace them with real photos when there are some. A choice that changes the building (a roof membrane) gets a model variant and a second render through `swap`.
+- **Netlify, once per site.** Tell Matt: Forms > Enable form detection, deploy the zip again, then Forms > Submission notifications > add an email notification for the `selections` form.
+- **Check** with `selections_check.mjs` (copy it and change the figures): every view and both modes at 1440, 1180 and 390 wide, totals to the cent, the Alternates link, the form post, the email fallback, reload persistence.
+
+## Decision List
+
+The Decision List (Include, Not Now, Discuss on every alternate, with notes and a log) is in the classic format only (`kit/build.py`, kit v1.1). The website format does not carry it. If Matt wants it on a job, build that job in the classic format or port it, and publish with `capabilities: {"db": {}, "user": {"scopes": ["profile"]}}`.
 
 ## Phones
 
-The kit already handles phones: it stops redrawing at rest, ignores address-bar resizes and drops quality on slow devices. If Matt reports a slow phone, ask which phone and whether the problem is the load or the scroll. The usual levers, in order:
+The website format is built for phones: the model frame sits above the copy, the step rail scrolls to the current step, the schedule unpins and plays as the chart scrolls past, the team sits in one row and the line detail drops to one column. `shoot.mjs` and `fitcheck.mjs` cover 390x844 and 375x667. If Matt reports a slow phone, ask which phone and whether the problem is the load or the scroll.
 
-1. Lower `zoom`.
-2. Cut trees.
-3. Simplify the GLB.
-4. Switch the job to `images`.
+## Motion on a real screen
+
+Matt judges the page live on Netlify in Chrome on a Mac at standard density, the first time he scrolls. Smooth frame rates are not enough: motion that is fine on a Retina screen shimmers on a 1x screen. Keep the kit rules (README, "Motion hygiene"): scroll-driven transforms in whole device pixels and never a scale on a photo or model frame, no layout property animated, unchanged values never rewritten, background decoding paused while the reader scrolls. Any new scroll effect follows them. Test scroll in a headless browser only against the `netlify/` build, which has a doctype; `site/` opens in quirks mode and does not scroll.
 
 ## Done means
 
-- The artifact is published with the db and user capabilities, and Matt has a card for it.
-- The Netlify zip is saved in 04 Deliverables.
-- The budget ties to the workbook to the dollar, and the reply says so.
-- Both contact sheets were looked at.
-- The reply lists open items only: unconfirmed titles, unpriced alternates, a schedule assumption.
+- The preview artifact is published and Matt has a card for it. The live link changes only on his go.
+- The Netlify zip is saved in 04 Deliverables with the next version number, deployed to `montana-<shortname>.netlify.app` and the deploy reads `ready`.
+- The reply carries the cover email draft with the `Montana Budget - <Project Name>` subject.
+- The budget ties to the TOTAL BASE BID row to the cent, and the reply says so.
+- The frames passed the side-by-side review against the architect's rendering, and the copy and figures passed the fresh-context check.
+- Every screenshot was looked at, desktop and phone.
+- With a proposal PDF: the button downloads it on Netlify and in the preview, and `pdf_check.mjs` passes.
+- With selections: `selections_check.mjs` passes and Matt has been told the one-time Netlify form setup.
+- The reply lists open items only: unconfirmed titles, unpriced alternates, a schedule assumption, a rounding difference.
+
+## Session gotchas
+
+- Run one Blender render at a time. Two at once run out of memory.
+- Never stop a background render with `pkill -f` on a pattern that also appears in your own command. Save the PID and kill that PID.
+- In Blender scripts, set `display_percentage = 0` on particle systems, and keep leaf instances moderate.
+- Odometer digit strips overflow their boxes, so `scrollHeight` overstates a block's height. Measure the content box instead.
+- An author `display` rule beats the `hidden` attribute. Keep `[hidden] { display: none !important; }` at the top of the CSS.
+- Watch for class names that collide with section names (a `.pc` percentage cell picked up the pre-con overlay styles).
+- When a clip-path starts from a measured rect, turn the transition off, set the start state, force a reflow, then turn it back on. Otherwise it animates from the old state.
+- Word masks clip with `clip-path`, not `overflow: hidden`, or the last letter of a word gets cut.
+- The schedule span is the total weeks. A finish date that counts its own day lands a fraction past the last week, so clamp it.
+- If WebFetch cannot reach a page, do not fetch it any other way. Ask Matt.
+- Write job-folder files back (log, run state, CLAUDE.md) from a new path under the outputs folder, then check the size on the device. Reusing an outputs path once committed an older synced copy over the current file (E26049, 2026-10-17).

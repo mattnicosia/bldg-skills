@@ -1,0 +1,394 @@
+{
+ "start": "2026-09-01",
+ "end": "2027-12-31",
+ "mob": "2027-01-04",
+ "set": "2027-04-27",
+ "ready": "2027-04-16",
+ "co": "2027-10-15",
+ "done": "2027-10-18",
+ "keys": "2027-11-05",
+ "weeks": 44,
+ "months": 10.0,
+ "contract": "2026-12-11",
+ "permit": "2026-12-30",
+ "groups": [
+  {
+   "key": "pre",
+   "label": "Before We Start",
+   "who": "Res4, the Town, the Slope Contractor"
+  },
+  {
+   "key": "fab",
+   "label": "In the Factory",
+   "who": "Signature, Moosic, PA"
+  },
+  {
+   "key": "site",
+   "label": "On Site",
+   "who": "Montana"
+  },
+  {
+   "key": "post",
+   "label": "After the Set",
+   "who": "Montana"
+  },
+  {
+   "key": "dec",
+   "label": "Your Decisions",
+   "who": "The Family and Res4"
+  }
+ ],
+ "rows": [
+  {
+   "key": "eng",
+   "name": "Engineering and NYS Approval",
+   "short": "NYS Approval",
+   "kind": "others",
+   "s": "2026-09-01",
+   "f": "2026-12-15",
+   "crit": true,
+   "wx": 0,
+   "hold": null,
+   "ms": [],
+   "grp": "pre"
+  },
+  {
+   "key": "slope",
+   "name": "Slope Repair and Demolition",
+   "short": "Slope Repair",
+   "kind": "others",
+   "s": "2026-10-05",
+   "f": "2026-12-18",
+   "crit": false,
+   "wx": 0,
+   "hold": null,
+   "ms": [],
+   "grp": "pre"
+  },
+  {
+   "key": "permit",
+   "name": "Building Permit",
+   "short": "Permit",
+   "kind": "others",
+   "s": "2026-11-02",
+   "f": "2026-12-30",
+   "crit": false,
+   "wx": 0,
+   "hold": null,
+   "ms": [],
+   "grp": "pre"
+  },
+  {
+   "key": "buy",
+   "name": "Contract, Buyout, Long-Lead Orders",
+   "short": "Contract, Buyout",
+   "kind": "mlight",
+   "s": "2026-10-05",
+   "f": "2027-02-26",
+   "crit": false,
+   "wx": 0,
+   "hold": null,
+   "ms": [],
+   "grp": "pre"
+  },
+  {
+   "key": "fab",
+   "name": "Module Production",
+   "short": "Production",
+   "kind": "factory",
+   "s": "2027-01-04",
+   "f": "2027-04-23",
+   "crit": true,
+   "wx": 0,
+   "hold": null,
+   "ms": [],
+   "grp": "fab"
+  },
+  {
+   "key": "mob",
+   "name": "Mobilize, Erosion Controls, Test Pits",
+   "short": "Mobilize",
+   "kind": "montana",
+   "s": "2027-01-04",
+   "f": "2027-01-13",
+   "crit": false,
+   "wx": 0,
+   "hold": null,
+   "ms": [],
+   "grp": "site"
+  },
+  {
+   "key": "fill",
+   "name": "Old Fill Out, Structural Fill In",
+   "short": "Fill Out, Fill In",
+   "kind": "montana",
+   "s": "2027-01-14",
+   "f": "2027-02-16",
+   "crit": false,
+   "wx": 6,
+   "hold": null,
+   "ms": [],
+   "grp": "site"
+  },
+  {
+   "key": "fdn",
+   "name": "Piles, Footings, Foundation Walls",
+   "short": "Foundations",
+   "kind": "montana",
+   "s": "2027-02-17",
+   "f": "2027-03-23",
+   "crit": false,
+   "wx": 5,
+   "hold": null,
+   "ms": [],
+   "grp": "site"
+  },
+  {
+   "key": "steel",
+   "name": "Drains, Backfill, Steel, Sills",
+   "short": "Steel, Sills",
+   "kind": "montana",
+   "s": "2027-03-24",
+   "f": "2027-04-15",
+   "crit": false,
+   "wx": 1,
+   "hold": {
+    "s": "2027-04-16",
+    "f": "2027-04-26",
+    "label": "Ready 11 Days Early"
+   },
+   "ms": [],
+   "grp": "site"
+  },
+  {
+   "key": "set",
+   "name": "Set Day",
+   "short": "Set Day",
+   "kind": "montana",
+   "s": "2027-04-27",
+   "f": "2027-04-27",
+   "crit": true,
+   "wx": 0,
+   "hold": {
+    "s": "2027-04-28",
+    "f": "2027-04-28",
+    "label": "Weather Day Held"
+   },
+   "ms": [
+    {
+     "d": "2027-04-27",
+     "label": "Set Day",
+     "big": true
+    }
+   ],
+   "grp": "site"
+  },
+  {
+   "key": "wt",
+   "name": "Weathertight: Roofing, Stair, Garage",
+   "short": "Weathertight",
+   "kind": "montana",
+   "s": "2027-04-28",
+   "f": "2027-05-28",
+   "crit": true,
+   "wx": 0,
+   "hold": null,
+   "ms": [],
+   "grp": "post"
+  },
+  {
+   "key": "mep",
+   "name": "Plumbing, HVAC, Electrical",
+   "short": "MEP",
+   "kind": "montana",
+   "s": "2027-05-12",
+   "f": "2027-07-07",
+   "crit": true,
+   "wx": 0,
+   "hold": null,
+   "ms": [],
+   "grp": "post"
+  },
+  {
+   "key": "env",
+   "name": "Cedar, Stucco, Decks, Glass Guards",
+   "short": "Cedar, Decks",
+   "kind": "montana",
+   "s": "2027-05-20",
+   "f": "2027-08-18",
+   "crit": false,
+   "wx": 5,
+   "hold": null,
+   "ms": [],
+   "grp": "post"
+  },
+  {
+   "key": "hard",
+   "name": "Terrace, Retaining Walls, Auto Court",
+   "short": "Terrace, Court",
+   "kind": "montana",
+   "s": "2027-06-25",
+   "f": "2027-08-11",
+   "crit": false,
+   "wx": 0,
+   "hold": null,
+   "ms": [],
+   "grp": "post"
+  },
+  {
+   "key": "int",
+   "name": "Interiors: Floors, Tile, Paint, Stair, Trim",
+   "short": "Interiors",
+   "kind": "montana",
+   "s": "2027-07-08",
+   "f": "2027-09-24",
+   "crit": true,
+   "wx": 0,
+   "hold": null,
+   "ms": [],
+   "grp": "post"
+  },
+  {
+   "key": "close",
+   "name": "Punch List, Inspections, C.O.",
+   "short": "Punch, C.O.",
+   "kind": "montana",
+   "s": "2027-09-27",
+   "f": "2027-10-15",
+   "crit": true,
+   "wx": 0,
+   "hold": null,
+   "ms": [
+    {
+     "d": "2027-10-15",
+     "label": "C.O."
+    }
+   ],
+   "grp": "post"
+  },
+  {
+   "key": "keys",
+   "name": "Keys",
+   "short": "Keys",
+   "kind": "montana",
+   "s": "2027-10-18",
+   "f": "2027-10-18",
+   "crit": true,
+   "wx": 0,
+   "hold": {
+    "s": "2027-10-18",
+    "f": "2027-11-05",
+    "label": "Three Weeks Held"
+   },
+   "ms": [
+    {
+     "d": "2027-11-05",
+     "label": "Keys",
+     "big": true
+    }
+   ],
+   "grp": "post"
+  },
+  {
+   "key": "dec",
+   "name": "Your Decisions",
+   "short": "Decisions",
+   "kind": "decision",
+   "s": "2026-12-15",
+   "f": "2027-06-01",
+   "crit": false,
+   "wx": 0,
+   "hold": null,
+   "ms": [
+    {
+     "d": "2026-12-15",
+     "label": "Windows, HVAC"
+    },
+    {
+     "d": "2027-04-01",
+     "label": "Cedar, Stucco"
+    },
+    {
+     "d": "2027-06-01",
+     "label": "Finishes, Appliances"
+    }
+   ],
+   "grp": "dec"
+  }
+ ],
+ "held": [
+  {
+   "n": "12",
+   "unit": "Weather Days",
+   "note": "January to March",
+   "at": "2027-03-31"
+  },
+  {
+   "n": "11",
+   "unit": "Days Early",
+   "note": "Site Ready Before the Set",
+   "at": "2027-04-27"
+  },
+  {
+   "n": "5",
+   "unit": "Weather Days",
+   "note": "May to September",
+   "at": "2027-09-30"
+  },
+  {
+   "n": "3",
+   "unit": "Weeks Held",
+   "note": "Before the Keys",
+   "at": "2027-11-05"
+  }
+ ],
+ "milestones": [
+  [
+   "Mobilize",
+   "January 4, 2027",
+   "Montana"
+  ],
+  [
+   "Set Day",
+   "April 27, 2027",
+   "Montana, Signature"
+  ],
+  [
+   "Work Complete and C.O.",
+   "October 15, 2027",
+   "Montana, Town"
+  ],
+  [
+   "Keys",
+   "By November 5, 2027",
+   "Montana"
+  ]
+ ],
+ "note": "Dates depend on NYS approval, the slope repair, the building permit and the factory slot.",
+ "legend": [
+  [
+   "k-m",
+   "Montana"
+  ],
+  [
+   "k-f",
+   "Signature"
+  ],
+  [
+   "k-o",
+   "By Others"
+  ],
+  [
+   "k-w",
+   "Weather Days"
+  ],
+  [
+   "k-h",
+   "Held"
+  ],
+  [
+   "k-c",
+   "Critical Path"
+  ]
+ ]
+}

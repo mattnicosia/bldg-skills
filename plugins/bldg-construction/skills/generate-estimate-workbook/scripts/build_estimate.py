@@ -237,6 +237,21 @@ def estimate_sheet(wb, d):
         ws.cell(t, 1).font = Font(FONT, 11, bold=True)
         r = alt_ladder(ws, t, r_m1, n_mk, d["markup_labels"], M)
         alt_rows.append(t)
+    ve_rows = []
+    if d.get("ve"):
+        r += 1
+        band = ws.cell(r, 1, "VALUE ENGINEERING  --  deducts from the base bid for review. Markups link to the base bid percentages.")
+        band.font = Font(FONT, 12, bold=True, color=W); band.alignment = Alignment("left", "center")
+        for c in range(1, NCOL + 1): fill(ws.cell(r, c), CHAR)
+        paint(ws, r, 1, r, NCOL, BLKS, inner=None); M.append((r, 1, r, NCOL)); ws.row_dimensions[r].height = 24
+        ws.row_breaks.append(Break(id=r - 1))
+        r += 1
+        for a in d["ve"]:
+            r, t = block(ws, r, a["trade"], a["lines"], M, "SUBTOTAL")
+            ws.cell(t, 1).font = Font(FONT, 11, bold=True)
+            r = alt_ladder(ws, t, r_m1, n_mk, d["markup_labels"], M)
+            ve_rows.append(t)
+    d["_ve_rows"] = ve_rows
     last_row = r - 1
 
     merge_clean(ws, M)
@@ -280,7 +295,7 @@ def sov_sheet(wb, d, trade_rows, r_m1, n_mk, alt_rows):
     for i, w in enumerate([20, 32, 16, 16, 15, 15, 15, 15, 15, 16, 16], 1): sv.column_dimensions[CL(i)].width = w
     title_block(sv, d, "Schedule of Values", NC,
                 "Our Total and the sub columns link to the Estimate sheet. Final Price is entered by hand per trade and runs "
-                "through the same Subtotal / General Conditions / Fee / Insurance ladder. Markup percentages are entered once "
+                "through the same Subtotal / markup ladder. Markup percentages are entered once "
                 "on the Estimate sheet. The low sub bid in each row is highlighted.")
     shr = 5
     header_row(sv, shr, ["CSI", "Trade", "Our Total", "Final Price", "Sub #1", "Sub #2", "Sub #3", "Sub #4",
@@ -347,44 +362,86 @@ def sov_sheet(wb, d, trade_rows, r_m1, n_mk, alt_rows):
     sv.row_breaks.append(Break(id=ar - 1))
     t = sv.cell(ar, 1, "ALTERNATES"); t.font = Font(FONT, 14, bold=True)
     x = sv.cell(ar + 1, 1, "Our Direct links to the alternate blocks on the Estimate sheet (row %d on). Enter a Final Price (direct cost) to "
-                           "override ours: General Conditions, Fee and Insurance then compound on the Final Price. Variance = Proposal "
+                           "override ours: the markups then compound on the Final Price. Variance = Proposal "
                            "Amount minus Burdened Total. Red rows are priced but not on the issued proposal." % ALT_START)
     x.font = Font(FONT, 9, italic=True, color=CHAR); x.alignment = Alignment("left", "center", wrap_text=True)
     sv.merge_cells(start_row=ar + 1, start_column=1, end_row=ar + 1, end_column=NC); sv.row_dimensions[ar + 1].height = 28
     ahr = ar + 2
-    header_row(sv, ahr, ["CSI", "Alternate", "Our Direct", "Final Price", "General Conditions", "Fee", "Insurance",
+    header_row(sv, ahr, ["CSI", "Alternate", "Our Direct", "Final Price"] + list(d["markup_labels"]) + [
                          "Burdened Total", "Proposal Amount", "Variance", "Proposal Ref"], left_cols=(1, 2))
-    pct = ["Estimate!$E$%d" % (r_m1 + i) for i in range(3)]   # requires exactly 3 markups: GC, Fee, Insurance
+    sv.row_dimensions[ahr].height = 34
+    nm = n_mk; ANC = 8 + nm
+    pct = ["Estimate!$E$%d" % (r_m1 + i) for i in range(nm)]
+    MK = [CL(5 + j) for j in range(nm)]; BT = CL(5 + nm); PA = CL(6 + nm); VA = CL(7 + nm)
     rr = ahr + 1; af = rr
     for a, t in zip(d["alts"], alt_rows):
         miss = a["proposal"] is None
         base = "IF(ISNUMBER(D%d),D%d,C%d)" % (rr, rr, rr)
-        vals = [", ".join(a["csi"]), a["trade"], "=SUM(Estimate!F%d)" % t, None,
-                "=ROUND(%s*%s,2)" % (base, pct[0]),
-                "=ROUND((%s+E%d)*%s,2)" % (base, rr, pct[1]),
-                "=ROUND((%s+E%d+F%d)*%s,2)" % (base, rr, rr, pct[2]),
-                "=ROUND(%s+E%d+F%d+G%d,2)" % (base, rr, rr, rr),
-                a["proposal"], '=IF(I%d="","",I%d-H%d)' % (rr, rr, rr), a["proposal_no"]]
+        vals = [", ".join(a["csi"]), a["trade"], "=SUM(Estimate!F%d)" % t, None]
+        for j in range(nm):
+            prior = "".join("+%s%d" % (MK[k], rr) for k in range(j))
+            vals.append("=ROUND((%s%s)*%s,2)" % (base, prior, pct[j]))
+        vals += ["=ROUND(%s%s,2)" % (base, "".join("+%s%d" % (m, rr) for m in MK)),
+                 a["proposal"], '=IF(%s%d="","",%s%d-%s%d)' % (PA, rr, PA, rr, BT, rr), a["proposal_no"]]
         for col, v in enumerate(vals, 1):
             c = sv.cell(rr, col, v)
-            c.font = Font(FONT, 9 if col in (1, 11) else 10, bold=(col in (2, 8)), color=(CHAR if col == 1 else None))
-            if 3 <= col <= 10: c.number_format = CUR; c.alignment = Alignment("right", "center")
+            c.font = Font(FONT, 9 if col in (1, ANC) else 10, bold=(col in (2, 5 + nm)), color=(CHAR if col == 1 else None))
+            if 3 <= col <= ANC - 1: c.number_format = CUR; c.alignment = Alignment("right", "center")
             else: c.alignment = Alignment("left", "center", wrap_text=True)
             fill(c, RED if miss else (VLT if (rr - af) % 2 else W))
         fill(sv.cell(rr, 4), FINAL)
         sv.row_dimensions[rr].height = ch([(a["trade"], 32), (", ".join(a["csi"]), 20)], mn=20, lp=13); rr += 1
     al = rr - 1
-    rows = [("TOTAL -- ALTERNATES ON PROPOSAL", '=SUMIFS(H%d:H%d,I%d:I%d,"<>")' % (af, al, af, al), "=SUM(I%d:I%d)" % (af, al), LT),
-            ("TOTAL -- PRICED, NOT ON PROPOSAL", '=SUMIFS(H%d:H%d,I%d:I%d,"")' % (af, al, af, al), None, RED)]
+    rows = [("TOTAL -- ALTERNATES ON PROPOSAL", '=SUMIFS(%s%d:%s%d,%s%d:%s%d,"<>")' % (BT, af, BT, al, PA, af, PA, al), "=SUM(%s%d:%s%d)" % (PA, af, PA, al), LT),
+            ("TOTAL -- PRICED, NOT ON PROPOSAL", '=SUMIFS(%s%d:%s%d,%s%d:%s%d,"")' % (BT, af, BT, al, PA, af, PA, al), None, RED)]
     for label, fh, fi, col_ in rows:
         sv.cell(rr, 1, label).font = Font(FONT, 10, bold=True)
         sv.merge_cells(start_row=rr, start_column=1, end_row=rr, end_column=2)
-        sv.cell(rr, 8, fh); sv.cell(rr, 9, fi)
-        for col in range(1, NC + 1):
+        sv.cell(rr, 5 + nm, fh); sv.cell(rr, 6 + nm, fi)
+        for col in range(1, ANC + 1):
             c = sv.cell(rr, col); fill(c, col_)
             if col >= 3: c.number_format = CUR; c.font = Font(FONT, 10, bold=True); c.alignment = Alignment("right", "center")
         sv.row_dimensions[rr].height = 20; rr += 1
+    NC = ANC
     paint(sv, af, 1, rr - 1, NC, MEDS, inner=HAIR); erow(sv, al, 1, NC, bottom=MEDS); ecol(sv, ahr, al, 4, l=MEDS, rt=MEDS)
+    if d.get("ve"):
+        vr = rr + 2
+        t = sv.cell(vr, 1, "VALUE ENGINEERING"); t.font = Font(FONT, 14, bold=True)
+        x = sv.cell(vr + 1, 1, "Deducts from the base bid for review. Our Direct links to the VE blocks on the Estimate sheet. "
+                               "Mark Status ACCEPT / REJECT / PENDING. Accepted Savings totals the accepted items.")
+        x.font = Font(FONT, 9, italic=True, color=CHAR); x.alignment = Alignment("left", "center", wrap_text=True)
+        sv.merge_cells(start_row=vr + 1, start_column=1, end_row=vr + 1, end_column=ANC); sv.row_dimensions[vr + 1].height = 28
+        vh = vr + 2
+        header_row(sv, vh, ["CSI", "Value Engineering Item", "Our Direct", "Final Price"] + list(d["markup_labels"]) + [
+                             "Burdened Total", "Status", "", "Notes"], left_cols=(1, 2))
+        sv.row_dimensions[vh].height = 34
+        rr = vh + 1; vf = rr
+        for a, t in zip(d["ve"], d["_ve_rows"]):
+            base = "IF(ISNUMBER(D%d),D%d,C%d)" % (rr, rr, rr)
+            vals = [", ".join(a["csi"]), a["trade"], "=SUM(Estimate!F%d)" % t, None]
+            for j in range(nm):
+                prior = "".join("+%s%d" % (MK[k], rr) for k in range(j))
+                vals.append("=ROUND((%s%s)*%s,2)" % (base, prior, pct[j]))
+            vals += ["=ROUND(%s%s,2)" % (base, "".join("+%s%d" % (m, rr) for m in MK)), "PENDING", None, a.get("note", "")]
+            for col, v in enumerate(vals, 1):
+                c = sv.cell(rr, col, v)
+                c.font = Font(FONT, 9 if col in (1, ANC) else 10, bold=(col in (2, 5 + nm)), color=(CHAR if col == 1 else None))
+                if 3 <= col <= 5 + nm: c.number_format = CUR; c.alignment = Alignment("right", "center")
+                else: c.alignment = Alignment("left", "center", wrap_text=True)
+                fill(c, VLT if (rr - vf) % 2 else W)
+            fill(sv.cell(rr, 4), FINAL)
+            sv.row_dimensions[rr].height = ch([(a["trade"], 32), (a.get("note", ""), 30)], mn=20, lp=13); rr += 1
+        vl = rr - 1
+        for label, fh, col_ in [("TOTAL -- ALL VE ITEMS", "=SUM(%s%d:%s%d)" % (BT, vf, BT, vl), LT),
+                                ("TOTAL -- ACCEPTED VE", '=SUMIFS(%s%d:%s%d,%s%d:%s%d,"ACCEPT")' % (BT, vf, BT, vl, PA, vf, PA, vl), LT)]:
+            sv.cell(rr, 1, label).font = Font(FONT, 10, bold=True)
+            sv.merge_cells(start_row=rr, start_column=1, end_row=rr, end_column=2)
+            sv.cell(rr, 5 + nm, fh)
+            for col in range(1, ANC + 1):
+                c = sv.cell(rr, col); fill(c, col_)
+                if col >= 3: c.number_format = CUR; c.font = Font(FONT, 10, bold=True); c.alignment = Alignment("right", "center")
+            sv.row_dimensions[rr].height = 20; rr += 1
+        paint(sv, vf, 1, rr - 1, NC, MEDS, inner=HAIR); erow(sv, vl, 1, NC, bottom=MEDS); ecol(sv, vh, vl, 4, l=MEDS, rt=MEDS)
     sv.page_setup.orientation = "landscape"; sv.page_setup.fitToWidth = 1; sv.page_setup.fitToHeight = 0
     sv.sheet_properties.pageSetUpPr.fitToPage = True; sv.print_title_rows = "1:2"; sv.sheet_view.showGridLines = False
 
