@@ -1,0 +1,1 @@
+EZ-Tree by Daniel Greenheck, MIT license (LICENSE). Bark textures from ambientcg.com, CC0. Leaf textures bundled with EZ-Tree under its MIT license.
