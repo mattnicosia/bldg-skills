@@ -43,7 +43,7 @@
     {
       "name": "bldg-construction",
       "description": "Construction estimating: drawing indexing, scope of work generation in Excel and PDF, bid leveling, proposals and job folder setup.",
-      "version": "1.14.0",
+      "version": "1.15.0",
       "author": {
         "name": "Matt Nicosia"
       },

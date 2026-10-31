@@ -18,7 +18,6 @@ pre-construction) is shared and should not need edits.
     fitcheck.mjs               copy against the model and the rail at 8 window sizes
     markers.mjs                the four element marker styles side by side
     precon_card.mjs            budget totals, line detail, the pre-con card opening into the full view
-<work>/<project>/wyp/wyp_plan.jpg   the Walk Your Plans image (tools/wyp/plan_floor.py); without it the screen is type only
 <work>/<project>/proposal/<one>.pdf  optional: the Proposal PDF button, top right (pdf_check.mjs checks it)
 <work>/<project>/selections.json   optional: the Selections section (see the kit README, Selections). Example in example_e26049/
 ```
@@ -27,3 +26,6 @@ Run order: `bash render_model.sh` (background, about 100 s a frame), with select
 `python3 -I build.py`, then the four checks (and `selections_check.mjs` when the job has selections, `pdf_check.mjs` when it has a proposal PDF).
 Test on `netlify/`, never `site/` (no doctype there, so a local browser opens it in quirks mode and nothing scrolls).
 Marker styles switch with `#mk-dot`, `#mk-leader` or `#mk-badge` on the page URL. Brackets are the default.
+
+
+kit v1.16: `tools/scope/wording.py` (client wording and directives, merge keys) is imported by `build.py`. Optional sections are switched in project.json `"sections"`. The build also writes `scope_lines.json` and `proposal_lists.json` for the PDF proposal.

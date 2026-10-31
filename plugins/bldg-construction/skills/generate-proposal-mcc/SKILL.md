@@ -46,7 +46,7 @@ so plainly, and treat it as a permanent change to the house format.
 | Section headings | plain title, no numeric prefix; continuations read `<Title> (continued)` |
 | Scope / clarification rows | zero-padded blue number (`01`, `02`, …), hairline rule under each |
 | Cover money rows | exactly three: Subtotal, tax line, TOTAL (blue, 28px) |
-| Signer default | **Matt Nicosia, Vice President** |
+| Signer default | **Matt Nicosia, Chief Operating Officer** |
 
 ## Pricing disclosure — what shows where
 
@@ -84,7 +84,7 @@ proposal). Ask via AskUserQuestion only for what is genuinely missing:
 6. **Subtotal, tax, total** — take the user's approved numbers. If pricing has not
    been set yet, stop and use `create-small-estimate` to price it first.
 
-Signer defaults to Matt Nicosia, Vice President.
+Signer defaults to Matt Nicosia, Chief Operating Officer.
 
 ## Step 2 — Normalize the scope
 
@@ -172,6 +172,22 @@ pdftotext -layout -f 1 -l 1 out.pdf - | grep -niE \
 ```
 
 Must return nothing. Then deliver the PDF with SendUserFile.
+
+## When the job has a website presentation (E26044 The Inn at Kirkside, 2026-10-30)
+
+- **Scope of Work from the presentation's hand-off.** The presentation build writes `web/scope_lines.json` (every line in
+  client wording, grouped by cost code, a directive on each item) and `web/proposal_lists.json` (allowances, alternates, VE,
+  markups). Make the scope rows with `python3 scripts/scope_from_lines.py <web>/scope_lines.json > scope_items.json` and use
+  that list as `scope_items`: one row per cost code, `<Trade>: item; item; item.`, a long trade split evenly into
+  `(continued)` rows of at most 18 items, never a one-item leftover row. Keep every directive (Furnish and Install, Furnish
+  Only, Install Only, Provide, Remove...). Matt wants to see one on every scope item.
+- **SOV markups** come from `proposal_lists.json` `markups`, one line each in compounding order, e.g.
+  `Design Contingency (0%)` $0.00, `Fee (6%)`, `Insurance (3%)` (insurance on direct plus fee). Never one combined line.
+- **Clarifications never repeat the allowances.** Drop the material allowance and dollar allowance notes from the
+  Clarifications list; they have their own sections, and one line points to them.
+- Worked example: `generate-proposal-mcc-living-01/kit/example_e26044/make_data.py`.
+- Build the PDF before the presentation's first Netlify deploy, so the Proposal PDF button ships with it.
+- Rendering: `render_and_verify.py` finds Chromium in `/opt/pw-browsers/chromium-*/chrome-linux*/chrome` or `$CHROME`.
 
 ## Files
 

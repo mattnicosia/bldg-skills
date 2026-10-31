@@ -4,6 +4,7 @@ const HERE_ = path.dirname(fileURLToPath(import.meta.url));
 const KIT_ = process.env.MCC_KIT || path.resolve(HERE_, '..', '..', 'kit');
 const { chromium } = await import(path.join(KIT_, 'node_modules', 'playwright-core', 'index.mjs'));
 const CHROME_ = process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+const _o = String(process.argv[2] || ''); if (/(^|[\\/])(site|netlify)([\\/]|$)/.test(_o)) { console.error('screenshot folder must be outside site/ and netlify/ (kit v1.16)'); process.exit(2); }
 const out = process.argv[2]; fs.mkdirSync(out, { recursive: true });
 const ROOT = process.env.WEB_ROOT || path.join(HERE_, 'netlify');
 const LENIS = path.join(KIT_, 'vendor', 'lenis', 'lenis.min.js');
@@ -25,12 +26,14 @@ for (const [name, vp] of [['desktop', { width: 1440, height: 900 }], ['phone', {
   await p.evaluate(() => document.querySelector('.pill[data-v="mf"]').click()); await p.waitForTimeout(900);
   await p.evaluate(() => { document.querySelectorAll('.brows--mf .brow__h')[7].click(); document.querySelectorAll('.brows--mf .brow__h')[7].scrollIntoView({ block: 'start' }); }); await p.waitForTimeout(900);
   await p.evaluate(() => window.scrollBy(0, -90)); await p.waitForTimeout(600); await sh('budget_mf_open');
-  await p.evaluate(() => document.querySelector('.osx').scrollIntoView({ block: 'start' })); await p.waitForTimeout(1200); await sh('osx');
+  if (await p.evaluate(() => !!document.querySelector('.osx'))) { await p.evaluate(() => document.querySelector('.osx').scrollIntoView({ block: 'start' })); await p.waitForTimeout(1200); await sh('osx'); }   // kit v1.16: Montana OS is optional
+  if (await p.evaluate(() => !!document.querySelector('[data-precon]'))) {   // kit v1.16: pre-construction is optional
   await p.evaluate(() => document.querySelector('.pcf').scrollIntoView({ block: 'center' })); await p.waitForTimeout(2600); await sh('pcf');
   await p.evaluate(() => document.querySelector('.pcf__card').click()); await p.waitForTimeout(330); await sh('pcf_opening');
   await p.waitForTimeout(1200); await sh('pcf_open');
   log.push(name + ' precon open from card: ' + await p.evaluate(() => document.getElementById('precon').classList.contains('open') + ' ' + document.querySelector('.pc__panel').classList.contains('from-card')));
   await p.keyboard.press('Escape'); await p.waitForTimeout(400); await sh('pcf_closing'); await p.waitForTimeout(900);
+  } else log.push(name + ' precon card: section off');
   await p.evaluate(() => document.querySelector('.dusk').scrollIntoView({ block: 'start' })); await p.waitForTimeout(1500); await sh('dusk');
   await p.evaluate(() => document.getElementById('contact').scrollIntoView({ block: 'start' })); await p.waitForTimeout(1400); await sh('cta');
   log.push(name + ' sideways ' + await p.evaluate(() => document.documentElement.scrollWidth - innerWidth));

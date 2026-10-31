@@ -1,0 +1,302 @@
+{
+ "mob": "2027-03-29",
+ "keys": "2028-05-19",
+ "weeks": 60,
+ "note": "Laid out by Claude for Matt, 10/30/2026. Weeks from mobilization. Mobilization date assumed (spring 2027) so site paving lands in season.",
+ "milestones": [
+  {
+   "w": 1,
+   "name": "Long-Lead Orders"
+  },
+  {
+   "w": 13,
+   "name": "Foundations Complete"
+  },
+  {
+   "w": 28,
+   "name": "Weathertight"
+  },
+  {
+   "w": 60,
+   "name": "Certificate of Occupancy"
+  }
+ ],
+ "rows": [
+  {
+   "key": "rel",
+   "name": "Award and Early Release: Switchgear, Generator, Elevator, Windows, Skylight",
+   "short": "Early Release",
+   "kind": "montana",
+   "s": "2027-03-29",
+   "f": "2027-04-09",
+   "crit": true,
+   "grp": "pre",
+   "wa": 0,
+   "wb": 2
+  },
+  {
+   "key": "mob",
+   "name": "Mobilize, Protection and Temporary Facilities",
+   "short": "Mobilize",
+   "kind": "montana",
+   "s": "2027-03-29",
+   "f": "2027-04-09",
+   "crit": false,
+   "grp": "site",
+   "wa": 0,
+   "wb": 2
+  },
+  {
+   "key": "demo",
+   "name": "Selective Demolition, Chimneys and Roof Openings",
+   "short": "Demolition",
+   "kind": "montana",
+   "s": "2027-04-05",
+   "f": "2027-05-21",
+   "crit": true,
+   "grp": "site",
+   "wa": 1,
+   "wb": 8
+  },
+  {
+   "key": "ust",
+   "name": "Remove Fuel Tanks, Abandon Cesspool",
+   "short": "Fuel Tanks",
+   "kind": "montana",
+   "s": "2027-04-12",
+   "f": "2027-04-23",
+   "crit": false,
+   "grp": "site",
+   "wa": 2,
+   "wb": 4
+  },
+  {
+   "key": "geo",
+   "name": "Geothermal Well Field, 16 Wells",
+   "short": "Geothermal Wells",
+   "kind": "montana",
+   "s": "2027-04-26",
+   "f": "2027-06-11",
+   "crit": false,
+   "grp": "site",
+   "wa": 4,
+   "wb": 11
+  },
+  {
+   "key": "util",
+   "name": "Site Utilities: Water, Fire Service, Sewer, Electric",
+   "short": "Site Utilities",
+   "kind": "montana",
+   "s": "2027-05-10",
+   "f": "2027-07-02",
+   "crit": false,
+   "grp": "site",
+   "wa": 6,
+   "wb": 14
+  },
+  {
+   "key": "fdn",
+   "name": "Shoring, Underpinning, Elevator Pit and Foundations",
+   "short": "Foundations",
+   "kind": "montana",
+   "s": "2027-05-03",
+   "f": "2027-06-25",
+   "crit": true,
+   "grp": "structure",
+   "wa": 5,
+   "wb": 13
+  },
+  {
+   "key": "frm",
+   "name": "Structural Steel, Floor Framing and Elevator Shaft",
+   "short": "Framing",
+   "kind": "montana",
+   "s": "2027-06-07",
+   "f": "2027-08-13",
+   "crit": true,
+   "grp": "structure",
+   "wa": 10,
+   "wb": 20
+  },
+  {
+   "key": "roof",
+   "name": "Roofing, Chimney Patching and Roof Melt",
+   "short": "Roofing",
+   "kind": "montana",
+   "s": "2027-07-19",
+   "f": "2027-08-27",
+   "crit": false,
+   "grp": "envelope",
+   "wa": 16,
+   "wb": 22
+  },
+  {
+   "key": "win",
+   "name": "Windows, Exterior Doors, Storefront and Conservatory Skylight",
+   "short": "Windows and Skylight",
+   "kind": "montana",
+   "s": "2027-08-02",
+   "f": "2027-10-08",
+   "crit": true,
+   "grp": "envelope",
+   "wa": 18,
+   "wb": 28
+  },
+  {
+   "key": "ext",
+   "name": "Exterior Trim, Siding Repairs and Exterior Paint",
+   "short": "Exterior",
+   "kind": "montana",
+   "s": "2027-09-13",
+   "f": "2027-11-19",
+   "crit": false,
+   "grp": "envelope",
+   "wa": 24,
+   "wb": 34
+  },
+  {
+   "key": "hard",
+   "name": "Decks, Terraces, Pergola and Asphalt Binder Course",
+   "short": "Decks and Paving",
+   "kind": "montana",
+   "s": "2027-08-30",
+   "f": "2027-11-05",
+   "crit": false,
+   "grp": "site",
+   "wa": 22,
+   "wb": 32
+  },
+  {
+   "key": "mep",
+   "name": "HVAC, Radiant, Plumbing, Electrical, Sprinkler and Fire Alarm Rough-In",
+   "short": "MEP Rough-In",
+   "kind": "montana",
+   "s": "2027-07-05",
+   "f": "2027-11-05",
+   "crit": true,
+   "grp": "systems",
+   "wa": 14,
+   "wb": 32
+  },
+  {
+   "key": "insp",
+   "name": "Rough Inspections",
+   "short": "Inspections",
+   "kind": "montana",
+   "s": "2027-11-08",
+   "f": "2027-11-12",
+   "crit": true,
+   "grp": "systems",
+   "wa": 32,
+   "wb": 33
+  },
+  {
+   "key": "ins",
+   "name": "Insulation and Air Barrier",
+   "short": "Insulation",
+   "kind": "montana",
+   "s": "2027-11-15",
+   "f": "2027-12-03",
+   "crit": true,
+   "grp": "interiors",
+   "wa": 33,
+   "wb": 36
+  },
+  {
+   "key": "gwb",
+   "name": "Drywall",
+   "short": "Drywall",
+   "kind": "montana",
+   "s": "2027-11-29",
+   "f": "2028-01-14",
+   "crit": true,
+   "grp": "interiors",
+   "wa": 35,
+   "wb": 42
+  },
+  {
+   "key": "elev",
+   "name": "Elevator Installation",
+   "short": "Elevator",
+   "kind": "montana",
+   "s": "2027-11-22",
+   "f": "2028-01-14",
+   "crit": false,
+   "grp": "systems",
+   "wa": 34,
+   "wb": 42
+  },
+  {
+   "key": "pwr",
+   "name": "Switchgear, Generator and Permanent Power",
+   "short": "Permanent Power",
+   "kind": "montana",
+   "s": "2028-01-03",
+   "f": "2028-01-28",
+   "crit": true,
+   "grp": "systems",
+   "wa": 40,
+   "wb": 44
+  },
+  {
+   "key": "mill",
+   "name": "Millwork, Finish Carpentry and Doors",
+   "short": "Millwork",
+   "kind": "montana",
+   "s": "2028-01-03",
+   "f": "2028-03-24",
+   "crit": true,
+   "grp": "interiors",
+   "wa": 40,
+   "wb": 52
+  },
+  {
+   "key": "fin",
+   "name": "Tile, Wood Flooring and Painting",
+   "short": "Finishes",
+   "kind": "montana",
+   "s": "2028-01-17",
+   "f": "2028-04-07",
+   "crit": true,
+   "grp": "interiors",
+   "wa": 42,
+   "wb": 54
+  },
+  {
+   "key": "cx",
+   "name": "Testing, Balancing, Commissioning and Fire Alarm Acceptance",
+   "short": "Commissioning",
+   "kind": "montana",
+   "s": "2028-03-13",
+   "f": "2028-04-21",
+   "crit": true,
+   "grp": "closeout",
+   "wa": 50,
+   "wb": 56
+  },
+  {
+   "key": "top",
+   "name": "Asphalt Top Course, Striping and Planting",
+   "short": "Site Finish",
+   "kind": "montana",
+   "s": "2028-04-10",
+   "f": "2028-05-05",
+   "crit": false,
+   "grp": "site",
+   "wa": 54,
+   "wb": 58
+  },
+  {
+   "key": "pl",
+   "name": "Punch List, Final Inspections and Certificate of Occupancy",
+   "short": "Closeout",
+   "kind": "montana",
+   "s": "2028-04-24",
+   "f": "2028-05-19",
+   "crit": true,
+   "grp": "closeout",
+   "wa": 56,
+   "wb": 60
+  }
+ ]
+}

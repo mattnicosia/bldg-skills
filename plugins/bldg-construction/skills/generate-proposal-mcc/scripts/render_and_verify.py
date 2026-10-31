@@ -11,6 +11,7 @@ Usage: python3 render_and_verify.py input.html output.pdf [--bg R,G,B]
 import argparse, os, re, shutil, subprocess, sys, tempfile
 
 CHROME_CANDIDATES = [
+    os.environ.get("CHROME"),
     "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
     shutil.which("google-chrome"), shutil.which("chromium"),
     shutil.which("chromium-browser"),
@@ -22,7 +23,7 @@ def find_chrome():
             return c
     # glob any pw-browsers chromium
     import glob
-    hits = glob.glob("/opt/pw-browsers/chromium-*/chrome-linux/chrome")
+    hits = sorted(glob.glob("/opt/pw-browsers/chromium-*/chrome-linux*/chrome"), reverse=True)   # chrome-linux and chrome-linux64
     if hits:
         return hits[0]
     sys.exit("No Chrome/Chromium binary found — cannot render at full fidelity.")

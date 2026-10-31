@@ -160,14 +160,14 @@
     $('.pc__panel').scrollTop = 0; setTimeout(() => $('.pc__x').focus(), 80);
   }
   function closePrecon(silent) {
-    if (!pc.classList.contains('open')) return;
+    if (!pc || !pc.classList.contains('open')) return;
     pc.classList.remove('open'); pc.setAttribute('inert', ''); lenis && lenis.start(); document.body.style.overflow = '';
     if (!silent && lastFocus && lastFocus.focus) lastFocus.focus();
   }
   $$('[data-precon]').forEach((b) => b.addEventListener('click', openPrecon));
   $$('.pcf__card').forEach((c) => c.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPrecon({ currentTarget: c }); } }));
-  $('.pc__x').addEventListener('click', () => closePrecon());
-  addEventListener('keydown', (e) => { if (e.key === 'Escape') { if (pc.classList.contains('open')) closePrecon(); else closeMenu(); } });
+  const pcX = $('.pc__x'); if (pcX) pcX.addEventListener('click', () => closePrecon());   // kit v1.16: pre-construction is optional
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') { if (pc && pc.classList.contains('open')) closePrecon(); else closeMenu(); } });
 
   // ---------------------------------------------------------------- budget: Elements or MasterFormat, and the detail under each line
   const bview = $('.bview');

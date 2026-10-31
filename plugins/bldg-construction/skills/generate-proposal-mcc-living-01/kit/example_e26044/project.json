@@ -1,0 +1,104 @@
+{
+ "title": "The Inn at Kirkside",
+ "project": {
+  "name": "The Inn at Kirkside",
+  "address": "53865 State Highway 30, Roxbury, NY 12474",
+  "job": "E26044",
+  "chip": "Budget Presentation"
+ },
+ "decisions": {
+  "email": "m.nicosia@montanacontracting.com"
+ },
+ "model": {
+  "mode": "glb",
+  "file": "model_el.glb",
+  "palette": {
+   "siding": "#f1eee7",
+   "trim": "#fbfaf7",
+   "roof": "#4f5257",
+   "soffit": "#e9e5dc",
+   "frame": "#2b2e33",
+   "flashing": "#3b3d42",
+   "concrete": "#b8b3a8",
+   "deck": "#9a6b46",
+   "timber": "#8a6a4a",
+   "steel": "#6e7378",
+   "slab": "#bdb8ae",
+   "roof_rough": 0.85,
+   "roof_metal": 0.0
+  }
+ },
+ "alternates": {
+  "1": {
+   "title": "1. Survey and Layout",
+   "note": "Stakeout, foundation as-built, site layout and the final as-built."
+  },
+  "2": {
+   "title": "2. Condition Survey and Monitoring",
+   "note": "Before work starts, and settlement readings during underpinning."
+  },
+  "3": {
+   "title": "3. Professional Final Cleaning",
+   "note": "Inn-ready cleaning of 15,896 SF."
+  },
+  "4": {
+   "title": "4. Window Cleaning",
+   "note": "All 90 windows."
+  },
+  "5": {
+   "title": "5. Drained Air Gap at Exterior Walls",
+   "note": "A drainage spacer behind the house wrap in the stud bays."
+  }
+ },
+ "ve": {
+  "1": {
+   "title": "VE-1. House Wrap at the Roof",
+   "note": "Spray foam applied direct to the roof deck."
+  },
+  "2": {
+   "title": "VE-2. VRF Controls in Lieu of a Full BMS",
+   "note": "Manufacturer central controls with a small BACnet layer for the ERVs and pumps."
+  },
+  "3": {
+   "title": "VE-3. Air-Source VRF in Lieu of Geothermal",
+   "note": "No wells. Condensers sit outside on pads with screening. Loses the ground-source incentive."
+  },
+  "4": {
+   "title": "VE-4. Radiant Floors Where They Count",
+   "note": "Radiant kept at baths, the conservatory and the vestibule. VRF heats the rest."
+  },
+  "5": {
+   "title": "VE-5. Generator Sized to Key Loads",
+   "note": "60 KW for life safety, the elevator, refrigeration and the kitchen."
+  },
+  "6": {
+   "title": "VE-6. Flash-and-Batt Insulation",
+   "note": "2 inches of closed cell foam plus batts in place of full depth foam."
+  },
+  "7": {
+   "title": "VE-7. Marvin Elevate at Secondary Elevations",
+   "note": "About 40 of the 90 windows. Subject to historic review."
+  },
+  "8": {
+   "title": "VE-8. Equivalent Decorative Lighting",
+   "note": "Signature fixtures kept in the public rooms, equivalents elsewhere. Designer approval."
+  },
+  "9": {
+   "title": "VE-9. Gravel at Overflow Parking",
+   "note": "Asphalt kept at the drive aisle and accessible spaces."
+  },
+  "10": {
+   "title": "VE-10. Concrete Pavers at Secondary Paths",
+   "note": "Medina stone kept at the main terraces."
+  },
+  "11": {
+   "title": "VE-11. Semi-Custom Vanities and Window Seats",
+   "note": "Custom fronts on semi-custom boxes. Library bookcase and bar unchanged."
+  },
+  "12": {
+   "title": "VE-12. LULA Elevator",
+   "note": "Smaller limited-use elevator, if the code official accepts it."
+  }
+ },
+ "next_step": ""
+}

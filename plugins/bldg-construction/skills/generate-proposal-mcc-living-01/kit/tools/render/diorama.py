@@ -82,7 +82,7 @@ RECIPE = {   # finished colors, as the hero renders
     'trim': lambda m: surface(m, col('trim', '#5a534b'), 0.55, cvar=0.04),
     'soffit': lambda m: surface(m, col('soffit', '#4a423b'), 0.7),
     'frame': lambda m: surface(m, col('frame', '#3a3129'), 0.42),
-    'roof': lambda m: surface(m, lin('#aeaba4'), 0.42, metal=0.38, cvar=0.04, cscale=0.25),
+    'roof': lambda m: surface(m, col('roof', '#aeaba4'), float(PAL.get('roof_rough', 0.42)), metal=float(PAL.get('roof_metal', 0.38)), cvar=0.04, cscale=0.25),   # v1.15: palette roof (asphalt shingle on E26044)
     'flashing': lambda m: surface(m, col('flashing', '#7f7f7c'), 0.46, metal=0.7),
     'concrete': lambda m: surface(m, col('concrete', '#a8a59d'), 0.92, cvar=0.08, cscale=1.2, bump=0.25, bscale=6),
     'footing': lambda m: surface(m, lin('#8c8981'), 0.95, cvar=0.06, cscale=1.4),

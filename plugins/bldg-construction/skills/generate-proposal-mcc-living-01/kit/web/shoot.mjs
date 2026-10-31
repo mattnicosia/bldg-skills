@@ -6,6 +6,7 @@ const KIT_ = process.env.MCC_KIT || path.resolve(HERE_, '..', '..', 'kit');
 const { chromium } = await import(path.join(KIT_, 'node_modules', 'playwright-core', 'index.mjs'));
 const CHROME_ = process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 
+const _o = String(process.argv[2] || ''); if (/(^|[\\/])(site|netlify)([\\/]|$)/.test(_o)) { console.error('screenshot folder must be outside site/ and netlify/ (kit v1.16)'); process.exit(2); }
 const out = path.resolve(process.argv[2] || 'shots'); fs.mkdirSync(out, { recursive: true });
 const which = process.argv[3] || 'both';
 const ROOT = process.env.WEB_ROOT || path.join(HERE_, 'netlify');

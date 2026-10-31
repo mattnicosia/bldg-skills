@@ -1,4 +1,51 @@
-# Montana Bid Presentation Kit v1.13
+# Montana Bid Presentation Kit v1.16
+
+v1.16 (E26044 The Inn at Kirkside, Matt 2026-10-30):
+- Optional sections, asked at the start of every job (SKILL.md, AskUserQuestion) and saved in project.json `"sections"`:
+  `precon` (on), `your_team` (on), `selections` (on when selections.json exists), `walk_your_plans` (off), `montana_os` (off).
+  Walk Your Plans (`tools/wyp/` is back) and Montana OS (light version: tiles show numbers, features are names) return behind
+  their switches. `app.js` and the check scripts run with pre-construction off.
+- Renovation sequence (project.json `"renovation": true`): Existing Building (clay, base budget figure, new foundations hidden with
+  `--hide-els foundation`), New Work (Site and Foundation, Additions in blue), Complete, Signature Elements. No "The House".
+- Markup ladder: project.json `"markups"` (default Overhead and Profit 15%). Each markup is its own line under Direct Cost and
+  compounds on everything above it (insurance on direct plus fee). `mk()` carries element figures. Never "Fee and Insurance".
+- Percentages are shares of direct cost; under 0.05% reads "<0.1%".
+- Site and Foundation leaves out lines inside a signature element (`EL_ROWS`). The build prints each element's lines.
+- Line wording: `tools/scope/wording.py`. Every scope item opens with a directive (Furnish and Install, Furnish Only, Install
+  Only, Provide, Remove, Repair, Patch, Paint, Wire...), tags and TBD notes come out, `merge_key()` names duplicates for the
+  workbook step. A job's own fixes go in `JOB_FIX`. Product names with a banned word go in project.json `"allow_words"`.
+- Checks in the build: milestone labels need about 9% of the schedule between them; insulation and drywall wait for rough
+  inspections; every material allowance named in the Clarifications has a card.
+- Any number of alternates and value engineering items.
+- CSS comments never reach the page source.
+- Hand-off for the PDF: `web/scope_lines.json` (scope by cost code, client wording) and `web/proposal_lists.json` (allowances,
+  alternates, VE, markups).
+- Check scripts refuse a screenshot folder inside `site/` or `netlify/`; precon checks skip when the section is off; pdf_check
+  expects the compact PDF pill in the phone nav.
+- `tools/render/diorama.py`: the roof takes `roof`, `roof_rough` and `roof_metal` from the palette.
+
+
+v1.15 (Matt's approval of the light-reading pass, 2026-10-30):
+- Montana OS taken off the presentation (panel, tiles, features). v1.16: optional again, off by default.
+- Next Step: the navy screen stays, very minimal. Kicker "Contact", the Call button and the contact block. No sentence (no "the next step
+  is a working session ..." line); `P["next_step"]` is no longer read.
+- Allowances caption reads "Included in Base Budget". The Overhead and Profit row has no subtitle. Pre-con drops the headings "Each
+  phase makes the estimate more accurate." and "Built in from the first phase." (kickers carry them).
+
+
+v1.14 (Light reading, Matt 2026-10-30: "simplify and minimize our proposal ... specifically the amount of reading"):
+- Walk Your Plans removed: the black screen, `WYP_TEXT`, the plan image (`tools/wyp/` deleted) and the Phase 02 bullet "Your plans
+  walked at full scale". v1.16: optional again, off by default.
+- Project description: one paragraph, 40 to 80 words (build stops otherwise). The lede is the whole description.
+- Design steps: title, figure and one caption line. No body paragraph (build stops if a step carries `body`).
+- Budget: no pills hint. Alternates: no lede and no "stays on this device" line.
+- Notes and Clarifications: three closed groups (`details.ncol`) showing the heading and the count. The full notes stay in the PDF.
+- How We Work: no lede under the big statement. Montana OS: no lede, tiles show numbers only, the six features are names only,
+  Who It Serves removed.
+- Pre-construction: card line "Four phases. One Guaranteed Maximum Price." The view drops the hero lede, the section paragraphs, the
+  principles row and the closing line. Promises are one short line each. Phase cards carry three bullets.
+- About 40% fewer words on the page before the notes fold.
+
 
 v1.13 (E260050 Cooper Barn and Pool House, whole property, 2026-10-22):
 - How We Work: "Your Team" (the three principals, one support line) replaces the 1 Site Superintendent / 1 Project Manager /

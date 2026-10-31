@@ -22,8 +22,8 @@ Fonts (TT Commons Pro) are inlined as base64. Lenis 1.1.13 loads from jsdelivr. 
 ## 01 / Project
 
 - Facts column with a blue rule: Location, Type, Architect, Budget, Schedule.
-- The lede is the first paragraph of the project description, lit word by word on scroll. The other two paragraphs follow in body type.
-- The build lints the description: the first sentence is 155 characters or fewer, and the total is 90 to 220 words.
+- The lede is the whole project description (one paragraph, 40 to 80 words), lit word by word on scroll.
+- The build lints the description: one paragraph, the first sentence is 155 characters or fewer, and the total is 40 to 80 words.
 
 ## Gallery
 
@@ -35,6 +35,7 @@ Pinned horizontal track on desktop, a swipe row on phones. Captions name the vie
 - Steps crossfade. A step can name a `via` frame that shows during the first part of its scroll (Site and Foundation uses the backfill frame), so the next build step never pops.
 - Each element step sets the marker. Brackets use each element's blue-pixel box (`BB`, found from the white frames at build). Dot and leader use the projected point (`--points` from diorama.py). Badge shows the element number. On the final step numbered badges show on every element, pushed apart if they would overlap at the current size.
 - The step rail sits under the model. On mid widths it moves to the model column, and on phones it scrolls to the current step.
+- Kit v1.14: a step is a title, a figure and one caption line (14 words or fewer). No body paragraph.
 - Titles use word masks with `clip-path`, and the odometer digits clip with `clip-path: inset(0 -.3em)`, so no letter or digit is cut.
 
 ## 03 / Budget
@@ -52,7 +53,8 @@ Pinned horizontal track on desktop, a swipe row on phones. Captions name the vie
 - Alternates: switches, a running total in cents (Requested), If Montana Confirms, and Send to Montana. The switches and the
   Selections cards are one set of requests saved on the device. The send sheet takes name, email, role and a note, posts the
   Netlify form `selections`, and falls back to an email to the decisions address.
-- Notes and Clarifications: three numbered columns. Each fragment is checked against the Notes sheet at build.
+- Notes and Clarifications: three closed groups (Basis of Budget, Clarifications, Exclusions), each showing its count and opening to the numbered list. Each fragment is checked against the Notes sheet at build. The full notes also live in the PDF.
+- Kit v1.14: no hint under the budget pills, no lede under Alternates, no device line under Send to Montana.
 
 ## 04 / Schedule
 
@@ -64,20 +66,16 @@ Pinned horizontal track on desktop, a swipe row on phones. Captions name the vie
 ## 05 / Approach
 
 - Kit v1.13. Title How We Work, one statement in large type, then the `yteam` block: kicker Your Team, the line "Three principals stay on this project from the first walkthrough to the final punch list. You are never handed off." and the principals' portraits with name and title. The old `TIERS` numerals (1, 1, 3) are gone.
-- Montana OS on a light panel (`--off`): outline OS letters top right (`OS_LETTERS`, stroke only, navy at 20%), plain headings for This Job in Montana OS, What It Tracks and Who It Serves (the survey-theme `osx__st` mono labels and square bullets were removed in v1.11 to match the software). The app frame has a navy bar (M mark, Montana OS boxed, the project, "Opens at Award") and 2 by 2 tiles from the job's own numbers, the base budget tile in navy, ghost numerals 01 to 04. Features are numbered rows in two columns.
+- Kit v1.14: no lede under the big statement. Montana OS on a light panel (`--off`): outline OS letters top right (`OS_LETTERS`, stroke only, navy at 20%), plain headings for This Job in Montana OS, What It Tracks and Who It Serves (the survey-theme `osx__st` mono labels and square bullets were removed in v1.11 to match the software). The app frame has a navy bar (M mark, Montana OS boxed, the project, "Opens at Award") and 2 by 2 tiles from the job's own numbers, the base budget tile in navy, ghost numerals 01 to 04. Features are numbered rows, names only (kit v1.14). Tiles show numbers only. Who It Serves is removed.
 - No values list, no principles, no stats row.
 
 ## Pre-Construction
 
-- The card: black, rounded 28px, the M watermark, "See Our Pre-Construction Process", "Four phases. ±20% at the first budget, ±3% at GMP.", a See the Process button and the price band narrowing across the phases. The whole card is the button (Enter and Space work).
+- The card: black, rounded 28px, the M watermark, "See Our Pre-Construction Process", "Four phases. One Guaranteed Maximum Price.", a See the Process button and the price band narrowing across the phases. The whole card is the button (Enter and Space work).
 - On click the full view's clip-path starts at the card's rect and grows to the screen, so the card becomes the view's black header. Escape or Close shrinks it back.
-- The view: the hero ("Know the number before you build."), the phases with the price range and reserve, what each phase delivers, the promises (Walk-Away Guarantee, Unused Reserve Comes Back to You, One Rate) and the principles, then the contact block. Nothing project-specific.
+- The view: the hero ("Know the number before you build.") with no lede, the phases, what each phase delivers (three bullets each), the promises (Walk-Away Guarantee, Unused Reserve Comes Back to You, One Rate) in one short line each, then the contact block. No section paragraphs and no principles (kit v1.14). Nothing project-specific.
 
 - Kit v1.9: no ranges. Columns are Phase, name, Locks In (budget and scope, selections, trade bids, one GMP) and timing. The funnel has one tick per phase at its column center and no percentage labels. The card labels read Budget Set, Selections, Trade Bids, GMP.
-
-## Walk Your Plans
-
-- Black full-bleed screen between How We Work and the pre-con card. Plan image right (left two thirds fade to black), copy left. On a phone the image sits on top. One session at Walk Your Plans in Port Chester, on Montana. Book the Session emails the decisions address with the project in the subject.
 
 ## Thank you and Next Step
 

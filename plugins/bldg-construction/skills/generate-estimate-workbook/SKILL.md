@@ -51,6 +51,8 @@ library, Matt's standing rate, derived, or labeled market allowance with the res
                  the xlsx exact total. Every line must match. Report any that don't.
 4. ASSEMBLE   -> data.json (contract below). rate = exact_total / qty, stored unrounded, so Qty x Rate
                  lands on the estimate to the cent.
+4b. CONSOLIDATE -> python scripts/consolidate.py data.json data.json  <- trade combinations, leveling with held
+                 lines, one line per item (see House rules from E26044). Build from its output.
 5. REVIEW     -> build the Estimate Review findings (checklist below). This is the value of the report.
 6. BUILD      -> python scripts/build_estimate.py data.json raw.xlsx
 7. FINALIZE   -> python scripts/finalize.py raw.xlsx out.xlsx          <- never skip
@@ -125,6 +127,30 @@ derivation in `basis[]`. Strip export noise: `Levels - `, ` ( layers)`.
 **Alternates**: one block per Cost Detail scenario. Prefix each line `[Trade]`. Header reads
 `ALTERNATE 8 -- 12TH FLOOR CEILING BAFFLES  |  PROPOSAL NO. 8 (12th)` or `| NOT ON PROPOSAL SCHEDULE`.
 Pull proposal amounts from the proposal's Schedule of Alternates so the SOV shows variance.
+
+## House rules from E26044 The Inn at Kirkside (Matt, 2026-10-30)
+
+- **One line per item.** Lines in the same CSI code that are the same item merge into one line, even when sizes or counts
+  differ (Floor Structure listed four times becomes one; studs, plates, LVLs, headers, steel beams and columns, ductwork the same).
+  Same unit: quantities add. Mixed units: 1 LS at the summed total. `scripts/consolidate.py` does it; list in `keep_separate`
+  any line another deliverable finds by name (a presentation element such as the elevator pit walls).
+- **Trade combinations (house default).** Wood Framing goes into Rough Carpentry ("Rough Carpentry and Framing", 06 10 00).
+  Electrical General, Switchboards and Panelboards, Wiring Devices, Communications Outlets and Lighting Control Devices and
+  Programming are one "Electrical" line (26 05 00). Exterior and Emergency Lighting goes into Lighting Fixtures (26 50 00).
+  Packaged Generator Assemblies and Fire Detection and Alarm stay separate.
+- **Every scope line opens with a directive** in anything client-facing: Furnish and Install, Furnish Only, Install Only,
+  Provide, Remove, Replace, Repair, Patch, Paint, Wire and so on (Provide for general requirements). The presentation kit's
+  `tools/scope/wording.py` (generate-proposal-mcc-living-01) does the wording.
+- **Leveling with held lines.** When a subcontract price is spread over a division's lines, hold the lines whose real value
+  is known before spreading (E26044: BMS at $200,000, the geothermal well field at the cost detail) and spread the rest.
+  Flag any division spread over 1.5x: the lines it carries are not real prices, so do not feature them (no presentation
+  element, no alternate priced from them). `level` in data.json, see `scripts/consolidate.py`.
+- **Value engineering credits under a leveled subcontract** use cost detail rates, never the spread rates, so the credit is
+  conservative. Say so in the VE note.
+- **Markups: one row each, compounding.** Fee and Insurance are separate rows everywhere, base and alternates; insurance
+  is figured on direct plus fee. Never one "Fee and Insurance" row.
+- **Temporary heat, standard exclusion:** "Temporary heat, winter conditions and snow removal. Temporary heat may be needed for
+  interior work in the winter months. If needed, it is billed on a time and material basis."
 
 ## data.json contract
 
