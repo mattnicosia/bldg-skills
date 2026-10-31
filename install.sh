@@ -26,19 +26,18 @@ Usage: ./install.sh [options]
   --list-library      Print those skills as repo-relative paths (plugins/<plugin>/skills/...)
   --from PATH         Install one skill by repo-relative path (directory must contain SKILL.md)
   --library           Install every plugin skill (skips paths under archive/)
-  --only NAME         Does not work. There is no top-level skills/ directory, so this exits.
-                      Install one skill with --from plugins/<plugin>/skills/<name>.
+  --only NAME         Install one skill from plugins/<plugin>/skills/<name>
   --claude            Also install into ~/.claude/skills even if the dir is missing
   --cursor            Also install into ~/.cursor/skills (and ~/.agents/skills)
   (Codex: auto if ~/.codex/skills exists)
   --dest PATH         Extra destination
   -h, --help          Show this help
 
-Running with no mode (--link or --copy alone) takes the same missing skills/ path
-as --only and exits. To install everything, use --library.
+Running with no mode prints this help and exits. To install everything, use --library.
 
 Examples:
   ./install.sh --list
+  ./install.sh --only project-level-up --link
   ./install.sh --list-library
   ./install.sh --library --link
   ./install.sh --from plugins/bldg-house/skills/project-level-up --link
@@ -120,6 +119,11 @@ if [ "$LIST_LIBRARY" -eq 1 ]; then
   exit 0
 fi
 
+if [ -z "$FROM" ] && [ "$LIBRARY" -eq 0 ] && [ -z "$ONLY" ]; then
+  usage
+  exit 0
+fi
+
 DEST_LIST=()
 add_dest() {
   local dest="$1"
@@ -185,7 +189,24 @@ install_one_from_src() {
 
 install_one_curated() {
   local name="$1"
-  install_one_from_src "$name" "$SKILLS_SRC/$name"
+  local d
+  local matches=()
+  for d in "$PLUGINS_SRC"/*/skills/"$name"; do
+    [ -f "$d/SKILL.md" ] || continue
+    matches+=("$d")
+  done
+  if [ ${#matches[@]} -eq 0 ]; then
+    echo "No skill named '$name' under plugins/<plugin>/skills/" >&2
+    exit 1
+  fi
+  if [ ${#matches[@]} -gt 1 ]; then
+    echo "Multiple skills named '$name' under plugins/<plugin>/skills/:" >&2
+    for d in "${matches[@]}"; do
+      echo "  ${d#"$ROOT"/}" >&2
+    done
+    exit 1
+  fi
+  install_one_from_src "$name" "${matches[0]}"
 }
 
 # --- mode: --from PATH ---
@@ -235,20 +256,8 @@ if [ "$LIBRARY" -eq 1 ]; then
   exit 0
 fi
 
-# --- curated skills/ (default / --only) ---
-if [ ! -d "$SKILLS_SRC" ]; then
-  echo "No skills/ directory at $SKILLS_SRC" >&2
-  exit 1
-fi
-
-if [ -n "$ONLY" ]; then
-  install_one_curated "$ONLY"
-else
-  while IFS= read -r name || [ -n "$name" ]; do
-    [ -n "$name" ] || continue
-    install_one_curated "$name"
-  done < <(list_skills)
-fi
+# --- --only NAME (plugins/<plugin>/skills/<name>) ---
+install_one_curated "$ONLY"
 
 echo
 echo "Done. Start a new agent session so the skill is picked up."
