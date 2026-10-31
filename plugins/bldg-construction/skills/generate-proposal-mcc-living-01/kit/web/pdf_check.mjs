@@ -6,6 +6,7 @@ const HERE_ = path.dirname(fileURLToPath(import.meta.url));
 const KIT_ = process.env.MCC_KIT || path.resolve(HERE_, '..', '..', 'kit');
 const { chromium } = await import(path.join(KIT_, 'node_modules', 'playwright-core', 'index.mjs'));
 const CHROME_ = process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+const _o = String(process.argv[2] || ''); if (/(^|[\\/])(site|netlify)([\\/]|$)/.test(_o)) { console.error('screenshot folder must be outside site/ and netlify/ (kit v1.16)'); process.exit(2); }
 const out = path.resolve(process.argv[2] || 'checks_pdf'); fs.mkdirSync(out, { recursive: true });
 const ROOT = path.join(HERE_, 'netlify');
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.png': 'image/png', '.pdf': 'application/pdf' };
@@ -22,7 +23,7 @@ for (const [name, vp] of [['desktop', { width: 1440, height: 900 }], ['laptop', 
   const box = async () => p.$eval('.nav__pdf', (el) => { const r = el.getBoundingClientRect(), s = getComputedStyle(el); return { x: r.left, r: r.right, w: r.width, vis: s.display !== 'none' && r.width > 0 }; });
   const nb = await box();
   if (name === 'phone') {
-    want(!nb.vis, `${name}: nav button hidden, the menu carries it`);
+    want(nb.vis, `${name}: compact PDF pill shows in the phone nav (kit v1.13)`);
     await p.click('#menu-btn'); await p.waitForTimeout(900);
     await p.screenshot({ path: path.join(out, `${name}_menu.jpg`), type: 'jpeg', quality: 80 });
     const [d] = await Promise.all([p.waitForEvent('download'), p.click('.menu [data-pdf]')]);

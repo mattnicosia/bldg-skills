@@ -4,6 +4,7 @@ const HERE_ = path.dirname(fileURLToPath(import.meta.url));
 const KIT_ = process.env.MCC_KIT || path.resolve(HERE_, '..', '..', 'kit');
 const { chromium } = await import(path.join(KIT_, 'node_modules', 'playwright-core', 'index.mjs'));
 const CHROME_ = process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+const _o = String(process.argv[2] || ''); if (/(^|[\\/])(site|netlify)([\\/]|$)/.test(_o)) { console.error('screenshot folder must be outside site/ and netlify/ (kit v1.16)'); process.exit(2); }
 const out = process.argv[2]; fs.mkdirSync(out, { recursive: true });
 const ROOT = process.env.WEB_ROOT || path.join(HERE_, 'netlify');
 const LENIS = path.join(KIT_, 'vendor', 'lenis', 'lenis.min.js');
@@ -17,11 +18,13 @@ for (const [name, vp] of [['desktop', { width: 1440, height: 900 }], ['phone', {
   await p.route('**/lenis.min.js', (r) => r.fulfill({ path: LENIS, contentType: 'text/javascript' }));
   await p.goto('http://localhost:4678/'); await p.waitForTimeout(4000);
   if (name === 'phone') { await p.click('#menu-btn'); await p.waitForTimeout(900); await p.screenshot({ path: `${out}/${name}_menu.jpg`, quality: 78, type: 'jpeg' }); await p.click('.menu__close'); await p.waitForTimeout(900); }
+  if (await p.evaluate(() => !!document.querySelector('[data-precon]'))) {   // kit v1.16: pre-construction is optional
   await p.evaluate(() => document.querySelector('[data-precon]').click()); await p.waitForTimeout(1200);
   await p.screenshot({ path: `${out}/${name}_pc1.jpg`, quality: 78, type: 'jpeg' });
   for (const [k, f] of [[2, 0.25], [3, 0.5], [4, 0.75], [5, 1]]) { await p.evaluate((ff) => { const q = document.querySelector('.pc__panel'); q.scrollTop = (q.scrollHeight - q.clientHeight) * ff; }, f); await p.waitForTimeout(900); await p.screenshot({ path: `${out}/${name}_pc${k}.jpg`, quality: 78, type: 'jpeg' }); }
   await p.keyboard.press('Escape'); await p.waitForTimeout(900);
   log.push(name + ' precon closed: ' + !(await p.evaluate(() => document.getElementById('precon').classList.contains('open'))));
+  } else log.push(name + ' precon: section off');
   await p.evaluate(() => document.getElementById('budget').scrollIntoView()); await p.waitForTimeout(1600);
   await p.evaluate(() => document.querySelector('.pill[data-v="mf"]').click()); await p.waitForTimeout(1600);
   log.push(name + ' budget mf view: ' + await p.evaluate(() => document.querySelector('.bview').dataset.view + ' mfHidden=' + document.querySelector('.brows--mf').hidden + ' rows=' + document.querySelectorAll('.brows--mf .brow').length));

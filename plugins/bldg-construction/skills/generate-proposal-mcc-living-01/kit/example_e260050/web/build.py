@@ -377,7 +377,6 @@ OS_FEATURES = [('RFIs, Submittals and Change Orders', 'One log. Every item dated
 OS_FOR = [('For Crisp Architects', 'Every question, answer and decision in one place.'), ('For the Owners', 'The budget, the schedule and both sites, live.'),
           ('For the Job', 'The field and the office work from the same information.')]
 PHONE, ADDR, EMAIL = '(845) 398-1778', '173 N. Route 9W, Congers, NY 10920', P['decisions']['email']
-WYP_TEXT = "One session at Walk Your Plans in Port Chester, on Montana. Crisp's plans are laid out at full scale, so you can walk the barn workshop and lounge, stand at the pool house bar and pace off the stair before anything is framed."
 
 PC_PHASES = [('Budget Setting and Schematic Design Budget', 'Phase 01', 20, 'Your target budget and the scope it buys', 'About 2 weeks', 'Budget Set'),
              ('Design Development Updates', 'Phase 02', 15, 'Selections in place of allowances', 'About 2 weeks per revision', 'Selections'),
@@ -385,7 +384,7 @@ PC_PHASES = [('Budget Setting and Schematic Design Budget', 'Phase 01', 20, 'You
              ('Value Engineering, Built In', 'Phase 04', 3, 'One Guaranteed Maximum Price', 'GMP delivered', 'GMP')]
 PC_CARDS = [('Phase 01', 'Budget Setting and Schematic Design Budget', ['Budget setting session with you', 'Survey and soils engineer coordinated', 'Foundation strategy, priced', 'Options priced side by side'],
              'Your target budget and an options menu with three scenarios.'),
-            ('Phase 02', 'Design Development Updates', ['Re-priced as the design develops', 'Your plans walked at full scale, one session on us', 'Design-to-budget meetings with your architect', 'Early flags on anything drifting over budget'],
+            ('Phase 02', 'Design Development Updates', ['Re-priced as the design develops', 'Design-to-budget meetings with your architect', 'Early flags on anything drifting over budget'],
              'An updated budget with more detailed line items, plus a preliminary schedule.'),
             ('Phase 03', 'Firm Trade Partner Pricing', ['Major trades bid to our subcontractors and vendors', 'Site walks with the key trades', 'Bids compared line by line'],
              'A budget backed by real pricing.'),
@@ -402,8 +401,6 @@ PC_PRINCIPLES = [('You Are Heard From Day One', 'Your vision, your budget, your 
 SITE, NET = os.path.join(HERE, 'site'), os.path.join(HERE, 'netlify')
 for p_ in (SITE, NET): shutil.rmtree(p_, ignore_errors=True)
 A = os.path.join(SITE, 'assets'); [os.makedirs(os.path.join(A, s), exist_ok=True) for s in ('m', 'team')]
-WYP = os.path.join(CB, 'wyp', 'wyp_plan.jpg')
-if os.path.exists(WYP): shutil.copy(WYP, os.path.join(A, 'wyp_plan.jpg'))
 PDFS = sorted(glob.glob(os.path.join(CB, 'proposal', '*.pdf')))
 if len(PDFS) > 1: die('keep one proposal PDF in proposal/')
 PDF = os.path.basename(PDFS[0]) if PDFS else None
@@ -709,16 +706,6 @@ BODY = f'''
       <ol class="osx__feat">{os_feat}</ol>
       <div class="osx__for">{os_for}</div>
     </div>
-  </div>
-</section>
-
-<section class="wyp" id="walk" aria-label="Walk Your Plans">
-  {'<div class="wyp__img"><img src="assets/wyp_plan.jpg" alt="The pool house first floor plan laid out at full scale" width="1800" height="930" loading="lazy" decoding="async"></div>' if os.path.exists(WYP) else ''}
-  <div class="wrap wyp__in">
-    {kick("Walk Your Plans", "kick--light")}
-    <h2 data-r>Walk the buildings before they're built.</h2>
-    <p data-r="up">{E(WYP_TEXT)}</p>
-    <div class="wyp__act" data-r="up"><a class="btn btn--white" href="mailto:{E(EMAIL)}?subject={E(quote('Walk Your Plans session, ' + PNAME))}">Book the Session {ARROW}</a><a class="wyp__link" href="https://www.walkyourplansnewyork.com/" target="_blank" rel="noopener">walkyourplansnewyork.com</a></div>
   </div>
 </section>
 

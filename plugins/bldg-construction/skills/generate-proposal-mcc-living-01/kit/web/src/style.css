@@ -1113,3 +1113,12 @@ button.brow__h:hover h3 { color: var(--navy); }
   .nav__pdf span { display: none; }
   .nav__pdf::after { content: "PDF"; }
 }
+
+/* kit v1.14: Notes and Clarifications fold into three groups with a count, closed by default */
+.ncol summary { list-style: none; cursor: pointer; display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; padding-bottom: .9rem; border-bottom: 2px solid var(--navy); }
+.ncol summary::-webkit-details-marker { display: none; }
+.ncol summary h3 { padding-bottom: 0; border-bottom: 0; }
+.ncol summary::after { content: "+"; font-size: 1.2rem; line-height: 1; color: var(--navy); }
+.ncol[open] summary::after { content: "\2212"; }
+.ncol__n { margin-left: auto; font-size: .78rem; letter-spacing: .12em; color: var(--muted); }
+.ncol summary:focus-visible { outline: 2px solid var(--navy); outline-offset: 4px; }

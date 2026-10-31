@@ -27,7 +27,7 @@ LENIS = 'https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js'
 E = lambda s: html.escape(str(s), quote=True)
 C = lambda x: D(str(x)).quantize(D('0.01'), ROUND_HALF_UP)
 money = lambda v: '${:,.2f}'.format(C(v))
-pct = lambda v, of: '{:.1f}%'.format(float(D(v) / D(of) * 100))
+pct = lambda v, of: (lambda x: '<0.1%' if 0 < x < 0.05 else '{:.1f}%'.format(x))(float(D(v) / D(of) * 100))   # kit v1.16
 
 
 def die(m):
@@ -35,6 +35,9 @@ def die(m):
 
 
 P = json.load(open(os.path.join(CB, 'project.json')))
+# kit v1.16: optional sections, chosen with Matt at the start of each job (SKILL.md step 1). Defaults follow his current preference.
+SECTIONS = {'precon': True, 'walk_your_plans': False, 'montana_os': False, 'selections': True, 'your_team': True}
+SECTIONS.update(P.get('sections', {}))
 SCH = json.load(open(os.path.join(CB, 'schedule.json')))
 
 # ================================================================ money, from the line items
@@ -47,7 +50,19 @@ for i, r in enumerate(ws.iter_rows(min_row=10, max_row=232, values_only=True), s
     if code in ('TRADE TOTAL', 'SUBTOTAL') or not item: continue
     if isinstance(tot, (int, float)) and tot: LINES[i] = {'code': str(code).strip(), 'item': str(item).strip(), 'trade': trade, 'v': C(tot)}
 DIRECT = sum(l['v'] for l in LINES.values())
-OP = C(DIRECT * D('0.15')); BASE = DIRECT + OP
+# kit v1.16: the markup ladder. Each line compounds on everything above it and shows as its own line (never "Fee and Insurance" together).
+# project.json "markups": [["Design Contingency (TBD)", 0], ["Fee", 0.06], ["Insurance", 0.03]]. Default: Overhead and Profit 15%.
+MARKUPS = [(str(a), D(str(b))) for a, b in P.get('markups', [['Overhead and Profit', 0.15]])]
+def ladder(v):   # [(label, rate, amount)], each on direct plus the lines above it
+    out, run = [], D(v)
+    for lab, rt in MARKUPS:
+        a = C(run * rt); out.append((lab, rt, a)); run += a
+    return out
+def mk(v): return C(D(v) + sum(a for _, _, a in ladder(v)))
+MK_FACTOR = D(1)
+for _l, _r in MARKUPS: MK_FACTOR *= (1 + _r)   # 1.0918 for fee 6% and insurance 3%
+MK_LINES = ladder(DIRECT); OP = sum(a for _, _, a in MK_LINES); BASE = DIRECT + OP
+mk_label = lambda lab, rt: f'{lab}, {rt * 100:.4g}%' if rt else f'{lab}, 0%'
 sheet_total = C(next(r[5] for r in ws.iter_rows(min_row=230, max_row=240, values_only=True) if r[0] == 'TOTAL -- BASE BID'))
 if BASE != sheet_total: die(f'base {BASE} does not tie to the Estimate sheet total {sheet_total}')
 ALT_ROWS = {}
@@ -55,13 +70,10 @@ for i, r in enumerate(ws.iter_rows(min_row=400, max_row=432, values_only=True), 
     if r[0] and str(r[0]).startswith('## '): pass
     if r[0] == 'TOTAL' and isinstance(r[5], (int, float)): ALT_ROWS[len(ALT_ROWS) + 1] = C(r[5])
 
-def clean(item):   # client wording for a line item: no bracketed estimator notes
-    s = re.sub(r'\s*\[[^\]]*\]', '', item); s = s.replace(' (M+L)', '').replace('(M+L)', '')
-    s = re.sub(r'\$(\d[\d,]*)(?![\d,]*\.\d)', r'$\1.00', s)   # every dollar figure carries cents
-    s = re.sub(r'\s*\(Per (Week|Month|Page|Riser)\)', '', s)   # the line shows a total, so the unit basis would misread
-    s = re.sub(r'\(\$[\d,]+\.\d\d/SF Mat\. Allowance\)', '(Material Allowance)', s)   # no unit rates in the line detail
-    s = re.sub(r'\(\$[\d,]+\.\d\d Allowance\)', '(Allowance)', s)
-    return re.sub(r'\s{2,}', ' ', s).strip()
+sys.path.insert(0, os.path.join(KIT, 'tools', 'scope')); import wording
+JOB_FIX = None   # JOB: a function for this estimate's own wording fixes (run after the standard cleanup), or None
+def clean(item, code=''):   # kit v1.16: client wording (tools/scope/wording.py): no estimator tags, no TBD, a directive on every item
+    return wording.client(item, code, JOB_FIX)
 
 trade_names = P.get('trade_names', {})
 def tkey(name): return name.upper()
@@ -80,7 +92,7 @@ GROUPS = []
 for g in P['groups']:
     rows = [(r, l) for r, l in LINES.items() if group_of(r, l) == g['name']]
     GROUPS.append({'name': g['name'], 'scope': SCOPE_FIX.get(g['name'], g['scope']), 'v': sum(l['v'] for r, l in rows),
-                   'lines': [{'item': clean(l['item']), 'v': l['v']} for r, l in rows]})
+                   'lines': [{'item': clean(l['item'], l['code']), 'v': l['v']} for r, l in rows]})
 if sum(g['v'] for g in GROUPS) != DIRECT: die('groups do not tie to direct cost')
 
 MF_TITLES = {'01': 'General Requirements', '02': 'Existing Conditions', '03': 'Concrete', '04': 'Masonry', '05': 'Metals',
@@ -91,12 +103,12 @@ MF = {}
 for l in LINES.values():
     dv = l['code'][:2]
     if dv not in MF_TITLES: die('no MasterFormat title for division ' + dv)
-    MF.setdefault(dv, []).append({'code': l['code'], 'item': clean(l['item']), 'v': l['v']})
+    MF.setdefault(dv, []).append({'code': l['code'], 'item': clean(l['item'], l['code']), 'v': l['v']})
 DIVS = [{'n': k, 'name': MF_TITLES[k], 'v': sum(x['v'] for x in MF[k]), 'lines': MF[k]} for k in sorted(MF)]
 if sum(d['v'] for d in DIVS) != DIRECT: die('divisions do not tie to direct cost')
 
 def el(rows):
-    return C(sum(LINES[r]['v'] for r in rows) * D('1.15'))
+    return mk(sum(LINES[r]['v'] for r in rows))
 # JOB: the signature elements, by Estimate row, each x 1.15 with O&P. Row words are checked so a moved row stops the build.
 ELS = [
     ('bifolds', 'Bifolds and Transoms', el([125, 126, 45]), 'Four Marvin custom bifold units with transoms, 10 feet wide and 11 feet 8 inches high.'),
@@ -114,7 +126,13 @@ for r, word in [(125, 'Bifold'), (126, 'Bifold'), (45, 'LVL'), (39, 'Guardrail')
     if word.lower() not in LINES[r]['item'].lower(): die(f'row {r} is not {word}: {LINES[r]["item"]}')
 EL_TOTAL = sum(e[2] for e in ELS)
 REST = BASE - EL_TOTAL
-SITE_FDN = C((TR['SITEWORK & SITE UTILITIES'] + TR['CONCRETE & FOUNDATIONS']) * D('1.15'))
+# kit v1.16: lines inside a signature element are not counted again in Site and Foundation (JOB: name the element rows in EL_ROWS when you use them)
+EL_ROWS = globals().get('EL_ROWS', {})
+EL_ALL = {r for v in EL_ROWS.values() for r in v}
+SITE_FDN = mk(sum(l['v'] for r, l in LINES.items() if l['trade'] in ('SITEWORK & SITE UTILITIES', 'CONCRETE & FOUNDATIONS') and r not in EL_ALL))
+# kit v1.16: list each element's lines so a stray line (shower glass in a conservatory) is caught before it ships
+for k, rows_ in EL_ROWS.items():
+    print(f'element {k}: ' + '; '.join(LINES[r]['item'][:48] for r in rows_))
 
 # JOB: allowances from the Notes sheet, by Estimate row.
 ALLOW_ROWS = [('Marvin Bifold Doors', 'Four units with transoms, supply, $26,000.00 each', [125]), ('Roof Deck Guardrail', 'Type to be selected', [39]),
@@ -127,13 +145,13 @@ ALLOW_TOTAL = sum(sum(LINES[r]['v'] for r in rows) for a, b, rows in ALLOW_ROWS)
 ALLOWS += [{'label': 'Wood Flooring', 'basis': 'Material', 'v': '$13.00 per SF'}, {'label': 'Powder Room Tile', 'basis': 'Material', 'v': '$10.00 per SF'}]
 if LINES[125]['v'] != D('104000.00') or 'Kohler' not in LINES[179]['item']: die('allowance rows moved')
 
-ALTS = [{'id': str(k), 'title': P['alternates'][str(k)]['title'], 'note': P['alternates'][str(k)]['note'], 'v': ALT_ROWS[k]} for k in (1, 2, 3)]
+ALTS = [{'id': str(k), 'title': P['alternates'][str(k)]['title'], 'note': P['alternates'][str(k)]['note'], 'v': ALT_ROWS[k]} for k in sorted(ALT_ROWS)]   # kit v1.16: any number of alternates
 
 # ================================================================ selections (kit v1.7): one card per element, prices from the workbook. Optional: no selections.json, no section.
 sys.path.insert(0, os.path.join(KIT, 'tools', 'sel')); import selbuild
 SEL_PATH = os.path.join(CB, 'selections.json')
-SELX = {'C': C, 'die': die, 'money': money, 'E': E, 'ws': ws, 'LINES': LINES, 'ALT_ROWS': ALT_ROWS, 'BASE': BASE, 'CB': CB, 'OP': D('0.15')}
-SEL = selbuild.resolve(json.load(open(SEL_PATH)), SELX) if os.path.exists(SEL_PATH) else None
+SELX = {'C': C, 'die': die, 'money': money, 'E': E, 'ws': ws, 'LINES': LINES, 'ALT_ROWS': ALT_ROWS, 'BASE': BASE, 'CB': CB, 'OP': MK_FACTOR - 1}
+SEL = selbuild.resolve(json.load(open(SEL_PATH)), SELX) if (SECTIONS['selections'] and os.path.exists(SEL_PATH)) else None
 
 # ================================================================ schedule, in weeks from mobilization, by phase
 d = lambda s: dt.date.fromisoformat(s)
@@ -150,6 +168,16 @@ for r in SROWS: r['b'] = min(r['b'], SPAN)   # the last finish date counts its o
 PH_SPANS = [(n, c, min(r['a'] for r in SROWS if r['phase'] == n), max(r['b'] for r in SROWS if r['phase'] == n)) for n, ks, c in PHASES]
 # JOB: schedule milestones from the working schedule.
 MS = [(0, 'Mobilize'), (round((d('2027-05-14') - mob).days / 7), 'Foundation Complete'), (round((d('2027-07-06') - mob).days / 7), 'Dried In'), (round((d(SCH['keys']) - mob).days / 7), 'Work Complete')]
+# kit v1.16: milestone labels need room on the chart, and interior trades wait for rough inspections
+_gap = max(4.0, float(SCH['weeks']) * 0.09)
+for (w0, n0), (w1, n1) in zip(sorted(MS), sorted(MS)[1:]):
+    if w1 - w0 < _gap: die(f'milestones "{n0}" (week {w0}) and "{n1}" (week {w1}) are {w1 - w0} weeks apart; labels collide under {_gap:.0f}. Drop one.')
+_insp = [r for r in SROWS if 'rough inspection' in r['name'].lower()]
+if _insp:
+    _done = max(r['b'] for r in _insp)
+    for r in SROWS:
+        if any(k in r['name'].lower() for k in ('insulation', 'drywall', 'gypsum')) and r['a'] < _done - 0.01:
+            die(f'"{r["name"]}" starts in week {r["a"]:.0f}, before rough inspections finish (week {_done:.0f})')
 if MS[-1][0] != SCH['weeks']: die('schedule does not end at 26 weeks')
 
 # ================================================================ model frames: one camera, cropped once for all
@@ -174,21 +202,18 @@ for (k, *_r), f in zip(ELS, FR_W):   # where each element shows in blue: the box
 
 # ================================================================ copy
 LOC = 'North Salem, NY'
-# JOB: the project description, in the Project description voice (see the skill). Three paragraphs, 90 to 220 words.
+# JOB: the project description, in the Project description voice (see the skill). Kit v1.14: one paragraph, 40 to 80 words.
 PROSE = [
-    'The Cooper Barn is a workshop and lounge barn at 194 Titicus Road in North Salem, New York, designed by Crisp Architects. A 40 by 30 foot workshop barn and a 16 by 26 foot lounge wing hold the owner\'s shop and a whiskey bar lounge.',
-    'The barn is framed in 2x6 at a 15 foot plate under a 9:12 galvalume standing seam roof, clad in Hardie board and batten over ZIP sheathing and a rain screen, with spray foam insulation. Four Marvin custom bifold doors with transoms, each 10 feet wide and 11 feet 8 inches high, open the workshop on LVL headers. The lounge wing is built over a full-height mechanical space and carries a Cumaru roof deck over pitched EPDM.',
-    'Inside, exposed beams cross the double-height workshop, with workbenches, desk areas, a 3D printer desk and a white oak stair to a mezzanine. The lounge has wainscot walls, reclaimed beams, wide plank flooring, a copper top whiskey bar and a Hearthstone Bari wood stove. Two ducted heat pump zones serve the workshop, the lounge and the mezzanine.',
+    'The Cooper Barn is a workshop and lounge barn at 194 Titicus Road in North Salem, New York, designed by Crisp Architects. A 40 by 30 foot workshop under a galvalume standing seam roof opens through four Marvin bifold doors, and a 16 by 26 foot lounge wing carries a Cumaru roof deck over a full-height mechanical space.',
 ]
 TITLE_EL = 'Signature Elements'
 # JOB: the design steps (frames from render_model.sh).
 STEPS = [
     {'k': 'site', 'rail': 0, 'title': 'Site and Foundation', 'fig': money(SITE_FDN), 'cap': 'Site work and foundations, with overhead and profit.',
-     'body': 'Excavation for 4 foot frost walls and a full-height mechanical space under the lounge wing. 12x24 footings, parged 10 inch walls and 4 inch slabs on 6 inch gravel. Electric feeder, water service and sanitary line each carried at 150 feet.',
      'img': 0, 'via': 1, 'note': 'Excavation, Footings and Frost Walls'},
-    {'k': 'workshop', 'rail': 1, 'title': 'Workshop', 'body': 'A double-height workshop under a standing seam roof, with exposed beams, a cupola and a mezzanine. Workbenches, desk areas and a 3D printer desk are part of the budget.', 'img': 2, 'note': 'Workshop Barn'},
-    {'k': 'lounge', 'rail': 2, 'title': 'Lounge', 'body': P['stops'][3]['body'][0], 'img': 3, 'note': 'Lounge Wing, Walls Cut Away'},
-    {'k': 'exterior', 'rail': 3, 'title': 'Exterior', 'body': P['stops'][4]['body'][0], 'img': 4, 'note': 'Complete Building'},
+    {'k': 'workshop', 'rail': 1, 'title': 'Workshop', 'img': 2, 'note': 'Workshop Barn'},
+    {'k': 'lounge', 'rail': 2, 'title': 'Lounge', 'img': 3, 'note': 'Lounge Wing, Walls Cut Away'},
+    {'k': 'exterior', 'rail': 3, 'title': 'Exterior', 'img': 4, 'note': 'Complete Building'},
 ]
 for i, (k, name, v, spec) in enumerate(ELS):
     STEPS.append({'k': k, 'rail': 4, 'title': TITLE_EL, 'sub': f'<b>{i + 1:02d} / {len(ELS):02d}</b>{E(name)}', 'fig': money(v), 'cap': spec,
@@ -196,6 +221,10 @@ for i, (k, name, v, spec) in enumerate(ELS):
 STEPS.append({'k': 'all', 'rail': 4, 'title': TITLE_EL, 'sub': 'Six Elements', 'fig': money(EL_TOTAL), 'cap': f'{pct(EL_TOTAL, BASE)} of the {money(BASE)} base budget.',
               'img': 11, 'all': True, 'note': 'Signature Elements in Montana Blue'})
 for s in STEPS: s['label'] = '02 / Design'
+# kit v1.14 (light reading): a step is a title, a figure and one caption line. No body paragraph.
+for s in STEPS:
+    if s.get('body'): die('design step carries body copy (kit v1.14): ' + s['title'])
+    if len(str(s.get('cap', '')).split()) > 14: print('note: design caption over 14 words, shorten it: ' + str(s['cap']))
 
 # JOB: Basis of Budget, Clarifications and Exclusions, from the Notes sheet. Fragments are checked against it below.
 BASIS = ['Crisp Architects SK-5 First and Second Floor Plans dated September 22, 2026 (Option 1) and the Cooper Barn Budget email of October 9, 2026.',
@@ -231,11 +260,6 @@ TIERS = [
     ('3', 'Principals', 'On every project', ['Joe Montana, Matt Nicosia and Chris Lange stay on every project.',
         'One of them is your contact from the first walkthrough to the final punch list.', 'You are never handed off.']),
 ]
-OS_FEATURES = [('RFIs, Submittals and Change Orders', 'One log. Every item dated and tracked to an answer.'), ('Schedule', 'Roadblocks flagged the day they appear.'),
-               ('Field Reports', 'Daily reports and photos from the site.'), ('Drawings and Specs', 'Indexed by sheet and section.'),
-               ('Job Cost', 'Tracked against the budget, line by line.'), ('Punch List', 'Tracked to closeout.')]
-OS_FOR = [('For Crisp Architects', 'Every question, answer and decision in one place.'), ('For the Owner', 'The budget, the schedule and the site, live.'),
-          ('For the Job', 'The field and the office work from the same information.')]
 PHONE, ADDR, EMAIL = '(845) 398-1778', '173 N. Route 9W, Congers, NY 10920', P['decisions']['email']
 
 # pre-construction, as sent on the last pre-con agreement, with nothing project-specific
@@ -245,31 +269,74 @@ PC_PHASES = [('Budget Setting and Schematic Design Budget', 'Phase 01', 20, 'You
              ('Design Development Updates', 'Phase 02', 15, 'Selections in place of allowances', 'About 2 weeks per revision', 'Selections'),
              ('Firm Trade Partner Pricing', 'Phase 03', 8, 'Bids from the trades who will build it', '3 to 4 weeks with Phase 04', 'Trade Bids'),
              ('Value Engineering, Built In', 'Phase 04', 3, 'One Guaranteed Maximum Price', 'GMP delivered', 'GMP')]
-PC_CARDS = [('Phase 01', 'Budget Setting and Schematic Design Budget', ['Budget setting session with you', 'Survey and soils engineer coordinated', 'Foundation strategy, priced', 'Options priced side by side'],
+OS_FEATURES = [('RFIs, Submittals and Change Orders', 'One log. Every item dated and tracked to an answer.'), ('Schedule', 'Roadblocks flagged the day they appear.'),
+               ('Field Reports', 'Daily reports and photos from the site.'), ('Drawings and Specs', 'Indexed by sheet and section.'),
+               ('Job Cost', 'Tracked against the budget, line by line.'), ('Punch List', 'Tracked to closeout.')]
+OS_FOR = [('For Crisp Architects', 'Every question, answer and decision in one place.'), ('For the Owner', 'The budget, the schedule and the site, live.'),
+          ('For the Job', 'The field and the office work from the same information.')]
+PC_CARDS = [('Phase 01', 'Budget Setting and Schematic Design Budget', ['Budget setting session with you', 'Foundation strategy, priced', 'Options priced side by side'],
              'Your target budget and an options menu with three scenarios.'),
-            ('Phase 02', 'Design Development Updates', ['Re-priced as the design develops', 'Your plans walked at full scale, one session on us', 'Design-to-budget meetings with your architect', 'Early flags on anything drifting over budget'],
+            ('Phase 02', 'Design Development Updates', ['Re-priced as the design develops'] + (['Your plans walked at full scale, one session on us'] if SECTIONS['walk_your_plans'] else []) + ['Design-to-budget meetings with your architect', 'Early flags on budget drift'],
              'An updated budget with more detailed line items, plus a preliminary schedule.'),
             ('Phase 03', 'Firm Trade Partner Pricing', ['Major trades bid to our subcontractors and vendors', 'Site walks with the key trades', 'Bids compared line by line'],
              'A budget backed by real pricing.'),
             ('Phase 04', 'Value Engineering, Built In', ['Money-saving options with trade-offs explained', 'Final pricing', 'Guaranteed Maximum Price proposal'],
              'Your GMP and a construction schedule.')]
-PC_PROMISES = [('Walk-Away Guarantee', 'Stop at the end of any phase. You pay only for the phases started and keep everything delivered.'),
-               ('Unused Reserve Comes Back to You', '100% of unused contingency is credited back. It is used only with written notice.'),
-               ('One Rate, No Matter Who Is on the Call', 'One hourly rate, billed for one person per meeting.')]
-PC_PRINCIPLES = [('You Are Heard From Day One', 'Your vision, your budget, your timeline. We listen before we estimate.'),
-                 ('You Understand Every Number', 'We walk you through each line item so you know exactly what drives cost and where tradeoffs live.'),
-                 ('You Own the Strategy', 'We produce options, with the price of each one, so the plan at GMP is yours.')]
+PC_PROMISES = [('Walk-Away Guarantee', 'Stop after any phase. Keep everything delivered.'),
+               ('Unused Reserve Comes Back to You', '100% of unused contingency credited back.'),
+               ('One Rate, No Matter Who Is on the Call', 'One hourly rate, one person per meeting.')]
 
 # ================================================================ assets
 SITE, NET = os.path.join(HERE, 'site'), os.path.join(HERE, 'netlify')
 for p_ in (SITE, NET): shutil.rmtree(p_, ignore_errors=True)
 A = os.path.join(SITE, 'assets'); [os.makedirs(os.path.join(A, s), exist_ok=True) for s in ('m', 'team')]
+# kit v1.16: Walk Your Plans is optional (SECTIONS['walk_your_plans']).
 # Walk Your Plans (kit v1.9): one full-scale plan session at Walk Your Plans New York, on Montana. The image is the job's own floor plan
 # laid on a floor in perspective (tools/wyp/plan_floor.py). JOB: the plan image, and the rooms named in WYP_TEXT.
 WYP = os.path.join(CB, 'wyp', 'wyp_plan.jpg')
 if os.path.exists(WYP): shutil.copy(WYP, os.path.join(A, 'wyp_plan.jpg'))
 WYP_TEXT = 'One session at Walk Your Plans in Port Chester, on Montana. Your floor plans are laid out at full scale, so you can walk every room and settle the layout before anything is framed.'
 WYP_NAME = (P['project'].get('name') if isinstance(P.get('project'), dict) else None) or str(P.get('title') or 'your project')
+# proposal PDF (kit v1.8): the one PDF in <job>/proposal/ ships with the page and becomes the Proposal PDF button, top right
+PDFS = sorted(glob.glob(os.path.join(CB, 'proposal', '*.pdf')))
+if len(PDFS) > 1: die('keep one proposal PDF in proposal/, found ' + ', '.join(os.path.basename(f) for f in PDFS))
+PDF = os.path.basename(PDFS[0]) if PDFS else None
+if PDF: shutil.copy(PDFS[0], os.path.join(A, PDF))
+CACHE = os.path.join(HERE, '.cache'); os.makedirs(os.path.join(CACHE, 'm'), exist_ok=True)
+def cached(src, dst):
+    c = os.path.join(CACHE, dst)
+    if os.path.exists(c) and os.path.getmtime(c) > os.path.getmtime(src): shutil.copy(c, os.path.join(A, dst)); return True
+    return False
+def keep(dst): shutil.copy(os.path.join(A, dst), os.path.join(CACHE, dst))
+def jpg(src, dst, width=None, q=82):
+    if cached(src, dst): return
+    im = Image.open(src).convert('RGB')
+    if width and im.width > width: im = im.resize((width, round(im.height * width / im.width)), Image.LANCZOS)
+    im.save(os.path.join(A, dst), 'JPEG', quality=q, optimize=True, progressive=True); keep(dst)
+H = os.path.join(CB, 'hero')
+jpg(os.path.join(H, 'p_se_r.png'), 'hero.jpg', q=84); jpg(os.path.join(H, 'p_se_p.png'), 'hero_p.jpg', q=82)
+for n, f in [('g1.jpg', 'hero_front.png'), ('g2.jpg', 'hero_se.png'), ('g3.jpg', 'hero_dusk.png')]: jpg(os.path.join(H, f), n, width=1760, q=80)
+if SEL: SELX.update(A=A, HERO=os.path.join(H, 'p_se_r.png')); selbuild.assets(SEL, SELX)   # JOB: the photo the crop:hero: refs read
+jpg(os.path.join(H, 'p_dusk_d.png'), 'dusk.jpg', q=80); jpg(os.path.join(H, 'p_dusk_p.png'), 'dusk_p.jpg', q=80)
+def edge_clean(im):
+    a = np.asarray(im).copy(); al = a[..., 3].astype(float); al[al < 8] = 0
+    h, w = al.shape
+    rx = np.minimum(np.clip(np.arange(w) / (0.05 * w), 0, 1), np.clip((w - 1 - np.arange(w)) / (0.10 * w), 0, 1))
+    ry = np.minimum(np.clip(np.arange(h) / (0.05 * h), 0, 1), np.clip((h - 1 - np.arange(h)) / (0.07 * h), 0, 1))
+    f = (ry[:, None] * rx[None, :]) ** 0.8
+    al = np.where(al >= 250, al, al * f); a[..., 3] = al.astype(np.uint8)   # fade only the soft shadow, so the block corners stay crisp
+    return Image.fromarray(a, 'RGBA')
+for f in FRAMES:
+    src = os.path.join(MD, f + '.png')
+    if not cached(src, 'm/' + f + '.webp'):
+        edge_clean(Image.open(src).convert('RGBA').crop(CROP)).save(os.path.join(A, 'm', f + '.webp'), 'WEBP', quality=88, method=6); keep('m/' + f + '.webp')
+for _n, _t, ph in TEAM: shutil.copy(os.path.join(KIT, 'assets', 'img', ph), os.path.join(A, 'team', ph))
+IMG = os.path.join(KIT, 'assets', 'img')   # kit v1.5: logos and fonts come from the kit
+shutil.copy(os.path.join(IMG, 'mc-wordmark-rev.png'), os.path.join(A, 'mc-white.png'))
+shutil.copy(os.path.join(IMG, 'mc-wordmark.png'), os.path.join(A, 'mc-ink.png'))
+wm = Image.open(os.path.join(IMG, 'mc-wordmark-rev.png')).convert('RGBA')
+Image.merge('RGBA', (Image.new('L', wm.size, 255),) * 3 + (wm.split()[3],)).save(os.path.join(A, 'mc-white-all.png'), optimize=True)
+font = lambda f: base64.b64encode(open(os.path.join(KIT, 'assets', 'fonts', f), 'rb').read()).decode()
 # proposal PDF (kit v1.8): the one PDF in <job>/proposal/ ships with the page and becomes the Proposal PDF button, top right
 PDFS = sorted(glob.glob(os.path.join(CB, 'proposal', '*.pdf')))
 if len(PDFS) > 1: die('keep one proposal PDF in proposal/, found ' + ', '.join(os.path.basename(f) for f in PDFS))
@@ -344,7 +411,7 @@ def view_rows(items, colors, expandable):
     for k, (it, c) in enumerate(zip(items, colors)):
         lines = ''.join(f'<li>{"<span class=\"cd num\">" + E(ln["code"]) + "</span>" if ln.get("code") else ""}<span>{E(ln["item"])}</span></li>' for ln in it['lines'])   # line items only, no line pricing
         scope = f'<p>{E(it["scope"])}</p>' if it.get('scope') else ''
-        head = f'<span class="sq"></span><div class="brow__t"><h3>{E(it["head"])}</h3>{scope}</div><span class="v num">{money(it["v"])}</span><span class="pct num">{pct(it["v"], BASE)}</span>'
+        head = f'<span class="sq"></span><div class="brow__t"><h3>{E(it["head"])}</h3>{scope}</div><span class="v num">{money(it["v"])}</span><span class="pct num">{pct(it["v"], DIRECT)}</span>'
         out += (f'<div class="brow" style="--c:{c}" data-k="{k}"><button type="button" class="brow__h" aria-expanded="false">{head}{PLUS}</button><ul class="brow__l" hidden>{lines}</ul></div>')
     return out
 gcol = ['#001a8a', '#0028cc', '#2f50d6', '#5a74df', '#8598e8', '#adbbf0', '#cfd8f7']
@@ -353,8 +420,8 @@ EL_ITEMS = [{'head': g['name'], 'scope': g['scope'], 'v': g['v'], 'lines': g['li
 MF_ITEMS = [{'head': f'{dv["n"]}  {dv["name"]}', 'v': dv['v'], 'lines': dv['lines']} for dv in DIVS]
 def segs(items, colors):
     return ''.join(f'<i style="--w:{float(it["v"] / BASE * 100):.3f}%;--c:{c};--k:{k}" title="{E(it["head"])}"></i>' for k, (it, c) in enumerate(zip(items, colors))) + \
-        f'<i style="--w:{float(OP / BASE * 100):.3f}%;--c:{OPC};--k:{len(items)}" title="Overhead and Profit"></i>'
-op_row = f'<div class="brow brow--op" style="--c:{OPC}"><div class="brow__h"><span class="sq"></span><div class="brow__t"><h3>Overhead and Profit</h3><p>15% on the direct cost.</p></div><span class="v num">{money(OP)}</span><span class="pct num">{pct(OP, BASE)}</span><span class="pl"></span></div></div>'
+        f'<i style="--w:{float(OP / BASE * 100):.3f}%;--c:{OPC};--k:{len(items)}" title="{E(" and ".join(l for l, r, a in MK_LINES if r))}"></i>'
+op_row = f'<div class="brow brow--op" style="--c:{OPC}"><div class="brow__h"><span class="sq"></span><div class="brow__t"><h3>Overhead and Profit</h3></div><span class="v num">{money(OP)}</span><span class="pct num">{pct(OP, DIRECT)}</span><span class="pl"></span></div></div>'
 
 g_ms = ''.join(f'<div style="left:{w / SPAN * 100:.3f}%"><b>Week {w}</b><span>{E(l)}</span></div>' for w, l in MS)
 g_rows = ''.join(f'<div class="g-row" data-a="{r["a"]:.3f}" data-b="{r["b"]:.3f}"><div class="g-name">{E(r["name"])}</div><div class="g-track"><i class="g-bar" style="left:{r["a"] / SPAN * 100:.3f}%;width:{(r["b"] - r["a"]) / SPAN * 100:.3f}%;--c:{r["c"]}"><b class="g-fill"></b></i></div></div>' for r in SROWS)
@@ -369,10 +436,11 @@ _al = sorted([a for a in ALLOWS if 'per SF' not in a['v']], key=lambda a: -_num(
 allow_rows = ''.join(f'<div class="aled__row" style="--w:{_num(a["v"]) / _amax * 100:.2f}%;--k:{k}"><span class="aled__n num">{k + 1:02d}</span><div class="aled__t"><h3>{E(a["label"])}</h3><p>{E(a["basis"])}</p></div><div class="aled__bar" aria-hidden="true"><i></i></div><span class="aled__v num">{E(a["v"])}</span></div>' for k, a in enumerate(_al))
 rate_cells = ''.join(f'<div class="arate__c"><div class="arate__t"><h3>{E(a["label"])}</h3><p>{E(a["basis"])}</p></div><span class="arate__v num">{E(a["v"].split(" per ")[0])}<small>per {E(a["v"].split(" per ")[1])}</small></span></div>' for a in ALLOWS if 'per SF' in a['v'])
 alts = ''.join(f'<div class="alt"><div><h3>{E(a["title"])}</h3><p>{E(a["note"])}</p></div><span class="v num">{money(a["v"])}</span><button type="button" class="tog" role="switch" aria-checked="false" data-id="{a["id"]}" aria-label="Add {E(re.sub(r"^[0-9]+[.] ", "", a["title"]))}"></button></div>' for a in ALTS)
-ncol = lambda h, items: f'<div class="ncol"><h3>{E(h)}</h3><ol>{"".join(f"<li>{E(x)}</li>" for x in items)}</ol></div>'
+ncol = lambda h, items: f'<details class="ncol"><summary><h3>{E(h)}</h3><span class="ncol__n num">{len(items):02d}</span></summary><ol>{"".join(f"<li>{E(x)}</li>" for x in items)}</ol></details>'
 tiers = ''.join(f'<article class="tier" data-r="up"><b class="tier__n num">{n}</b><h3>{E(h)}</h3><p class="tier__sub">{E(sub)}</p><ul>{"".join(f"<li>{E(x)}</li>" for x in xs)}</ul></article>' for n, h, sub, xs in TIERS)
 people = ''.join(f'<figure class="person"><div class="person__img"><img src="assets/team/{ph}" alt="{E(n)}" loading="lazy"></div><figcaption><b>{E(n)}</b><span>{E(t)}</span></figcaption></figure>' for n, t, ph in TEAM)
-os_feat = ''.join(f'<li><span class="osx__no">{k + 1:02d}</span><b>{E(a)}</b><em>{E(b)}</em></li>' for k, (a, b) in enumerate(OS_FEATURES))
+# kit v1.16: Montana OS is optional (SECTIONS['montana_os']).
+os_feat = ''.join(f'<li><span class="osx__no">{k + 1:02d}</span><b>{E(a)}</b></li>' for k, (a, b) in enumerate(OS_FEATURES))
 # Montana OS (kit v1.10): outline OS letters top right, and this job as it opens in the system, its real numbers as tiles
 OS_LETTERS = ('<svg class="osx__os" viewBox="-4 -4 548 258" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="miter">'
               '<polygon points="48,0 202,0 250,48 250,202 202,250 48,250 0,202 0,48"/><polygon points="92,62 158,62 180,84 180,166 158,188 92,188 70,166 70,84"/>'
@@ -381,7 +449,7 @@ OS_TILES = [('Base Budget', money(BASE), 'Job cost tracked against it, line by l
             ('Line Items', f'{len(LINES)}', 'Every line of this budget, in one place.', False),
             ('Schedule', f'{SCH["weeks"]} Weeks', 'From mobilization. Roadblocks flagged the day they appear.', False)]
 if SEL: OS_TILES.append(('Selections', f'{len(SEL["elements"])}', 'Each one requested and confirmed in writing.', False))
-os_tiles = ''.join(f'<div class="osx__tile{" osx__tile--navy" if hi else ""}"><span class="osx__tk">{E(k)}</span><b class="num">{E(v)}</b><p>{E(d)}</p><em aria-hidden="true">{i + 1:02d}</em></div>' for i, (k, v, d, hi) in enumerate(OS_TILES))
+os_tiles = ''.join(f'<div class="osx__tile{" osx__tile--navy" if hi else ""}"><span class="osx__tk">{E(k)}</span><b class="num">{E(v)}</b><em aria-hidden="true">{i + 1:02d}</em></div>' for i, (k, v, d, hi) in enumerate(OS_TILES))
 os_for = ''.join(f'<div><p>{E(a)}</p><h4>{E(b)}</h4></div>' for a, b in OS_FOR)
 GAL = [('g1.jpg', 'South Elevation'), ('g2.jpg', 'Southeast'), ('g3.jpg', 'Southeast at Dusk')]
 
@@ -399,7 +467,6 @@ pc_cols = ''.join(f'<div class="pcph"><span class="pcph__k">{E(k)}</span><h4>{E(
 pc_cards = ''.join(f'<article class="pccard"><div class="pccard__top"><span>{E(k)}</span><span>{E(next(p[4] for p in PC_PHASES if p[1] == k))}</span></div><h4>{E(t)}</h4><ul>{"".join(f"<li>{E(x)}</li>" for x in xs)}</ul><p class="pccard__get"><span>You Get</span>{E(g)}</p></article>' for k, t, xs, g in PC_CARDS)
 PCF_LABS = ''.join(f'<span><b>{E(short)}</b>{E(k)}</span>' for n, k, w, lk, t, short in PC_PHASES)
 pc_prom = ''.join(f'<div class="pcprom"><h4>{E(a)}</h4><p>{E(b)}</p></div>' for a, b in PC_PROMISES)
-pc_prin = ''.join(f'<div class="pcprin"><h4>{E(a)}</h4><p>{E(b)}</p></div>' for a, b in PC_PRINCIPLES)
 
 DATA = {'base': str(BASE), 'frame': list(FR), 'points': {k: PTS[k] for k, *_r in ELS}, 'bb': BB,
         'els': [{'k': k, 'name': n, 'v': str(v)} for k, n, v, s in ELS], 'rest': str(REST),
@@ -407,6 +474,81 @@ DATA = {'base': str(BASE), 'frame': list(FR), 'points': {k: PTS[k] for k, *_r in
         'job': P.get('project', {}).get('job', ''), 'email': EMAIL, 'sel': selbuild.data(SEL, SELX) if SEL else None,
         'steps': [{k: s.get(k) for k in ('label', 'title', 'sub', 'fig', 'cap', 'body', 'img', 'via', 'el', 'all', 'rail', 'note') if s.get(k) is not None} for s in STEPS]}
 
+
+# kit v1.16: optional sections (SECTIONS, set in project.json from the questions at the start of the job)
+OS_HTML = (f'''
+  <div class="osx">
+    {OS_LETTERS}
+    <div class="wrap osx__in">
+      {kick("Montana OS")}
+      <h3 class="osx__h" data-r>One system for every job.</h3>
+      <div class="osx__app" data-r="up">
+        <div class="osx__bar"><span class="osx__brand">{mark("osx__bm")}Montana <b>OS</b></span><span class="osx__job">{E(str(WYP_NAME))}</span><span class="osx__live"><i></i>Opens at Award</span></div>
+        <div class="osx__tiles">{os_tiles}</div>
+      </div>
+      <ol class="osx__feat">{os_feat}</ol>
+    </div>
+  </div>''' if SECTIONS['montana_os'] else '')
+WYP_HTML = (f'''
+<section class="wyp" id="walk" aria-label="Walk Your Plans">
+  {'<div class="wyp__img"><img src="assets/wyp_plan.jpg" alt="The first floor plan laid out at full scale" width="1800" height="930" loading="lazy" decoding="async"></div>' if os.path.exists(WYP) else ''}
+  <div class="wrap wyp__in">
+    {kick("Walk Your Plans", "kick--light")}
+    <h2 data-r>Walk the house before it's built.</h2>
+    <p data-r="up">{E(WYP_TEXT)}</p>
+    <div class="wyp__act" data-r="up"><a class="btn btn--white" href="mailto:{E(EMAIL)}?subject={E(quote('Walk Your Plans session, ' + str(WYP_NAME)))}">Book the Session {ARROW}</a><a class="wyp__link" href="https://www.walkyourplansnewyork.com/" target="_blank" rel="noopener">walkyourplansnewyork.com</a></div>
+  </div>
+</section>''' if SECTIONS['walk_your_plans'] else '')
+YTEAM_HTML = (f'''    <div class="yteam">
+      <div class="yteam__head" data-r="up"><h3 class="yteam__h">Your Team</h3><p class="yteam__p">Three principals stay on this project from the first walkthrough to the final punch list. You are never handed off.</p></div>
+      <div class="people">{people}</div>
+    </div>''' if SECTIONS['your_team'] else '')
+PCF_HTML = (f'''<section class="pcf" id="pre-construction" aria-label="Pre-Construction">
+  <div class="wrap">
+    <div class="pcf__card" data-precon role="button" tabindex="0" aria-label="See our pre-construction process">
+      {mark("pcf__m")}
+      <div class="pcf__txt">
+        <p class="kick kick--light"><i></i>Pre-Construction</p>
+        <h2 class="pcf__h">See Our <span class="nb">Pre-Construction</span> Process</h2>
+        <p class="pcf__p">Four phases. One Guaranteed Maximum Price.</p>
+        <span class="btn btn--white pcf__btn">See the Process {ARROW}</span>
+      </div>
+      <div class="pcf__viz" data-r="up" aria-hidden="true">{funnel("funnel funnel--d")}<div class="pcf__labs">{PCF_LABS}</div></div>
+    </div>
+  </div>
+</section>''' if SECTIONS['precon'] else '')
+PC_HTML = (f'''<div class="pc" id="precon" inert>
+  <div class="pc__panel" role="dialog" aria-modal="true" aria-labelledby="pc-h" data-lenis-prevent>
+    <div class="pc__bar"><img src="assets/mc-white-all.png" alt="Montana Contracting" width="200" height="12"><span>Pre-Construction · Optional Next Step</span><button type="button" class="pc__x">Close</button></div>
+    <div class="pc__hero">
+      {mark("pc__m")}
+      <div class="wrap">
+        <p class="kick kick--light"><i></i>Pre-Construction</p>
+        <h2 id="pc-h">Know the number<br><em>before</em> you build.</h2>
+      </div>
+    </div>
+    <div class="pc__body">
+      <section class="wrap pc__sec">
+        <p class="kick"><i></i>01 · Every Phase</p>
+        <h3>Your price gets more certain at every phase.</h3>
+        <div class="pc__funnel">{funnel()}<div class="pcphs">{pc_cols}</div></div>
+      </section>
+      <section class="pc__alt"><div class="wrap pc__sec">
+        <p class="kick"><i></i>02 · What Each Phase Delivers</p>
+        <div class="pccards">{pc_cards}</div>
+      </div></section>
+      <section class="wrap pc__sec">
+        <p class="kick"><i></i>03 · Our Promises</p>
+        <div class="pcproms">{pc_prom}</div>
+      </section>
+      <section class="pc__end"><div class="wrap pc__sec">
+        <h3>Ask us about <span class="nb">pre-construction.</span></h3>
+        <dl class="contact"><div><dt>Phone</dt><dd>{PHONE}</dd></div><div><dt>Email</dt><dd>{E(EMAIL)}</dd></div><div><dt>Address</dt><dd>{E(ADDR)}</dd></div></dl>
+      </div></section>
+    </div>
+  </div>
+</div>''' if SECTIONS['precon'] else '')
+BTOT_MK = ''.join(f'<div class="btot__op"' + (f' style="--c:{OPC}"' if rt else '') + f'><span>' + ('<i class="sq" aria-hidden="true"></i>' if rt else '') + f'{E(mk_label(lab, rt))}</span><span class="num">{money(a)}</span></div>' for lab, rt, a in MK_LINES)
 BODY = f'''
 <div class="loader" id="loader" aria-hidden="true"><div class="loader__in">{mark("loader__m")}<div class="loader__bar"><i id="loader-bar"></i></div></div></div>
 
@@ -442,7 +584,7 @@ BODY = f'''
         <div><dt>Budget</dt><dd class="num">{money(BASE)}</dd></div>
         <div><dt>Schedule</dt><dd>{SCH["weeks"]} Weeks</dd></div>
       </dl>
-      <div class="desc"><p class="lede">{E(PROSE[0])}</p>{"".join(f"<p data-r=up>{E(p)}</p>" for p in PROSE[1:])}</div>
+      <div class="desc"><p class="lede">{E(PROSE[0])}</p></div>
     </div>
   </div>
 </section>
@@ -486,11 +628,11 @@ BODY = f'''
     <div class="bview" data-view="el">
       <div class="sbar sbar--el" aria-hidden="true">{segs(EL_ITEMS, gcol)}</div>
       <div class="sbar sbar--mf" aria-hidden="true">{segs(MF_ITEMS, dcol)}</div>
-      <div class="pills" role="tablist" aria-label="Budget view"><button type="button" role="tab" class="pill on" aria-selected="true" data-v="el">Elements</button><button type="button" role="tab" class="pill" aria-selected="false" data-v="mf">MasterFormat</button><span class="pills__hint">Lines at direct cost. Open any line for its detail.</span></div>
+      <div class="pills" role="tablist" aria-label="Budget view"><button type="button" role="tab" class="pill on" aria-selected="true" data-v="el">Elements</button><button type="button" role="tab" class="pill" aria-selected="false" data-v="mf">MasterFormat</button></div>
       <div class="brows brows--el" role="tabpanel" aria-label="Elements">{view_rows(EL_ITEMS, gcol, True)}</div>
       <div class="brows brows--mf" role="tabpanel" aria-label="MasterFormat" hidden>{view_rows(MF_ITEMS, dcol, True)}</div>
     </div>
-    <div class="btot"><div class="btot__direct"><span>Direct Cost</span><span class="num">{money(DIRECT)}</span></div><div class="btot__op" style="--c:{OPC}"><span><i class="sq" aria-hidden="true"></i>Overhead and Profit, 15%</span><span class="num">{money(OP)}</span></div><div><span>Base Budget</span><span class="num">{money(BASE)}</span></div></div>
+    <div class="btot"><div class="btot__direct"><span>Direct Cost</span><span class="num">{money(DIRECT)}</span></div>{BTOT_MK}<div><span>Base Budget</span><span class="num">{money(BASE)}</span></div></div>
   </div>
 </section>
 
@@ -499,7 +641,7 @@ BODY = f'''
 <section class="allow" id="allowances" aria-label="Allowances">
   <div class="wrap">
     {kick("03 / Allowances")}
-    <div class="allow__top"><h2 class="sec-title" data-r>Allowances</h2><div class="allow__fig"><span class="big2 num" data-r="up">{money(ALLOW_TOTAL)}</span><p>Carried in the base budget, before overhead and profit.</p></div></div>
+    <div class="allow__top"><h2 class="sec-title" data-r>Allowances</h2><div class="allow__fig"><span class="big2 num" data-r="up">{money(ALLOW_TOTAL)}</span><p>Included in Base Budget</p></div></div>
     <div class="aled" data-r="up">{allow_rows}</div>
     <div class="arate" data-r="up"><p class="arate__h">Material Allowances, Per SF</p><div class="arate__row">{rate_cells}</div></div>
   </div>
@@ -511,14 +653,14 @@ BODY = f'''
     <div class="alts__grid">
       <div>
         <h2 class="sec-title" data-r>Alternates</h2>
-        <p class="alts__lede" data-r="up">Priced with overhead and profit. None of the three is in the base budget.</p>
+        
         <div class="alist">{alts}</div>
       </div>
       <aside class="atot" aria-label="Running total">
         <dl><div><dt>Base Budget</dt><dd class="num">{money(BASE)}</dd></div><div><dt>Requested</dt><dd class="num" id="alt-add">{money(0)}</dd></div></dl>
         <div class="atot__fig"><span class="lab">If Montana Confirms</span>{odo(money(BASE), "alt-odo")}</div>
         <button type="button" class="btn btn--navy" id="alt-send"><span>Send to Montana</span></button>
-        <p class="atot__send">{"These count with your choices in Selections. " if SEL else ""}They stay on this device until you send them.</p>
+        
       </aside>
     </div>
   </div>
@@ -558,52 +700,12 @@ BODY = f'''
     {kick("05 / Approach")}
     <h2 class="appr__h" data-r>How We Work</h2>
     <p class="appr__big" data-r="up">Every superintendent is a finish carpenter by trade.</p>
-    <p class="appr__lede" data-r="up">The person running the schedule can pick up a tool and close a gap in it. Every detail is checked by someone who has built it.</p>
-    <div class="yteam">
-      <div class="yteam__head" data-r="up"><h3 class="yteam__h">Your Team</h3><p class="yteam__p">Three principals stay on this project from the first walkthrough to the final punch list. You are never handed off.</p></div>
-      <div class="people">{people}</div>
-    </div>
-  </div>
-  <div class="osx">
-    {OS_LETTERS}
-    <div class="wrap osx__in">
-      {kick("Montana OS")}
-      <h3 class="osx__h" data-r>One system for every job.</h3>
-      <p class="osx__lede" data-r="up">We built our own operating system for scheduling, cost and field reporting. It gives the owner and the design team a live, honest view of the work as it happens.</p>
-      <div class="osx__app" data-r="up">
-        <div class="osx__bar"><span class="osx__brand">{mark("osx__bm")}Montana <b>OS</b></span><span class="osx__job">{E(str(WYP_NAME))}</span><span class="osx__live"><i></i>Opens at Award</span></div>
-        <div class="osx__tiles">{os_tiles}</div>
-      </div>
-      <ol class="osx__feat">{os_feat}</ol>
-      <div class="osx__for">{os_for}</div>
-    </div>
-  </div>
+{YTEAM_HTML}
+  </div>{OS_HTML}
 </section>
+{WYP_HTML}
 
-<section class="wyp" id="walk" aria-label="Walk Your Plans">
-  {'<div class="wyp__img"><img src="assets/wyp_plan.jpg" alt="The first floor plan laid out at full scale" width="1800" height="930" loading="lazy" decoding="async"></div>' if os.path.exists(WYP) else ''}
-  <div class="wrap wyp__in">
-    {kick("Walk Your Plans", "kick--light")}
-    <h2 data-r>Walk the house before it's built.</h2>
-    <p data-r="up">{E(WYP_TEXT)}</p>
-    <div class="wyp__act" data-r="up"><a class="btn btn--white" href="mailto:{E(EMAIL)}?subject={E(quote('Walk Your Plans session, ' + str(WYP_NAME)))}">Book the Session {ARROW}</a><a class="wyp__link" href="https://www.walkyourplansnewyork.com/" target="_blank" rel="noopener">walkyourplansnewyork.com</a></div>
-  </div>
-</section>
-
-<section class="pcf" id="pre-construction" aria-label="Pre-Construction">
-  <div class="wrap">
-    <div class="pcf__card" data-precon role="button" tabindex="0" aria-label="See our pre-construction process">
-      {mark("pcf__m")}
-      <div class="pcf__txt">
-        <p class="kick kick--light"><i></i>Pre-Construction</p>
-        <h2 class="pcf__h">See Our <span class="nb">Pre-Construction</span> Process</h2>
-        <p class="pcf__p">Four phases. Each one locks more of the price. The last is a Guaranteed Maximum Price.</p>
-        <span class="btn btn--white pcf__btn">See the Process {ARROW}</span>
-      </div>
-      <div class="pcf__viz" data-r="up" aria-hidden="true">{funnel("funnel funnel--d")}<div class="pcf__labs">{PCF_LABS}</div></div>
-    </div>
-  </div>
-</section>
+{PCF_HTML}
 
 <section class="dusk" aria-label="Thank You">
   <picture><source media="(max-width: 760px)" srcset="assets/dusk_p.jpg"><img src="assets/dusk.jpg" alt="The Cooper Barn at dusk, lit from inside" loading="lazy"></picture>
@@ -614,8 +716,7 @@ BODY = f'''
 <section class="cta" id="contact" aria-label="Next Step">
   {mark("cta__m")}
   <div class="wrap cta__in">
-    {kick("Next Step", "kick--light")}
-    <h2 data-r>{E(P["next_step"])}</h2>
+    {kick("Contact", "kick--light")}
     <div class="cta__act"><a class="btn btn--white mag" href="tel:+18453981778">Call {PHONE} {ARROW}</a></div>
     <dl class="contact"><div><dt>Phone</dt><dd>{PHONE}</dd></div><div><dt>Address</dt><dd>{E(ADDR)}</dd></div><div><dt>Email</dt><dd>{E(EMAIL)}</dd></div></dl>
   </div>
@@ -623,44 +724,7 @@ BODY = f'''
 <footer class="foot"><div class="wrap foot__in"><img src="assets/mc-white-all.png" alt="Montana Contracting" loading="lazy"><span>General Contractor · Since 1984 · NY + NJ + FL</span><span>© 2026 Montana Contracting</span></div></footer>
 </main>
 
-<div class="pc" id="precon" inert>
-  <div class="pc__panel" role="dialog" aria-modal="true" aria-labelledby="pc-h" data-lenis-prevent>
-    <div class="pc__bar"><img src="assets/mc-white-all.png" alt="Montana Contracting" width="200" height="12"><span>Pre-Construction · Optional Next Step</span><button type="button" class="pc__x">Close</button></div>
-    <div class="pc__hero">
-      {mark("pc__m")}
-      <div class="wrap">
-        <p class="kick kick--light"><i></i>Pre-Construction</p>
-        <h2 id="pc-h">Know the number<br><em>before</em> you build.</h2>
-        <p class="pc__lede">We set the budget with you first, then price the building at every design stage until we can offer a Guaranteed Maximum Price.</p>
-      </div>
-    </div>
-    <div class="pc__body">
-      <section class="wrap pc__sec">
-        <p class="kick"><i></i>01 · Every Phase</p>
-        <h3>Your price gets more certain at every phase.</h3>
-        <p class="pc__p">Each phase locks part of the price. At the end of Phase 04 the whole number is a Guaranteed Maximum Price.</p>
-        <div class="pc__funnel">{funnel()}<div class="pcphs">{pc_cols}</div></div>
-      </section>
-      <section class="pc__alt"><div class="wrap pc__sec">
-        <p class="kick"><i></i>02 · What Each Phase Delivers</p>
-        <h3>Each phase makes the estimate more accurate.</h3>
-        <p class="pc__p">Each phase ends with an updated budget and a decision about whether to keep going. You can stop at the end of any phase.</p>
-        <div class="pccards">{pc_cards}</div>
-      </div></section>
-      <section class="wrap pc__sec">
-        <p class="kick"><i></i>03 · Our Promises</p>
-        <h3>Built in from the first phase.</h3>
-        <div class="pcproms">{pc_prom}</div>
-        <div class="pcprins">{pc_prin}</div>
-      </section>
-      <section class="pc__end"><div class="wrap pc__sec">
-        <h3>Ask us about <span class="nb">pre-construction.</span></h3>
-        <p class="pc__p">One of the three principals will walk you through it.</p>
-        <dl class="contact"><div><dt>Phone</dt><dd>{PHONE}</dd></div><div><dt>Email</dt><dd>{E(EMAIL)}</dd></div><div><dt>Address</dt><dd>{E(ADDR)}</dd></div></dl>
-      </div></section>
-    </div>
-  </div>
-</div>
+{PC_HTML}
 
 <script type="application/json" id="cb-data">{json.dumps(DATA).replace("</", "<\\/")}</script>
 <script>{open(os.path.join(KIT, "vendor", "lenis", "lenis.min.js")).read()}</script>
@@ -670,7 +734,7 @@ BODY = f'''
 FONTS = f'''@font-face {{ font-family: "TT Commons Pro"; font-weight: 400; font-style: normal; font-display: block; src: url(data:font/woff2;base64,{font("TTCommonsPro-Regular.woff2")}) format("woff2"); }}
 @font-face {{ font-family: "TT Commons Pro"; font-weight: 600 700; font-style: normal; font-display: block; src: url(data:font/woff2;base64,{font("TTCommonsPro-Bold.woff2")}) format("woff2"); }}
 '''
-CSS = FONTS + open(os.path.join(HERE, 'src', 'style.css')).read()
+CSS = FONTS + re.sub(r'/\*.*?\*/', '', open(os.path.join(HERE, 'src', 'style.css')).read(), flags=re.S)   # kit v1.16: no comments in the page source
 def tiny(name, w):   # a ~1 KB blurred stand-in, painted under the hero photo until it is decoded
     import io, base64
     im = Image.open(os.path.join(SITE, 'assets', name)).convert('RGB'); im = im.resize((w, max(1, round(im.height * w / im.width))), Image.LANCZOS)
@@ -684,6 +748,13 @@ TITLE = 'Cooper Barn Presentation'
 HEAD = (PRELOAD + f'<title>{TITLE}</title>\n<meta name="claude:viewport-fit-sides" content="cover">\n<link rel="icon" href="{FAVICON}">\n'
         f'<meta name="description" content="Montana Contracting budget proposal for The Cooper Barn, 194 Titicus Road, North Salem, NY.">\n<style>\n{CSS}\n</style>\n')
 
+# kit v1.16: every material allowance named in the notes has a card
+_cards = {a['label'].lower() for a in ALLOWS}
+for _t in [x for x in CLAR if 'allowance' in x.lower()]:
+    for _name, _rate in re.findall(r'([A-Za-z][A-Za-z ]+?) \$([\d,]+\.\d\d)/SF', _t):
+        _n = _name.strip().lower().replace('and ', '')
+        if not any(_n == c or _n in c or c in _n for c in _cards): die(f'material allowance "{_name.strip()}" (${_rate}/SF) is in the notes but has no allowance card')
+
 # ================================================================ house rules on everything a client reads
 BANNED = ['stunning', 'beautiful', 'breathtaking', 'luxury', 'luxurious', 'bespoke', 'elevated', 'curated', 'seamless', 'passion', 'dream', 'journey',
           'exceptional', 'world-class', 'premier', 'cutting-edge', 'unparalleled', 'empower', 'transform', 'peace of mind', 'potential risk', 'novaterra',
@@ -692,13 +763,13 @@ text = re.sub(r'<script.*?</script>|<svg.*?</svg>', ' ', BODY, flags=re.S)
 text = html.unescape(re.sub(r'<[^>]+>', ' ', text))
 text += ' ' + ' '.join(str(v) for s in STEPS for v in s.values() if isinstance(v, str))
 bad = [name for ch, name in [('—', 'em dash'), ('–', 'en dash'), (';', 'semicolon'), ('!', 'exclamation'), ('?', 'question')] if ch in text]
-bad += ['banned: ' + w for w in BANNED if re.search(r'\b' + re.escape(w) + r'\b', text.lower())]
+bad += ['banned: ' + w for w in BANNED if re.search(r'\b' + re.escape(w) + r'\b', re.sub('|'.join(re.escape(aw.lower()) for aw in P.get('allow_words', [])) or '(?!x)x', ' ', text.lower()))]
 if re.search(r'\b\w+, not \w+', text): bad.append('X, not Y')
 if bad: die('copy rules: ' + ', '.join(bad))
 if len(PROSE[0].split('. ')[0]) > 155: die('project snippet sentence is over 155 characters')
 words = sum(len(p.split()) for p in PROSE)
-if not 90 <= words <= 220: die(f'project description is {words} words')
-for v in [money(BASE), money(DIRECT), money(OP), money(EL_TOTAL), money(REST), money(SITE_FDN), money(ALLOW_TOTAL)] + [money(e[2]) for e in ELS]:
+if len(PROSE) != 1 or not 40 <= words <= 80: die(f'project description is {len(PROSE)} paragraphs, {words} words (kit v1.14: one paragraph, 40 to 80 words)')
+for v in [money(BASE), money(DIRECT)] + [money(a) for l, r, a in MK_LINES if r] + [ money(EL_TOTAL), money(REST), money(SITE_FDN), money(ALLOW_TOTAL)] + [money(e[2]) for e in ELS]:
     if v not in BODY: die('figure missing from the page: ' + v)
 _vis = re.sub(r'<script.*?</script>', '', BODY, flags=re.S)
 _nc = re.search(r'\$\d[\d,]*(?![\d,]*\.\d\d)', _vis)
@@ -720,3 +791,15 @@ json.dump({'base': money(BASE), 'direct': money(DIRECT), 'op': money(OP), 'eleme
           open(os.path.join(HERE, 'figures.json'), 'w'), indent=1)
 size = sum(os.path.getsize(os.path.join(dp, f)) for dp, _d, fs in os.walk(SITE) for f in fs)
 print(f'built: page {os.path.getsize(os.path.join(SITE, "index.html")) / 1e6:.2f} MB, site {size / 1e6:.2f} MB, {len(STEPS)} steps, crop {CROP}, zip {os.path.getsize(z) / 1e6:.2f} MB')
+
+# kit v1.16: hand-off for the PDF proposal (generate-proposal-mcc): the same scope wording, allowances, alternates and VE the page shows
+_sc = {}
+for l in LINES.values():
+    n = clean(l['item'], l['code'])
+    _sc.setdefault(l['code'], [])
+    if n not in _sc[l['code']]: _sc[l['code']].append(n)
+json.dump({'divs': [{'n': dv['n'], 'name': dv['name'], 'v': str(dv['v'])} for dv in DIVS], 'lines': _sc}, open(os.path.join(HERE, 'scope_lines.json'), 'w'), indent=1)
+json.dump({'allowances': ALLOWS, 'allowance_total': str(ALLOW_TOTAL),
+           'alternates': [{'id': a['id'], 'title': a['title'], 'note': a.get('note', ''), 'v': str(a['v'])} for a in globals().get('ALTS', [])],
+           've': [{'title': a['title'], 'note': a.get('note', ''), 'v': str(a['v'])} for a in globals().get('VES', [])],
+           'markups': [{'label': mk_label(l, r), 'amount': str(a)} for l, r, a in MK_LINES]}, open(os.path.join(HERE, 'proposal_lists.json'), 'w'), indent=1)
