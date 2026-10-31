@@ -26,7 +26,7 @@ Nothing is copied into a second location, so nothing drifts.
 | [`bldg-creative`](plugins/bldg-creative) | 2 |  | Creative work: image prompting, voice, and the gauntlet loop. |
 | [`bldg-distills`](plugins/bldg-distills) | 12 |  | Distilled one-page methods pulled out of longer sources. |
 | [`bldg-documents`](plugins/bldg-documents) | 1 |  | Document generation and release. |
-| [`bldg-house`](plugins/bldg-house) | 4 |  | House build skills: project and site level-ups, page teardowns, and the cloud sync auditor. |
+| [`bldg-house`](plugins/bldg-house) | 5 |  | House build skills: project and site level-ups, page teardowns, the cloud sync auditor, and say-it-once for app screens that repeat themselves. |
 | [`bldg-maker-school`](plugins/bldg-maker-school) | 46 |  | The Maker School library: growth, offers, funnels, outreach and operating skills. |
 | [`bldg-marketing`](plugins/bldg-marketing) | 25 |  | Marketing: funnels, positioning, SEO, ads, content and speed to lead. |
 | [`bldg-social`](plugins/bldg-social) | 4 |  | Social: posting, scheduling and the scroll-stop technique. |
